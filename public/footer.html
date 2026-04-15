@@ -1,0 +1,116 @@
+<style>
+  .global-footer {
+    background: #ececf1;
+    color: #4b5565;
+    padding: 20px;
+    font-family: 'Arial Rounded MT Bold', 'Arial Rounded MT', Arial, sans-serif;
+  }
+
+  .global-footer-inner {
+    width: min(1200px, 96vw);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 12px;
+  }
+
+  .global-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .global-footer-brand img {
+    width: 48px;
+    height: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .global-footer-meta {
+    display: grid;
+    gap: 6px;
+  }
+
+  .global-footer-title {
+    margin: 0;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  .global-footer-subtitle {
+    margin: 0;
+    color: #4b5565;
+  }
+
+  .global-footer-group {
+    margin: 0;
+    color: #374151;
+    font-weight: 600;
+  }
+
+  .global-footer-links {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding-top: 2px;
+  }
+
+  .global-footer a {
+    color: #1f2937;
+    text-decoration: none;
+  }
+
+  .global-footer a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 640px) {
+    .global-footer {
+      padding: 16px;
+    }
+
+    .global-footer-inner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .global-footer-brand img {
+      width: 42px;
+    }
+  }
+</style>
+<footer class="global-footer">
+  <div class="global-footer-inner">
+    <div class="global-footer-brand">
+      <img src="/resources/logos/logo_vertical.png" alt="Trip2Guide logo" />
+      <div class="global-footer-meta">
+        <p class="global-footer-title">Trip2Guide</p>
+        <p class="global-footer-subtitle">© 2026 Trip2Guide. All rights reserved.</p>
+        <p class="global-footer-group">G1 - EA - QP2026</p>
+      </div>
+    </div>
+
+    <div class="global-footer-links">
+      <a
+        href="https://www.upc.edu/ca/avis-legal/condicions-dus-i-privacitat"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Privacy and Terms"
+      >
+        Privacy & Terms
+      </a>
+      <a
+        href="https://joelrojasllauradoupc.github.io/eag1qp2526.github.io/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Blog"
+      >
+        Blog
+      </a>
+    </div>
+  </div>
+</footer>

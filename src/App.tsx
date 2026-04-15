@@ -1,301 +1,150 @@
-import { useMemo, useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
-import { FaApple } from 'react-icons/fa';
+import { useEffect, useMemo, useState } from 'react';
 import './index.css';
-import { loginUser, registerUser } from './services/authService';
-import type { AuthMode, AuthUser } from './types/auth';
-
-interface RegisterFormState {
-  name: string;
-  surname: string;
-  username: string;
-  email: string;
-  password: string;
-}
-
-interface LoginFormState {
-  email: string;
-  password: string;
-}
-
-type AuthStep = 'email' | 'details';
-
-const initialRegisterState: RegisterFormState = {
-  name: '',
-  surname: '',
-  username: '',
-  email: '',
-  password: ''
-};
-
-const initialLoginState: LoginFormState = {
-  email: '',
-  password: ''
-};
+import FeaturedRoutesSection from './components/FeaturedRoutesSection';
+import PopularRoutesSection from './components/PopularRoutesSection';
+import SearchArea from './components/SearchArea';
+import SearchResults from './components/SearchResults';
+import TopNav from './components/TopNav';
+import VisitedCitiesSection from './components/VisitedCitiesSection';
+import { emptyHomeData, routeDataProvider } from './services/routeService';
+import type { HomeRoutesData, Route } from './types/route';
+import { sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 
 function App() {
-  const [mode, setMode] = useState<AuthMode>('register');
-  const [step, setStep] = useState<AuthStep>('email');
-  const [registerForm, setRegisterForm] = useState<RegisterFormState>(initialRegisterState);
-  const [loginForm, setLoginForm] = useState<LoginFormState>(initialLoginState);
-  const [message, setMessage] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const activeTopNav: TopNavKey = 'home';
+  const [homeData, setHomeData] = useState<HomeRoutesData>(emptyHomeData);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [sortOption, setSortOption] = useState<SortOption | null>(null);
 
-  const screenText = useMemo(() => {
-    if (mode === 'register') {
+  const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
+  const newestRoutes = homeData.routes.slice(-3);
+  const routesById = new Map(homeData.routes.map((route) => [route._id, route]));
+  const configuredPopularRoutes = homeData.popularRouteIds
+    .map((routeId) => routesById.get(routeId))
+    .filter((route): route is Route => Boolean(route));
+  const popularRoutes =
+    configuredPopularRoutes.length > 0
+      ? configuredPopularRoutes.slice(0, 5)
+      : homeData.routes.slice(0, 5);
+  const nearbyLocations = useMemo(() => {
+    const groupedByCity = new Map<string, Route[]>();
+
+    for (const route of homeData.routes) {
+      const cityKey = `${route.city}-${route.country}`;
+      const current = groupedByCity.get(cityKey) ?? [];
+      current.push(route);
+      groupedByCity.set(cityKey, current);
+    }
+
+    return [...groupedByCity.entries()].map(([cityKey, routes]) => {
+      const randomIndex = Math.floor(Math.random() * routes.length);
+      const chosenRoute = routes[randomIndex];
+
       return {
-        title: 'Crear una cuenta',
-        subtitle: 'Introduce tu correo electrónico para registrarte en esta aplicación',
-        submitLabel: step === 'email' ? 'Continuar' : 'Crear cuenta'
+        id: cityKey,
+        city: chosenRoute.city,
+        country: chosenRoute.country,
+        cityImage: chosenRoute.cover_image
       };
-    }
+    });
+  }, [homeData.routes]);
+  const normalizedSearchQuery = searchInput.trim().toLowerCase();
+  const hasActiveSearch = normalizedSearchQuery.length > 0;
+  const hasActiveFilter = sortOption !== null;
+  const searchResults = normalizedSearchQuery
+    ? homeData.routes.filter((route) => {
+        const searchableTags = route.tags.join(' ').toLowerCase();
+        return (
+          route.city.toLowerCase().includes(normalizedSearchQuery) ||
+          route.name.toLowerCase().includes(normalizedSearchQuery) ||
+          route.description.toLowerCase().includes(normalizedSearchQuery) ||
+          searchableTags.includes(normalizedSearchQuery)
+        );
+      })
+    : [];
+  const visibleSearchResults = sortRoutes(searchResults, sortOption);
 
-    return {
-      title: 'Iniciar la sesión',
-      subtitle: 'Introduce tu correo electrónico para iniciar',
-      submitLabel: step === 'email' ? 'Continuar' : 'Iniciar sesión'
-    };
-  }, [mode, step]);
-
-  const resetMessages = (): void => {
-    setMessage('');
-    setErrorMessage('');
+  const clearSearch = (): void => {
+    setSearchInput('');
+    setSortOption(null);
+    setIsFilterOpen(false);
   };
 
-  const switchMode = (nextMode: AuthMode): void => {
-    setMode(nextMode);
-    setStep('email');
-    setRegisterForm(initialRegisterState);
-    setLoginForm(initialLoginState);
-    resetMessages();
+  const handleSelectSortOption = (option: SortOption): void => {
+    setSortOption(option);
+    setIsFilterOpen(false);
   };
 
-  const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = event.target;
+  useEffect(() => {
+    let mounted = true;
 
-    setRegisterForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    const loadHomeData = async (): Promise<void> => {
+      try {
+        const result = await routeDataProvider.getHomeData();
 
-  const handleLoginChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = event.target;
-
-    setLoginForm((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleContinue = (): void => {
-    resetMessages();
-
-    if (mode === 'register' && !registerForm.email.trim()) {
-      setErrorMessage('Introduce un email válido.');
-      return;
-    }
-
-    if (mode === 'login' && !loginForm.email.trim()) {
-      setErrorMessage('Introduce un email válido.');
-      return;
-    }
-
-    setStep('details');
-  };
-
-  const handleSubmit = async (): Promise<void> => {
-    resetMessages();
-    setIsSubmitting(true);
-
-    try {
-      if (mode === 'register') {
-        if (
-          !registerForm.name.trim() ||
-          !registerForm.surname.trim() ||
-          !registerForm.username.trim() ||
-          !registerForm.email.trim() ||
-          !registerForm.password.trim()
-        ) {
-          throw new Error('Completa todos los campos del registro.');
+        if (mounted) {
+          setHomeData(result);
+          setError('');
+        }
+      } catch (loadError) {
+        if (!mounted) {
+          return;
         }
 
-        const createdUser = await registerUser({
-          name: registerForm.name.trim(),
-          surname: registerForm.surname.trim(),
-          username: registerForm.username.trim(),
-          email: registerForm.email.trim(),
-          password: registerForm.password
-        });
-
-        setMessage(`El usuario ${createdUser.name} se ha registrado correctamente.`);
-        setRegisterForm(initialRegisterState);
-        setStep('email');
-        return;
+        if (loadError instanceof Error) {
+          setError(loadError.message);
+        } else {
+          setError('Unable to load home information.');
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
+    };
 
-      if (!loginForm.email.trim() || !loginForm.password.trim()) {
-        throw new Error('Completa email y contraseña.');
-      }
+    void loadHomeData();
 
-      const loginResult = await loginUser(loginForm.email.trim(), loginForm.password);
-
-      setCurrentUser(loginResult.user);
-      setMessage(`El usuario ${loginResult.user.name} ha iniciado sesión correctamente.`);
-      setLoginForm(initialLoginState);
-      setStep('email');
-    } catch (error) {
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage('Ha ocurrido un error inesperado.');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleMainButtonClick = async (): Promise<void> => {
-    if (step === 'email') {
-      handleContinue();
-      return;
-    }
-
-    await handleSubmit();
-  };
-
-  const currentEmailValue = mode === 'register' ? registerForm.email : loginForm.email;
-  const currentEmailOnChange = mode === 'register' ? handleRegisterChange : handleLoginChange;
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
-    <main className="auth-page">
-      <section className="auth-card">
-        <h1 className="brand-title">Trip2Guide</h1>
+    <main className="home-page">
+      <TopNav activeTopNav={activeTopNav} />
 
-        <div className="auth-box">
-          <div className="heading-block">
-            <h2>{screenText.title}</h2>
-            <p>{screenText.subtitle}</p>
-          </div>
+      <section className="home-content">
+        <SearchArea
+          searchInput={searchInput}
+          isSearchActive={isSearchActive}
+          hasActiveFilter={hasActiveFilter}
+          isFilterOpen={isFilterOpen}
+          sortOption={sortOption}
+          onSearchChange={setSearchInput}
+          onSearchFocus={() => setIsSearchFocused(true)}
+          onSearchBlur={() => setIsSearchFocused(false)}
+          onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
+          onClearSearch={clearSearch}
+          onSelectSortOption={handleSelectSortOption}
+        />
 
-          {step === 'email' ? (
-            <input
-              className="auth-input"
-              type="email"
-              name="email"
-              placeholder="email@domain.com"
-              value={currentEmailValue}
-              onChange={currentEmailOnChange}
-            />
-          ) : mode === 'register' ? (
-            <div className="stack-fields">
-              <input
-                className="auth-input"
-                type="text"
-                name="name"
-                placeholder="Nombre"
-                value={registerForm.name}
-                onChange={handleRegisterChange}
-              />
-              <input
-                className="auth-input"
-                type="text"
-                name="surname"
-                placeholder="Apellidos"
-                value={registerForm.surname}
-                onChange={handleRegisterChange}
-              />
-              <input
-                className="auth-input"
-                type="text"
-                name="username"
-                placeholder="Nombre de usuario"
-                value={registerForm.username}
-                onChange={handleRegisterChange}
-              />
-              <input
-                className="auth-input"
-                type="password"
-                name="password"
-                placeholder="Contraseña"
-                value={registerForm.password}
-                onChange={handleRegisterChange}
-              />
-            </div>
-          ) : (
-            <div className="stack-fields">
-              <input
-                className="auth-input"
-                type="password"
-                name="password"
-                placeholder="Contraseña"
-                value={loginForm.password}
-                onChange={handleLoginChange}
-              />
-            </div>
-          )}
+        {hasActiveSearch ? <SearchResults routes={visibleSearchResults} /> : null}
 
-          <button
-            className="primary-button"
-            type="button"
-            onClick={handleMainButtonClick}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Procesando...' : screenText.submitLabel}
-          </button>
+        {isLoading ? <p className="status-message">Loading home content...</p> : null}
+        {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
-          <div className="divider">
-            <span className="line" />
-            <span className="divider-text">o</span>
-            <span className="line" />
-          </div>
-
-          <div className="social-buttons">
-            <button type="button" className="social-button" disabled>
-              <FcGoogle size={20} />
-              <span>Continuar con Google</span>
-            </button>
-
-            <button type="button" className="social-button" disabled>
-              <FaApple size={20} />
-              <span>Continuar con Apple</span>
-            </button>
-          </div>
-
-          <p className="legal-text">
-            Al hacer clic en continuar, aceptas nuestros <strong>Términos de Servicio</strong> y
-            nuestra <strong>Política de Privacidad</strong>
-          </p>
-
-          <div className="bottom-switch">
-            <button
-              type="button"
-              className={mode === 'register' ? 'switch-link active' : 'switch-link'}
-              onClick={() => switchMode('register')}
-            >
-              Register
-            </button>
-
-            <button
-              type="button"
-              className={mode === 'login' ? 'switch-link active' : 'switch-link'}
-              onClick={() => switchMode('login')}
-            >
-              Login
-            </button>
-          </div>
-
-          {currentUser ? (
-            <div className="feedback success">
-              Sesión activa: {currentUser.name} ({currentUser.email})
-            </div>
-          ) : null}
-
-          {message ? <div className="feedback success">{message}</div> : null}
-          {errorMessage ? <div className="feedback error">{errorMessage}</div> : null}
-        </div>
+        {!isLoading && !error && !hasActiveSearch ? (
+          <>
+            <FeaturedRoutesSection routes={newestRoutes} />
+            <VisitedCitiesSection nearbyLocations={nearbyLocations} />
+            <PopularRoutesSection routes={popularRoutes} />
+          </>
+        ) : null}
       </section>
     </main>
   );

@@ -13,7 +13,7 @@ export const registerUser = async (payload: RegisterPayload): Promise<CreatedUse
   });
 
   if (!response.ok) {
-    let message = 'No se ha podido registrar el usuario.';
+    let message = 'Unable to register the user.';
 
     try {
       const errorData = await response.json();
@@ -26,7 +26,7 @@ export const registerUser = async (payload: RegisterPayload): Promise<CreatedUse
         message = errorData.error.details[0].message;
       }
     } catch {
-      // sin cambios
+      // Keep fallback message.
     }
 
     throw new Error(message);
@@ -51,7 +51,7 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
 
   if (!response.ok) {
     const message =
-      data?.message || data?.error?.details?.[0]?.message || 'Credenciales incorrectas.';
+      data?.message || data?.error?.details?.[0]?.message || 'Invalid credentials.';
     throw new Error(message);
   }
 
