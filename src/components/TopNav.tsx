@@ -91,7 +91,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
               alt=""
               aria-hidden="true"
             />
-            <span className="nav-label">User</span>
+            <span className="nav-label">{user?.username ?? 'User'}</span>
           </button>
 
           {menuOpen ? (
