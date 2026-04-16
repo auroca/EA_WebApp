@@ -32,3 +32,8 @@ export interface LoginResponse {
   token: string;
   user: AuthUser;
 }
+
+export interface StoredSession {
+  token: string;
+  user: AuthUser;
+}

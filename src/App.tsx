@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import './index.css';
+import AuthPage from './components/AuthPage';
 import FeaturedRoutesSection from './components/FeaturedRoutesSection';
 import PopularRoutesSection from './components/PopularRoutesSection';
 import SearchArea from './components/SearchArea';
@@ -7,10 +8,17 @@ import SearchResults from './components/SearchResults';
 import TopNav from './components/TopNav';
 import VisitedCitiesSection from './components/VisitedCitiesSection';
 import { emptyHomeData, routeDataProvider } from './services/routeService';
+import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 
+const getCurrentPath = (): string => {
+  const path = window.location.pathname.trim();
+  return path === '' ? '/' : path;
+};
+
 function App() {
+  const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
   const activeTopNav: TopNavKey = 'home';
   const [homeData, setHomeData] = useState<HomeRoutesData>(emptyHomeData);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -30,6 +38,7 @@ function App() {
     configuredPopularRoutes.length > 0
       ? configuredPopularRoutes.slice(0, 5)
       : homeData.routes.slice(0, 5);
+
   const nearbyLocations = useMemo(() => {
     const groupedByCity = new Map<string, Route[]>();
 
@@ -52,9 +61,11 @@ function App() {
       };
     });
   }, [homeData.routes]);
+
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const hasActiveSearch = normalizedSearchQuery.length > 0;
   const hasActiveFilter = sortOption !== null;
+
   const searchResults = normalizedSearchQuery
     ? homeData.routes.filter((route) => {
         const searchableTags = route.tags.join(' ').toLowerCase();
@@ -66,6 +77,7 @@ function App() {
         );
       })
     : [];
+
   const visibleSearchResults = sortRoutes(searchResults, sortOption);
 
   const clearSearch = (): void => {
@@ -79,7 +91,31 @@ function App() {
     setIsFilterOpen(false);
   };
 
+  const navigateTo = (path: string): void => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+      setCurrentPath(path);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  };
+
   useEffect(() => {
+    const handlePopState = (): void => {
+      setCurrentPath(getCurrentPath());
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentPath !== '/') {
+      return;
+    }
+
     let mounted = true;
 
     const loadHomeData = async (): Promise<void> => {
@@ -112,7 +148,25 @@ function App() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [currentPath]);
+
+  if (currentPath === '/login') {
+    return (
+      <AuthPage
+        mode={'login' as AuthMode}
+        onNavigate={navigateTo}
+      />
+    );
+  }
+
+  if (currentPath === '/register') {
+    return (
+      <AuthPage
+        mode={'register' as AuthMode}
+        onNavigate={navigateTo}
+      />
+    );
+  }
 
   return (
     <main className="home-page">
