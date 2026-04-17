@@ -48,14 +48,48 @@ function TopNav({ activeTopNav }: TopNavProps) {
           .filter((item) => item.key !== 'user')
           .map((item) => {
             const isSelected = item.key === activeTopNav;
+            const className = isSelected ? 'nav-item nav-item-active' : 'nav-item';
+
+            if (item.key === 'home') {
+              return (
+                <a
+                  key={item.key}
+                  className={className}
+                  aria-label={item.label}
+                  href="/index.html"
+                >
+                  <img
+                    className="nav-icon"
+                    src={getTopNavIconPath(item.icon, isSelected)}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                  <span className="nav-label">{item.label}</span>
+                </a>
+              );
+            }
+
+            if (item.key === 'routes') {
+              return (
+                <a
+                  key={item.key}
+                  className={className}
+                  aria-label={item.label}
+                  href="/route.html"
+                >
+                  <img
+                    className="nav-icon"
+                    src={getTopNavIconPath(item.icon, isSelected)}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                  <span className="nav-label">{item.label}</span>
+                </a>
+              );
+            }
 
             return (
-              <button
-                key={item.key}
-                type="button"
-                className={isSelected ? 'nav-item nav-item-active' : 'nav-item'}
-                aria-label={item.label}
-              >
+              <button key={item.key} type="button" className={className} aria-label={item.label}>
                 <img
                   className="nav-icon"
                   src={getTopNavIconPath(item.icon, isSelected)}

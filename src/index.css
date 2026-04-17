@@ -365,16 +365,19 @@ a {
 }
 
 .search-result-item {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 12px;
   background: #ffffff;
   border: 1px solid #e4e7f0;
   border-radius: 12px;
   padding: 10px;
 }
 
-.search-result-item > img {
+.search-result-link {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 12px;
+}
+
+.search-result-link > img {
   width: 112px;
   height: 82px;
   border-radius: 10px;
@@ -457,6 +460,10 @@ a {
   min-width: 0;
 }
 
+.route-card-link {
+  display: block;
+}
+
 .featured-card {
   width: 100%;
   height: 150px;
@@ -529,6 +536,10 @@ a {
   text-align: center;
 }
 
+.category-link {
+  display: block;
+}
+
 .category-image-wrap {
   width: 96px;
   height: 96px;
@@ -565,7 +576,7 @@ a {
   min-width: 0;
 }
 
-.popular-card > img {
+.popular-card img {
   width: 100%;
   height: 132px;
   border-radius: 10px;
@@ -799,10 +810,30 @@ a {
   font-weight: 700;
 }
 
+.auth-main-page-button {
+  margin-top: 14px;
+  width: 100%;
+  height: 38px;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.auth-main-page-button:hover {
+  background: #f5f5f5;
+}
+
 .auth-error {
   margin: 0;
   font-size: 12px;
   color: #c1121f;
+}
+
+.auth-route-warning {
+  margin-bottom: 12px;
 }
 
 @media (max-width: 980px) {

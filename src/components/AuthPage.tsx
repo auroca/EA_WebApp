@@ -1,7 +1,8 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { loginUser, registerUser } from '../services/authService';
+import { routeDataProvider } from '../services/routeService';
 import type { AuthMode } from '../types/auth';
 
 interface AuthPageProps {
@@ -11,6 +12,30 @@ interface AuthPageProps {
 
 function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const isLogin = mode === 'login';
+  const redirectPath = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = (params.get('redirect') ?? '').trim();
+
+    if (!redirect.startsWith('/')) {
+      return '';
+    }
+
+    return redirect;
+  }, []);
+  const routeIdFromRedirect = useMemo(() => {
+    if (!redirectPath.startsWith('/route.html')) {
+      return '';
+    }
+
+    try {
+      const redirectUrl = new URL(redirectPath, window.location.origin);
+      return (redirectUrl.searchParams.get('id') ?? '').trim();
+    } catch {
+      return '';
+    }
+  }, [redirectPath]);
+
+  const [routeNameFromRedirect, setRouteNameFromRedirect] = useState<string>('');
   const [step, setStep] = useState<number>(1);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
@@ -21,23 +46,54 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const [username, setUsername] = useState<string>('');
 
   const title = useMemo(() => {
-    return isLogin ? 'Iniciar la sesión' : 'Crear una cuenta';
+    return isLogin ? 'Sign in' : 'Create an account';
   }, [isLogin]);
 
   const subtitle = useMemo(() => {
     return isLogin
-      ? 'Introduce tu correo electrónico para iniciar'
-      : 'Introduce tu correo electrónico para registrarte en esta aplicación';
+      ? 'Enter your email to continue'
+      : 'Enter your email to sign up in this app';
   }, [isLogin]);
 
-  const legalText = 'Al hacer clic en continuar, aceptas nuestros Términos de Servicio y nuestra Política de Privacidad';
+  const legalText =
+    'By clicking continue, you agree to our Terms of Service and Privacy Policy.';
+
+  useEffect(() => {
+    if (!routeIdFromRedirect) {
+      setRouteNameFromRedirect('');
+      return;
+    }
+
+    let mounted = true;
+
+    const loadRouteName = async (): Promise<void> => {
+      try {
+        const data = await routeDataProvider.getHomeData();
+        const matchedRoute = data.routes.find((route) => route._id === routeIdFromRedirect);
+
+        if (mounted) {
+          setRouteNameFromRedirect(matchedRoute?.name ?? 'this route');
+        }
+      } catch {
+        if (mounted) {
+          setRouteNameFromRedirect('this route');
+        }
+      }
+    };
+
+    void loadRouteName();
+
+    return () => {
+      mounted = false;
+    };
+  }, [routeIdFromRedirect]);
 
   const handleContinue = (event: FormEvent): void => {
     event.preventDefault();
     setError('');
 
     if (!email.trim()) {
-      setError('Introduce un correo electrónico.');
+      setError('Please enter an email address.');
       return;
     }
 
@@ -52,7 +108,13 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
     try {
       if (isLogin) {
         await loginUser(email.trim(), password);
-        onNavigate('/');
+
+        if (redirectPath) {
+          window.location.href = redirectPath;
+        } else {
+          onNavigate('/');
+        }
+
         return;
       }
 
@@ -69,7 +131,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
       if (submitError instanceof Error) {
         setError(submitError.message);
       } else {
-        setError('Ha ocurrido un error inesperado.');
+        setError('An unexpected error occurred.');
       }
     } finally {
       setSubmitting(false);
@@ -90,6 +152,11 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
         <section className="auth-card">
           <h1 className="auth-title">{title}</h1>
           <p className="auth-subtitle">{subtitle}</p>
+          {routeIdFromRedirect ? (
+            <p className="auth-error auth-route-warning">
+              Login to view {routeNameFromRedirect || 'this route'}.
+            </p>
+          ) : null}
 
           {step === 1 ? (
             <form className="auth-form" onSubmit={handleContinue}>
@@ -105,7 +172,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
               {error ? <p className="auth-error">{error}</p> : null}
 
               <button type="submit" className="auth-primary-button">
-                Continuar
+                Continue
               </button>
             </form>
           ) : (
@@ -124,7 +191,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   <input
                     className="auth-input"
                     type="text"
-                    placeholder="Nombre"
+                    placeholder="First name"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     autoComplete="given-name"
@@ -132,7 +199,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   <input
                     className="auth-input"
                     type="text"
-                    placeholder="Apellidos"
+                    placeholder="Last name"
                     value={surname}
                     onChange={(event) => setSurname(event.target.value)}
                     autoComplete="family-name"
@@ -151,7 +218,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
               <input
                 className="auth-input"
                 type="password"
-                placeholder="Contraseña"
+                placeholder="Password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -168,7 +235,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                     setError('');
                   }}
                 >
-                  Atrás
+                  Back
                 </button>
 
                 <button
@@ -177,10 +244,10 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   disabled={submitting}
                 >
                   {submitting
-                    ? 'Cargando...'
+                    ? 'Loading...'
                     : isLogin
-                      ? 'Iniciar sesión'
-                      : 'Crear cuenta'}
+                      ? 'Sign in'
+                      : 'Create account'}
                 </button>
               </div>
             </form>
@@ -188,18 +255,18 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
 
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">o</span>
+            <span className="auth-divider-text">or</span>
             <span className="auth-divider-line" />
           </div>
 
           <button type="button" className="auth-social-button">
             <FcGoogle className="auth-social-icon" />
-            <span>Continuar con Google</span>
+            <span>Continue with Google</span>
           </button>
 
           <button type="button" className="auth-social-button">
             <FaApple className="auth-social-icon auth-social-icon-apple" />
-            <span>Continuar con Apple</span>
+            <span>Continue with Apple</span>
           </button>
 
           <p className="auth-legal-text">{legalText}</p>
@@ -207,20 +274,24 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
           <div className="auth-switch">
             {isLogin ? (
               <>
-                <span>¿No tienes cuenta?</span>
+                <span>Don\'t have an account?</span>
                 <button type="button" onClick={() => onNavigate('/register')}>
-                  Regístrate
+                  Sign up
                 </button>
               </>
             ) : (
               <>
-                <span>¿Ya tienes cuenta?</span>
+                <span>Already have an account?</span>
                 <button type="button" onClick={() => onNavigate('/login')}>
-                  Inicia sesión
+                  Sign in
                 </button>
               </>
             )}
           </div>
+
+          <button type="button" className="auth-main-page-button" onClick={() => onNavigate('/')}>
+            Go to main page
+          </button>
         </section>
       </div>
     </main>

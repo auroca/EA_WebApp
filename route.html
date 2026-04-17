@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/resources/logos/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip2Guide | Route</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="global-footer-mount"></div>
+    <script>
+      fetch('/footer.html')
+        .then((response) => {
+          if (!response.ok) {
+            return '';
+          }
+
+          return response.text();
+        })
+        .then((html) => {
+          const mount = document.getElementById('global-footer-mount');
+          if (mount) {
+            mount.innerHTML = html;
+          }
+        })
+        .catch(() => {
+          // Footer is optional. Keep app running if it fails to load.
+        });
+    </script>
+    <script type="module" src="/src/routeMain.tsx"></script>
+  </body>
+</html>

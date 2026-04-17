@@ -14,7 +14,12 @@ import { sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
-  return path === '' ? '/' : path;
+
+  if (path === '' || path === '/' || path === '/index.html') {
+    return '/';
+  }
+
+  return path;
 };
 
 function App() {

@@ -22,6 +22,14 @@
     gap: 12px;
   }
 
+  .global-footer-brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
   .global-footer-brand img {
     width: 48px;
     height: auto;
@@ -86,12 +94,14 @@
 <footer class="global-footer">
   <div class="global-footer-inner">
     <div class="global-footer-brand">
-      <img src="/resources/logos/logo_vertical.png" alt="Trip2Guide logo" />
-      <div class="global-footer-meta">
-        <p class="global-footer-title">Trip2Guide</p>
-        <p class="global-footer-subtitle">© 2026 Trip2Guide. All rights reserved.</p>
-        <p class="global-footer-group">G1 - EA - QP2026</p>
-      </div>
+      <a class="global-footer-brand-link" href="/" aria-label="Go to home page">
+        <img src="/resources/logos/logo_vertical.png" alt="Trip2Guide logo" />
+        <div class="global-footer-meta">
+          <p class="global-footer-title">Trip2Guide</p>
+          <p class="global-footer-subtitle">© 2026 Trip2Guide. All rights reserved.</p>
+          <p class="global-footer-group">G1 - EA - QP2026</p>
+        </div>
+      </a>
     </div>
 
     <div class="global-footer-links">

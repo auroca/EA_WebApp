@@ -1,3 +1,5 @@
+import { buildRouteSearchUrl } from '../utils/routeNavigation';
+
 interface NearbyLocation {
   id: string;
   city: string;
@@ -19,10 +21,12 @@ function VisitedCitiesSection({ nearbyLocations }: VisitedCitiesSectionProps) {
       <div className="scroll-strip category-strip">
         {nearbyLocations.map((location) => (
           <article className="category-card" key={location.id}>
-            <div className="category-image-wrap">
-              <img src={location.cityImage} alt={location.city} loading="lazy" />
-            </div>
-            <h3>{location.city}</h3>
+            <a className="category-link" href={buildRouteSearchUrl(location.city)}>
+              <div className="category-image-wrap">
+                <img src={location.cityImage} alt={location.city} loading="lazy" />
+              </div>
+              <h3>{location.city}</h3>
+            </a>
           </article>
         ))}
       </div>
