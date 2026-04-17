@@ -1,13 +1,17 @@
-import type { HomeRoutesData, Route } from '../types/route';
+import type { HomeRoutesData, PaginationMeta, Route, RoutePageData } from '../types/route';
 
-const DEFAULT_PROPERTIES_URL = '/resources/routes.properties';
-const DEFAULT_POPULAR_PROPERTIES_URL = '/resources/popular.properties';
 const DEFAULT_API_BASE_URL = '/api';
 
 type PropertyMap = Record<string, string>;
 
 export interface RouteDataProvider {
   getHomeData(): Promise<HomeRoutesData>;
+  getRoutePage(options: RoutePageOptions): Promise<RoutePageData>;
+}
+
+export interface RoutePageOptions {
+  page: number;
+  limit: number;
 }
 
 interface GroupedItem {
@@ -19,6 +23,16 @@ interface GroupedItem {
 const emptyHomeData: HomeRoutesData = {
   routes: [],
   popularRouteIds: []
+};
+
+const emptyRoutePageData: RoutePageData = {
+  routes: [],
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1
+  }
 };
 
 function parsePopularRouteIds(content: string): string[] {
@@ -174,7 +188,15 @@ function mapRoutesFromProperties(map: PropertyMap): Route[] {
 
   return [...byIndex.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map((entry) => entry[1])
+    .map((entry) => {
+      const item = entry[1];
+      const firstImage = item.images?.[0]?.trim() ?? '';
+
+      return {
+        ...item,
+        cover_image: firstImage
+      };
+    })
     .filter(
       (item): item is Route =>
         Boolean(
@@ -276,6 +298,10 @@ function normalizeRouteItem(item: unknown): Route | null {
   }
 
   const candidate = item as Record<string, unknown>;
+  const images = Array.isArray(candidate.images)
+    ? candidate.images.filter((image): image is string => typeof image === 'string')
+    : [];
+  const coverImageFromImages = images[0]?.trim() ?? '';
   const tagsSource = Array.isArray(candidate.tags) ? candidate.tags : [];
   const tags = tagsSource
     .filter((tag): tag is string => typeof tag === 'string')
@@ -286,13 +312,8 @@ function normalizeRouteItem(item: unknown): Route | null {
     _id: typeof candidate._id === 'string' ? candidate._id : '',
     name: typeof candidate.name === 'string' ? candidate.name : '',
     description: typeof candidate.description === 'string' ? candidate.description : '',
-    cover_image:
-      typeof candidate.cover_image === 'string' && candidate.cover_image.trim().length > 0
-        ? candidate.cover_image
-        : '',
-    images: Array.isArray(candidate.images)
-      ? candidate.images.filter((image): image is string => typeof image === 'string')
-      : [],
+    cover_image: coverImageFromImages,
+    images,
     city_image:
       typeof candidate.city_image === 'string' && candidate.city_image.trim().length > 0
         ? candidate.city_image
@@ -347,6 +368,15 @@ function mapHomeDataFromApi(payload: unknown): HomeRoutesData {
     };
   }
 
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { data?: unknown }).data)) {
+    const data = (payload as { data: unknown[] }).data;
+
+    return {
+      routes: data.map((item) => normalizeRouteItem(item)).filter((item): item is Route => item !== null),
+      popularRouteIds: []
+    };
+  }
+
   if (payload && typeof payload === 'object' && Array.isArray((payload as { routes?: unknown }).routes)) {
     const data = (payload as { routes: unknown[] }).routes;
     const rawPopularRouteIds = (payload as { popularRouteIds?: unknown }).popularRouteIds;
@@ -363,32 +393,40 @@ function mapHomeDataFromApi(payload: unknown): HomeRoutesData {
   return emptyHomeData;
 }
 
-export class PropertiesRouteDataProvider implements RouteDataProvider {
-  constructor(
-    private readonly resourceUrl: string = DEFAULT_PROPERTIES_URL,
-    private readonly popularResourceUrl: string = DEFAULT_POPULAR_PROPERTIES_URL
-  ) {}
-
-  async getHomeData(): Promise<HomeRoutesData> {
-    const [routesResponse, popularResponse] = await Promise.all([
-      fetch(this.resourceUrl),
-      fetch(this.popularResourceUrl)
-    ]);
-
-    if (!routesResponse.ok) {
-      throw new Error('Unable to load routes.properties');
-    }
-
-    const routesContent = await routesResponse.text();
-    const homeData = mapHomeData(routesContent);
-
-    if (popularResponse.ok) {
-      const popularContent = await popularResponse.text();
-      homeData.popularRouteIds = parsePopularRouteIds(popularContent);
-    }
-
-    return homeData;
+function mapRoutePageFromApi(payload: unknown, page: number, limit: number): RoutePageData {
+  if (Array.isArray(payload)) {
+    return {
+      routes: payload.map((item) => normalizeRouteItem(item)).filter((item): item is Route => item !== null),
+      pagination: {
+        page,
+        limit,
+        total: payload.length,
+        totalPages: 1
+      }
+    };
   }
+
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { data?: unknown }).data)) {
+    const data = (payload as { data: unknown[] }).data;
+    const rawPagination = (payload as { pagination?: Partial<PaginationMeta> }).pagination;
+    const total = typeof rawPagination?.total === 'number' ? rawPagination.total : data.length;
+    const totalPages =
+      typeof rawPagination?.totalPages === 'number'
+        ? rawPagination.totalPages
+        : Math.max(1, Math.ceil(total / limit));
+
+    return {
+      routes: data.map((item) => normalizeRouteItem(item)).filter((item): item is Route => item !== null),
+      pagination: {
+        page: typeof rawPagination?.page === 'number' ? rawPagination.page : page,
+        limit: typeof rawPagination?.limit === 'number' ? rawPagination.limit : limit,
+        total,
+        totalPages
+      }
+    };
+  }
+
+  return emptyRoutePageData;
 }
 
 export class ApiRouteDataProvider implements RouteDataProvider {
@@ -403,18 +441,25 @@ export class ApiRouteDataProvider implements RouteDataProvider {
 
     return mapHomeDataFromApi(await response.json());
   }
+
+  async getRoutePage(options: RoutePageOptions): Promise<RoutePageData> {
+    const searchParams = new URLSearchParams({
+      limit: String(options.limit),
+      page: String(options.page)
+    });
+
+    const response = await fetch(`${this.baseUrl}/routes?${searchParams.toString()}`);
+
+    if (!response.ok) {
+      throw new Error('Unable to load route page from the server');
+    }
+
+    return mapRoutePageFromApi(await response.json(), options.page, options.limit);
+  }
 }
 
 export function getConfiguredRouteDataProvider(): RouteDataProvider {
-  const source = import.meta.env.VITE_ROUTE_DATA_SOURCE;
-
-  if (source === 'api') {
-    return new ApiRouteDataProvider(import.meta.env.VITE_ROUTE_API_BASE_URL ?? DEFAULT_API_BASE_URL);
-  }
-
-  return new PropertiesRouteDataProvider(
-    import.meta.env.VITE_ROUTE_PROPERTIES_URL ?? DEFAULT_PROPERTIES_URL
-  );
+  return new ApiRouteDataProvider(import.meta.env.VITE_API_URL ?? DEFAULT_API_BASE_URL);
 }
 
 export const routeDataProvider = getConfiguredRouteDataProvider();

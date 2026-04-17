@@ -38,7 +38,7 @@ export function toTitleCase(value: string): string {
 }
 
 export function getRouteImage(route: Route): string {
-  return route.cover_image;
+  return route.images[0]?.trim() ?? '';
 }
 
 export function getDifficultyBadgePath(difficulty: Route['difficulty']): string {

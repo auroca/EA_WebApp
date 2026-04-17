@@ -10,7 +10,7 @@ import VisitedCitiesSection from './components/VisitedCitiesSection';
 import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
-import { sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
+import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
@@ -62,7 +62,7 @@ function App() {
         id: cityKey,
         city: chosenRoute.city,
         country: chosenRoute.country,
-        cityImage: chosenRoute.cover_image
+        cityImage: getRouteImage(chosenRoute)
       };
     });
   }, [homeData.routes]);
