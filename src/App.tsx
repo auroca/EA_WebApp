@@ -3,6 +3,7 @@ import './index.css';
 import AuthPage from './components/AuthPage';
 import FeaturedRoutesSection from './components/FeaturedRoutesSection';
 import PopularRoutesSection from './components/PopularRoutesSection';
+import ProfilePage from './components/ProfilePage';
 import SearchArea from './components/SearchArea';
 import SearchResults from './components/SearchResults';
 import TopNav from './components/TopNav';
@@ -171,6 +172,10 @@ function App() {
         onNavigate={navigateTo}
       />
     );
+  }
+
+  if (currentPath === '/profile') {
+    return <ProfilePage onNavigate={navigateTo} />;
   }
 
   return (
