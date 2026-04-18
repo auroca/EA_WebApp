@@ -1,4 +1,4 @@
-import type { CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
+import type { AuthUser, CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const SESSION_KEY = 'trip2guide_session';
@@ -101,6 +101,22 @@ export const getStoredToken = (): string | null => {
 export const getStoredUser = () => {
   return getStoredSession()?.user ?? null;
 };
+
+export const saveStoredSessionUser = (user: AuthUser): void => {
+  const session = getStoredSession();
+
+  if (!session) {
+    return;
+  }
+
+  const updatedSession: StoredSession = {
+    ...session,
+    user
+  };
+
+  localStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
+};
+
 
 export const isAuthenticated = (): boolean => {
   return !!getStoredToken();

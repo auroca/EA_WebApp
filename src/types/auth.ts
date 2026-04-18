@@ -26,6 +26,7 @@ export interface AuthUser {
   username: string;
   email: string;
   enabled?: boolean;
+  role?: string;
 }
 
 export interface LoginResponse {

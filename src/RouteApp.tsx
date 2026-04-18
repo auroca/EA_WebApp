@@ -1,22 +1,37 @@
 import { useEffect, useMemo, useState } from 'react';
-import SearchArea from './components/SearchArea';
-import SearchResults from './components/SearchResults';
-import TopNav from './components/TopNav';
+import ProfilePage from './components/ProfilePage';
 import RouteDescriptionSection from './components/RouteDescriptionSection';
 import RouteGallery from './components/RouteGallery';
 import RouteHeroSection from './components/RouteHeroSection';
 import RouteHighlights from './components/RouteHighlights';
 import RouteQuickFacts from './components/RouteQuickFacts';
+import SearchArea from './components/SearchArea';
+import SearchResults from './components/SearchResults';
+import TopNav from './components/TopNav';
 import { isAuthenticated } from './services/authService';
 import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { HomeRoutesData, Route, RoutePageData } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption } from './utils/homeView';
 import { getRouteIdFromSearch, getSearchTextFromSearch } from './utils/routeNavigation';
 
+const getCurrentPath = (): string => {
+  const path = window.location.pathname.trim();
+
+  if (path === '' || path === '/' || path === '/index.html') {
+    return '/';
+  }
+
+  return path;
+};
+
 function RouteApp() {
-  const initialRouteId = getRouteIdFromSearch(window.location.search);
-  const initialSearchText = getSearchTextFromSearch(window.location.search);
-  const initialIsRouteListMode = initialRouteId.length === 0 && initialSearchText.trim().length === 0;
+  const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
+  const [currentSearch, setCurrentSearch] = useState<string>(window.location.search);
+
+  const routeId = getRouteIdFromSearch(currentSearch);
+  const searchText = getSearchTextFromSearch(currentSearch);
+
+  const initialIsRouteListMode = routeId.length === 0 && searchText.trim().length === 0;
   const initialIsRouteDetailOrSearch = !initialIsRouteListMode;
 
   const [fullRouteData, setFullRouteData] = useState<HomeRoutesData>(emptyHomeData);
@@ -32,9 +47,7 @@ function RouteApp() {
   const [isListLoading, setIsListLoading] = useState<boolean>(initialIsRouteListMode);
   const [isFullRoutesLoading, setIsFullRoutesLoading] = useState<boolean>(initialIsRouteDetailOrSearch);
   const [error, setError] = useState<string>('');
-  const [searchInput, setSearchInput] = useState<string>(() =>
-    initialSearchText
-  );
+  const [searchInput, setSearchInput] = useState<string>(searchText);
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
@@ -43,7 +56,17 @@ function RouteApp() {
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(10);
 
-  const routeId = initialRouteId;
+  const navigateTo = (path: string, search: string = ''): void => {
+    const nextUrl = `${path}${search}`;
+
+    if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+      window.history.pushState({}, '', nextUrl);
+      setCurrentPath(path);
+      setCurrentSearch(search);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  };
+
   const requiresAuthForDetail = routeId.length > 0;
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
@@ -54,6 +77,7 @@ function RouteApp() {
   const searchResults = normalizedSearchQuery
     ? fullRouteData.routes.filter((route) => {
         const searchableTags = route.tags.join(' ').toLowerCase();
+
         return (
           route.city.toLowerCase().includes(normalizedSearchQuery) ||
           route.name.toLowerCase().includes(normalizedSearchQuery) ||
@@ -69,6 +93,7 @@ function RouteApp() {
   const totalRouteListPages = routePageData.pagination.totalPages;
   const safeListPage = Math.min(routePageData.pagination.page, totalRouteListPages);
   const pagedRouteListResults = routeListResults;
+
   const totalSearchResults = visibleSearchResults.length;
   const totalSearchPages = Math.max(1, Math.ceil(totalSearchResults / searchPageSize));
   const safeSearchPage = Math.min(searchPage, totalSearchPages);
@@ -76,10 +101,28 @@ function RouteApp() {
     (safeSearchPage - 1) * searchPageSize,
     safeSearchPage * searchPageSize
   );
+
   const selectedRoute: Route | null = useMemo(
     () => fullRouteData.routes.find((route) => route._id === routeId) ?? null,
     [fullRouteData.routes, routeId]
   );
+
+  useEffect(() => {
+    const handlePopState = (): void => {
+      setCurrentPath(getCurrentPath());
+      setCurrentSearch(window.location.search);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSearchInput(searchText);
+  }, [searchText]);
 
   useEffect(() => {
     setListPage(1);
@@ -101,6 +144,7 @@ function RouteApp() {
 
     const loadRoutePage = async (): Promise<void> => {
       setIsListLoading(true);
+
       try {
         const result = await routeDataProvider.getRoutePage({
           page: listPage,
@@ -110,7 +154,6 @@ function RouteApp() {
         if (mounted) {
           setRoutePageData(result);
           setError('');
-          setIsListLoading(false);
         }
       } catch (loadError) {
         if (!mounted) {
@@ -149,6 +192,7 @@ function RouteApp() {
 
     const loadFullRoutes = async (): Promise<void> => {
       setIsFullRoutesLoading(true);
+
       try {
         const result = await routeDataProvider.getHomeData();
 
@@ -201,6 +245,10 @@ function RouteApp() {
     setIsFilterOpen(false);
   };
 
+  if (currentPath === '/profile') {
+    return <ProfilePage onNavigate={(path) => navigateTo(path)} />;
+  }
+
   return (
     <main className="route-page">
       <TopNav activeTopNav="routes" />
@@ -250,9 +298,8 @@ function RouteApp() {
         {(isRouteListMode && isListLoading) || (!isRouteListMode && isFullRoutesLoading) ? (
           <p className="status-message">Loading route information...</p>
         ) : null}
-        {!isFullRoutesLoading && error ? (
-          <p className="status-message error">{error}</p>
-        ) : null}
+
+        {!isFullRoutesLoading && error ? <p className="status-message error">{error}</p> : null}
 
         {!isFullRoutesLoading && routeId && !selectedRoute ? (
           <p className="status-message error">Route not found.</p>

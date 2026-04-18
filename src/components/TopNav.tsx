@@ -30,6 +30,16 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
+    const navigateTo = (path: string): void => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    setMenuOpen(false);
+  };
+
   const handleLogout = async (): Promise<void> => {
     await logoutUser();
     setMenuOpen(false);
@@ -139,6 +149,14 @@ function TopNav({ activeTopNav }: TopNavProps) {
                 <span className="top-nav-user-menu-label">Username</span>
                 <span className="top-nav-user-menu-value">{user?.username ?? '-'}</span>
               </div>
+
+              <button
+                type="button"
+                className="user-dropdown-button"
+                onClick={() => navigateTo('/profile')}
+              >
+                View profile
+              </button>
 
               <button
                 type="button"

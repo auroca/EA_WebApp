@@ -1,0 +1,208 @@
+import { authenticatedFetch } from './apiClient';
+import type { AuthUser } from '../types/auth';
+import type { Route } from '../types/route';
+
+export interface UpdateUserPayload {
+  name: string;
+  surname: string;
+  username: string;
+  email: string;
+  password?: string;
+  enabled: boolean;
+  role: string;
+}
+
+export interface UpdateRoutePayload {
+  name: string;
+  description: string;
+  cover_image: string;
+  images: string[];
+  userId: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  city: string;
+  country: string;
+  distance?: number;
+  duration?: number;
+  tags: string[];
+}
+
+const parseApiError = async (response: Response, fallback: string): Promise<string> => {
+  try {
+    const errorData = await response.json();
+
+    return (
+      errorData?.message ||
+      errorData?.error?.message ||
+      errorData?.error?.details?.[0]?.message ||
+      fallback
+    );
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeUserFromApi = (payload: unknown): AuthUser => {
+  const candidate = payload as Record<string, unknown>;
+
+  return {
+    _id: String(candidate._id ?? ''),
+    name: String(candidate.name ?? ''),
+    surname: String(candidate.surname ?? ''),
+    username: String(candidate.username ?? ''),
+    email: String(candidate.email ?? ''),
+    enabled: typeof candidate.enabled === 'boolean' ? candidate.enabled : undefined,
+    role: typeof candidate.role === 'string' ? candidate.role : undefined
+  };
+};
+
+const normalizeRouteFromApi = (payload: unknown): Route | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const candidate = payload as Record<string, unknown>;
+
+  const images = Array.isArray(candidate.images)
+    ? candidate.images.filter((item): item is string => typeof item === 'string')
+    : [];
+
+  const tags = Array.isArray(candidate.tags)
+    ? candidate.tags
+        .filter((item): item is string => typeof item === 'string')
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+    : [];
+
+  const difficulty =
+    candidate.difficulty === 'easy' ||
+    candidate.difficulty === 'medium' ||
+    candidate.difficulty === 'hard'
+      ? candidate.difficulty
+      : 'medium';
+
+  return {
+    _id: String(candidate._id ?? ''),
+    name: String(candidate.name ?? ''),
+    description: String(candidate.description ?? ''),
+    cover_image: String(candidate.cover_image ?? images[0] ?? ''),
+    images,
+    city_image:
+      typeof candidate.city_image === 'string' && candidate.city_image.trim().length > 0
+        ? candidate.city_image
+        : undefined,
+    userId: String(candidate.userId ?? ''),
+    difficulty,
+    city: String(candidate.city ?? ''),
+    country: String(candidate.country ?? ''),
+    distance: typeof candidate.distance === 'number' ? candidate.distance : undefined,
+    duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
+    tags
+  };
+};
+
+const normalizeRoutesFromApi = (payload: unknown): Route[] => {
+  if (Array.isArray(payload)) {
+    return payload
+      .map((item) => normalizeRouteFromApi(item))
+      .filter((item): item is Route => item !== null);
+  }
+
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Array.isArray((payload as { data?: unknown[] }).data)
+  ) {
+    return (payload as { data: unknown[] }).data
+      .map((item) => normalizeRouteFromApi(item))
+      .filter((item): item is Route => item !== null);
+  }
+
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Array.isArray((payload as { routes?: unknown[] }).routes)
+  ) {
+    return (payload as { routes: unknown[] }).routes
+      .map((item) => normalizeRouteFromApi(item))
+      .filter((item): item is Route => item !== null);
+  }
+
+  return [];
+};
+
+export const getUserById = async (userId: string): Promise<AuthUser> => {
+  const response = await authenticatedFetch(`/users/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to load the user.'));
+  }
+
+  return normalizeUserFromApi(await response.json());
+};
+
+export const updateUserById = async (
+  userId: string,
+  payload: UpdateUserPayload
+): Promise<AuthUser> => {
+  const response = await authenticatedFetch(`/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to update the user.'));
+  }
+
+  return normalizeUserFromApi(await response.json());
+};
+
+export const getRoutesByUserId = async (userId: string): Promise<Route[]> => {
+  const searchParams = new URLSearchParams();
+  searchParams.append('filter[userId]', userId);
+
+  const response = await authenticatedFetch(`/routes?${searchParams.toString()}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to load user routes.'));
+  }
+
+  return normalizeRoutesFromApi(await response.json());
+};
+
+export const updateRouteById = async (
+  routeId: string,
+  payload: UpdateRoutePayload
+): Promise<Route> => {
+  const response = await authenticatedFetch(`/routes/${routeId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to update the route.'));
+  }
+
+  const updatedRoute = normalizeRouteFromApi(await response.json());
+
+  if (!updatedRoute) {
+    throw new Error('Invalid route response from server.');
+  }
+
+  return updatedRoute;
+};
