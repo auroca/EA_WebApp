@@ -51,7 +51,22 @@ const normalizeUserFromApi = (payload: unknown): AuthUser => {
     username: String(candidate.username ?? ''),
     email: String(candidate.email ?? ''),
     enabled: typeof candidate.enabled === 'boolean' ? candidate.enabled : undefined,
-    role: typeof candidate.role === 'string' ? candidate.role : undefined
+    role: typeof candidate.role === 'string' ? candidate.role : undefined,
+    favoriteRoutes: Array.isArray(candidate.favoriteRoutes)
+      ? candidate.favoriteRoutes
+          .map((item) => {
+            if (typeof item === 'string') {
+              return item;
+            }
+
+            if (item && typeof item === 'object' && typeof (item as { _id?: unknown })._id === 'string') {
+              return (item as { _id: string })._id;
+            }
+
+            return '';
+          })
+          .filter((item) => item.length > 0)
+      : []
   };
 };
 
@@ -205,4 +220,64 @@ export const updateRouteById = async (
   }
 
   return updatedRoute;
+};
+
+export const getFavoriteRoutesByUserId = async (userId: string): Promise<Route[]> => {
+  const response = await authenticatedFetch(`/users/${userId}/favorites`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to load favorite routes.'));
+  }
+
+  return normalizeRoutesFromApi(await response.json());
+};
+
+export const addFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+  const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to add favorite route.'));
+  }
+
+  return normalizeRoutesFromApi(await response.json());
+};
+
+export const removeFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+  const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to remove favorite route.'));
+  }
+
+  return normalizeRoutesFromApi(await response.json());
+};
+
+export const toggleFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+  const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}/toggle`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to toggle favorite route.'));
+  }
+
+  return normalizeRoutesFromApi(await response.json());
 };

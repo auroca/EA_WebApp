@@ -30,7 +30,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
-    const navigateTo = (path: string): void => {
+  const navigateTo = (path: string): void => {
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -62,11 +62,12 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
             if (item.key === 'home') {
               return (
-                <a
+                <button
                   key={item.key}
+                  type="button"
                   className={className}
                   aria-label={item.label}
-                  href="/index.html"
+                  onClick={() => navigateTo('/')}
                 >
                   <img
                     className="nav-icon"
@@ -75,17 +76,18 @@ function TopNav({ activeTopNav }: TopNavProps) {
                     aria-hidden="true"
                   />
                   <span className="nav-label">{item.label}</span>
-                </a>
+                </button>
               );
             }
 
             if (item.key === 'routes') {
               return (
-                <a
+                <button
                   key={item.key}
+                  type="button"
                   className={className}
                   aria-label={item.label}
-                  href="/route.html"
+                  onClick={() => navigateTo('/routes')}
                 >
                   <img
                     className="nav-icon"
@@ -94,7 +96,27 @@ function TopNav({ activeTopNav }: TopNavProps) {
                     aria-hidden="true"
                   />
                   <span className="nav-label">{item.label}</span>
-                </a>
+                </button>
+              );
+            }
+
+            if (item.key === 'favorites') {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={className}
+                  aria-label={item.label}
+                  onClick={() => navigateTo('/favorites')}
+                >
+                  <img
+                    className="nav-icon"
+                    src={getTopNavIconPath(item.icon, isSelected)}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                  <span className="nav-label">{item.label}</span>
+                </button>
               );
             }
 

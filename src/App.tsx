@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import './index.css';
 import AuthPage from './components/AuthPage';
+import FavoritesPage from './components/FavoritesPage';
 import FeaturedRoutesSection from './components/FeaturedRoutesSection';
 import PopularRoutesSection from './components/PopularRoutesSection';
 import ProfilePage from './components/ProfilePage';
+import RoutesPage from './components/RoutesPage';
 import SearchArea from './components/SearchArea';
 import SearchResults from './components/SearchResults';
 import TopNav from './components/TopNav';
@@ -12,6 +14,8 @@ import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
+
+const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
@@ -33,6 +37,8 @@ function App() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [searchPage, setSearchPage] = useState<number>(1);
+  const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
 
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
@@ -75,6 +81,7 @@ function App() {
   const searchResults = normalizedSearchQuery
     ? homeData.routes.filter((route) => {
         const searchableTags = route.tags.join(' ').toLowerCase();
+
         return (
           route.city.toLowerCase().includes(normalizedSearchQuery) ||
           route.name.toLowerCase().includes(normalizedSearchQuery) ||
@@ -84,17 +91,46 @@ function App() {
       })
     : [];
 
-  const visibleSearchResults = sortRoutes(searchResults, sortOption);
+  const sortedSearchResults = sortRoutes(searchResults, sortOption);
+  const totalResults = sortedSearchResults.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / searchPageSize));
+  const safeCurrentPage = Math.min(searchPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * searchPageSize;
+  const endIndex = startIndex + searchPageSize;
+  const visibleSearchResults = sortedSearchResults.slice(startIndex, endIndex);
 
   const clearSearch = (): void => {
     setSearchInput('');
     setSortOption(null);
     setIsFilterOpen(false);
+    setSearchPage(1);
+    setSearchPageSize(DEFAULT_SEARCH_PAGE_SIZE);
   };
 
   const handleSelectSortOption = (option: SortOption): void => {
     setSortOption(option);
     setIsFilterOpen(false);
+    setSearchPage(1);
+  };
+
+  const handleSearchChange = (value: string): void => {
+    setSearchInput(value);
+    setSearchPage(1);
+  };
+
+  const handlePreviousPage = (): void => {
+    setSearchPage((prev) => Math.max(1, prev - 1));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const handleNextPage = (): void => {
+    setSearchPage((prev) => Math.min(totalPages, prev + 1));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const handlePageSizeChange = (pageSize: number): void => {
+    setSearchPageSize(pageSize);
+    setSearchPage(1);
   };
 
   const navigateTo = (path: string): void => {
@@ -156,6 +192,16 @@ function App() {
     };
   }, [currentPath]);
 
+  useEffect(() => {
+    setSearchPage(1);
+  }, [normalizedSearchQuery]);
+
+  useEffect(() => {
+    if (searchPage > totalPages) {
+      setSearchPage(totalPages);
+    }
+  }, [searchPage, totalPages]);
+
   if (currentPath === '/login') {
     return (
       <AuthPage
@@ -178,6 +224,14 @@ function App() {
     return <ProfilePage onNavigate={navigateTo} />;
   }
 
+  if (currentPath === '/favorites') {
+    return <FavoritesPage />;
+  }
+
+  if (currentPath === '/routes') {
+    return <RoutesPage />;
+  }
+
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
@@ -189,7 +243,7 @@ function App() {
           hasActiveFilter={hasActiveFilter}
           isFilterOpen={isFilterOpen}
           sortOption={sortOption}
-          onSearchChange={setSearchInput}
+          onSearchChange={handleSearchChange}
           onSearchFocus={() => setIsSearchFocused(true)}
           onSearchBlur={() => setIsSearchFocused(false)}
           onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
@@ -197,7 +251,18 @@ function App() {
           onSelectSortOption={handleSelectSortOption}
         />
 
-        {hasActiveSearch ? <SearchResults routes={visibleSearchResults} /> : null}
+        {hasActiveSearch ? (
+          <SearchResults
+            routes={visibleSearchResults}
+            totalResults={totalResults}
+            currentPage={safeCurrentPage}
+            pageSize={searchPageSize}
+            totalPages={totalPages}
+            onPreviousPage={handlePreviousPage}
+            onNextPage={handleNextPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        ) : null}
 
         {isLoading ? <p className="status-message">Loading home content...</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
