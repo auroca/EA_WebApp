@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../services/authService';
+import { toggleFavoriteRouteByUserId } from '../services/profileService';
 import type { Route } from '../types/route';
 import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../utils/homeView';
 import { buildRouteDetailUrl } from '../utils/routeNavigation';
@@ -25,8 +29,39 @@ function SearchResults({
   onNextPage,
   onPageSizeChange
 }: SearchResultsProps) {
+  const storedUser = getStoredUser();
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(storedUser?.favoriteRoutes ?? []);
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endResult = Math.min(currentPage * pageSize, totalResults);
+
+  useEffect(() => {
+    setFavoriteIds(getStoredUser()?.favoriteRoutes ?? []);
+  }, []);
+
+  const handleToggleFavorite = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+    routeId: string
+  ): Promise<void> => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isAuthenticated() || !storedUser?._id) {
+      return;
+    }
+
+    try {
+      const updatedFavorites = await toggleFavoriteRouteByUserId(storedUser._id, routeId);
+      const updatedFavoriteIds = updatedFavorites.map((route) => route._id);
+
+      setFavoriteIds(updatedFavoriteIds);
+      saveStoredSessionUser({
+        ...storedUser,
+        favoriteRoutes: updatedFavoriteIds
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <section className="search-results" aria-label="Search results">
@@ -82,32 +117,47 @@ function SearchResults({
         <p className="status-message">No matching routes found.</p>
       ) : (
         <div className="search-results-list">
-          {routes.map((route) => (
-            <article className="search-result-item" key={route._id}>
-              <a className="search-result-link" href={buildRouteDetailUrl(route._id)}>
-                <img src={getRouteImage(route)} alt={route.name} loading="lazy" />
-                <div className="search-result-content">
-                  <h3>{route.name}</h3>
-                  <div className="search-result-meta">
-                    <img
-                      className="difficulty-badge"
-                      src={getDifficultyBadgePath(route.difficulty)}
-                      alt=""
-                      aria-hidden="true"
-                      onError={(event) => {
-                        event.currentTarget.style.display = 'none';
-                      }}
-                    />
-                    <span>{toTitleCase(route.difficulty)}</span>
+          {routes.map((route) => {
+            const isFavorite = favoriteIds.includes(route._id);
+
+            return (
+              <article className="search-result-item" key={route._id}>
+                <button
+                  type="button"
+                  className="search-result-favorite-button"
+                  onClick={(event) => {
+                    void handleToggleFavorite(event, route._id);
+                  }}
+                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                </button>
+
+                <a className="search-result-link" href={buildRouteDetailUrl(route._id)}>
+                  <img src={getRouteImage(route)} alt={route.name} loading="lazy" />
+                  <div className="search-result-content">
+                    <h3>{route.name}</h3>
+                    <div className="search-result-meta">
+                      <img
+                        className="difficulty-badge"
+                        src={getDifficultyBadgePath(route.difficulty)}
+                        alt=""
+                        aria-hidden="true"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <span>{toTitleCase(route.difficulty)}</span>
+                    </div>
+                    <p>{route.description}</p>
+                    <span>
+                      {route.city}, {route.country}
+                    </span>
                   </div>
-                  <p>{route.description}</p>
-                  <span>
-                    {route.city}, {route.country}
-                  </span>
-                </div>
-              </a>
-            </article>
-          ))}
+                </a>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

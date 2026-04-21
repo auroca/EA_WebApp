@@ -1,0 +1,105 @@
+import { useEffect, useState } from 'react';
+import SearchResults from './SearchResults';
+import TopNav from './TopNav';
+import { routeDataProvider } from '../services/routeService';
+import type { Route } from '../types/route';
+
+const DEFAULT_PAGE_SIZE = 10;
+
+function RoutesPage() {
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+
+  const totalResults = routes.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const visibleRoutes = routes.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadRoutes = async (): Promise<void> => {
+      try {
+        const result = await routeDataProvider.getHomeData();
+
+        if (mounted) {
+          setRoutes(result.routes);
+          setError('');
+        }
+      } catch (loadError) {
+        if (!mounted) {
+          return;
+        }
+
+        if (loadError instanceof Error) {
+          setError(loadError.message);
+        } else {
+          setError('Unable to load routes.');
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadRoutes();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handlePreviousPage = (): void => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const handleNextPage = (): void => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const handlePageSizeChange = (nextPageSize: number): void => {
+    setPageSize(nextPageSize);
+    setCurrentPage(1);
+  };
+
+  return (
+    <main className="home-page">
+      <TopNav activeTopNav={'routes'} />
+
+      <section className="home-content">
+        {isLoading ? <p className="status-message">Loading routes...</p> : null}
+        {!isLoading && error ? <p className="status-message error">{error}</p> : null}
+
+        {!isLoading && !error ? (
+          <SearchResults
+            title="Routes"
+            routes={visibleRoutes}
+            totalResults={totalResults}
+            currentPage={safeCurrentPage}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            onPreviousPage={handlePreviousPage}
+            onNextPage={handleNextPage}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        ) : null}
+      </section>
+    </main>
+  );
+}
+
+export default RoutesPage;

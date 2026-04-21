@@ -17,6 +17,7 @@ export interface CreatedUser {
   enabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  favoriteRoutes?: string[];
 }
 
 export interface AuthUser {
@@ -27,6 +28,7 @@ export interface AuthUser {
   email: string;
   enabled?: boolean;
   role?: string;
+  favoriteRoutes?: string[];
 }
 
 export interface LoginResponse {
