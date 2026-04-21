@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import TopNav from './TopNav';
+import SearchArea from './SearchArea';
 import SearchResults from './SearchResults';
+import TopNav from './TopNav';
 import { getStoredUser, isAuthenticated } from '../services/authService';
 import { getFavoriteRoutesByUserId } from '../services/profileService';
 import type { Route } from '../types/route';
+import { sortRoutes, type SortOption } from '../utils/homeView';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -13,14 +15,36 @@ function FavoritesPage() {
   const [error, setError] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [sortOption, setSortOption] = useState<SortOption | null>(null);
 
   const user = getStoredUser();
-  const totalResults = favoriteRoutes.length;
+  const normalizedSearchQuery = searchInput.trim().toLowerCase();
+  const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
+  const hasActiveFilter = sortOption !== null;
+
+  const filteredFavoriteRoutes = normalizedSearchQuery
+    ? favoriteRoutes.filter((route) => {
+        const searchableTags = route.tags.join(' ').toLowerCase();
+
+        return (
+          route.city.toLowerCase().includes(normalizedSearchQuery) ||
+          route.name.toLowerCase().includes(normalizedSearchQuery) ||
+          route.description.toLowerCase().includes(normalizedSearchQuery) ||
+          searchableTags.includes(normalizedSearchQuery)
+        );
+      })
+    : favoriteRoutes;
+
+  const sortedFavoriteRoutes = sortRoutes(filteredFavoriteRoutes, sortOption);
+  const totalResults = sortedFavoriteRoutes.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const visibleFavoriteRoutes = favoriteRoutes.slice(startIndex, endIndex);
+  const visibleFavoriteRoutes = sortedFavoriteRoutes.slice(startIndex, endIndex);
 
   useEffect(() => {
     let mounted = true;
@@ -73,6 +97,25 @@ function FavoritesPage() {
     }
   }, [currentPage, totalPages]);
 
+  const clearSearch = (): void => {
+    setSearchInput('');
+    setSortOption(null);
+    setIsFilterOpen(false);
+    setCurrentPage(1);
+    setPageSize(DEFAULT_PAGE_SIZE);
+  };
+
+  const handleSelectSortOption = (option: SortOption): void => {
+    setSortOption(option);
+    setIsFilterOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string): void => {
+    setSearchInput(value);
+    setCurrentPage(1);
+  };
+
   const handlePreviousPage = (): void => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -93,6 +136,20 @@ function FavoritesPage() {
       <TopNav activeTopNav={'favorites'} />
 
       <section className="home-content">
+        <SearchArea
+          searchInput={searchInput}
+          isSearchActive={isSearchActive}
+          hasActiveFilter={hasActiveFilter}
+          isFilterOpen={isFilterOpen}
+          sortOption={sortOption}
+          onSearchChange={handleSearchChange}
+          onSearchFocus={() => setIsSearchFocused(true)}
+          onSearchBlur={() => setIsSearchFocused(false)}
+          onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
+          onClearSearch={clearSearch}
+          onSelectSortOption={handleSelectSortOption}
+        />
+
         {isLoading ? <p className="status-message">Loading favorite routes...</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
