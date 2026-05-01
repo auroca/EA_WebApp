@@ -40,6 +40,15 @@ function TopNav({ activeTopNav }: TopNavProps) {
     setMenuOpen(false);
   };
 
+  const navigateFull = (path: string): void => {
+    // Perform a full page redirect to match site-wide logo behavior
+    if (window.location.pathname !== path) {
+      window.location.href = path;
+    }
+
+    setMenuOpen(false);
+  };
+
   const handleLogout = async (): Promise<void> => {
     await logoutUser();
     setMenuOpen(false);
@@ -49,9 +58,14 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
   return (
     <nav className="top-nav">
-      <a className="top-nav-brand" href="/" aria-label="Go to home">
+      <button
+        type="button"
+        className="top-nav-brand"
+        aria-label="Go to home"
+        onClick={() => navigateFull('/')}
+      >
         <img src="/resources/logos/logo_horizontal.png" alt="Trip2Guide" />
-      </a>
+      </button>
 
       <div className="top-nav-menu">
         {topNavItems
@@ -67,7 +81,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   type="button"
                   className={className}
                   aria-label={item.label}
-                  onClick={() => navigateTo('/')}
+                  onClick={() => navigateFull('/')}
                 >
                   <img
                     className="nav-icon"
