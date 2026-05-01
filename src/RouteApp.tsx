@@ -46,6 +46,8 @@ function RouteApp() {
   });
   const [isListLoading, setIsListLoading] = useState<boolean>(initialIsRouteListMode);
   const [isFullRoutesLoading, setIsFullRoutesLoading] = useState<boolean>(initialIsRouteDetailOrSearch);
+  const [isRouteDetailLoading, setIsRouteDetailLoading] = useState<boolean>(routeId.length > 0);
+  const [routeDetail, setRouteDetail] = useState<Route | null>(null);
   const [error, setError] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>(searchText);
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
@@ -102,10 +104,17 @@ function RouteApp() {
     safeSearchPage * searchPageSize
   );
 
-  const selectedRoute: Route | null = useMemo(
-    () => fullRouteData.routes.find((route) => route._id === routeId) ?? null,
-    [fullRouteData.routes, routeId]
-  );
+  const selectedRoute: Route | null = useMemo(() => {
+    if (!routeId) {
+      return null;
+    }
+
+    if (routeDetail) {
+      return routeDetail;
+    }
+
+    return fullRouteData.routes.find((route) => route._id === routeId) ?? null;
+  }, [fullRouteData.routes, routeDetail, routeId]);
 
   useEffect(() => {
     const handlePopState = (): void => {
@@ -180,7 +189,7 @@ function RouteApp() {
   }, [isRouteListMode, listPage, listPageSize]);
 
   useEffect(() => {
-    if (!hasActiveSearch && !routeId) {
+    if (!hasActiveSearch) {
       return;
     }
 
@@ -222,7 +231,50 @@ function RouteApp() {
     return () => {
       mounted = false;
     };
-  }, [fullRouteData.routes.length, hasActiveSearch, routeId]);
+  }, [fullRouteData.routes.length, hasActiveSearch]);
+
+  useEffect(() => {
+    if (!routeId) {
+      setRouteDetail(null);
+      setIsRouteDetailLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    const loadRouteDetail = async (): Promise<void> => {
+      setIsRouteDetailLoading(true);
+
+      try {
+        const result = await routeDataProvider.getRouteById(routeId);
+
+        if (mounted) {
+          setRouteDetail(result);
+          setError('');
+        }
+      } catch (loadError) {
+        if (!mounted) {
+          return;
+        }
+
+        if (loadError instanceof Error) {
+          setError(loadError.message);
+        } else {
+          setError('Unable to load route information.');
+        }
+      } finally {
+        if (mounted) {
+          setIsRouteDetailLoading(false);
+        }
+      }
+    };
+
+    void loadRouteDetail();
+
+    return () => {
+      mounted = false;
+    };
+  }, [routeId]);
 
   useEffect(() => {
     if (!requiresAuthForDetail || isAuthenticated()) {
@@ -295,17 +347,17 @@ function RouteApp() {
           />
         ) : null}
 
-        {(isRouteListMode && isListLoading) || (!isRouteListMode && isFullRoutesLoading) ? (
+        {(isRouteListMode && isListLoading) || (hasActiveSearch && isFullRoutesLoading) || (routeId.length > 0 && isRouteDetailLoading) ? (
           <p className="status-message">Loading route information...</p>
         ) : null}
 
-        {!isFullRoutesLoading && error ? <p className="status-message error">{error}</p> : null}
+        {!isFullRoutesLoading && !isRouteDetailLoading && error ? <p className="status-message error">{error}</p> : null}
 
-        {!isFullRoutesLoading && routeId && !selectedRoute ? (
+        {!isRouteDetailLoading && routeId && !selectedRoute ? (
           <p className="status-message error">Route not found.</p>
         ) : null}
 
-        {!isFullRoutesLoading && selectedRoute ? (
+        {!isRouteDetailLoading && selectedRoute ? (
           <>
             <RouteHeroSection
               name={selectedRoute.name}

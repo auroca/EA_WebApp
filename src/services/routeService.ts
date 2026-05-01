@@ -1,12 +1,12 @@
 import type { HomeRoutesData, PaginationMeta, Route, RoutePageData } from '../types/route';
-
-const DEFAULT_API_BASE_URL = '/api';
+import { authenticatedFetch } from './apiClient';
 
 type PropertyMap = Record<string, string>;
 
 export interface RouteDataProvider {
   getHomeData(): Promise<HomeRoutesData>;
   getRoutePage(options: RoutePageOptions): Promise<RoutePageData>;
+  getRouteById(routeId: string): Promise<Route | null>;
 }
 
 export interface RoutePageOptions {
@@ -429,11 +429,19 @@ function mapRoutePageFromApi(payload: unknown, page: number, limit: number): Rou
   return emptyRoutePageData;
 }
 
+function mapRouteFromApi(payload: unknown): Route | null {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return normalizeRouteItem((payload as { data: unknown }).data);
+  }
+
+  return normalizeRouteItem(payload);
+}
+
 export class ApiRouteDataProvider implements RouteDataProvider {
-  constructor(private readonly baseUrl: string = DEFAULT_API_BASE_URL) {}
+  constructor() {}
 
   async getHomeData(): Promise<HomeRoutesData> {
-    const response = await fetch(`${this.baseUrl}/routes`);
+    const response = await authenticatedFetch(`/routes`);
 
     if (!response.ok) {
       throw new Error('Unable to load route information from the server');
@@ -448,7 +456,7 @@ export class ApiRouteDataProvider implements RouteDataProvider {
       page: String(options.page)
     });
 
-    const response = await fetch(`${this.baseUrl}/routes?${searchParams.toString()}`);
+    const response = await authenticatedFetch(`/routes?${searchParams.toString()}`);
 
     if (!response.ok) {
       throw new Error('Unable to load route page from the server');
@@ -456,10 +464,26 @@ export class ApiRouteDataProvider implements RouteDataProvider {
 
     return mapRoutePageFromApi(await response.json(), options.page, options.limit);
   }
+
+  async getRouteById(routeId: string): Promise<Route | null> {
+    const path = `/routes/${encodeURIComponent(routeId)}`;
+    console.log('[Route Detail Request]', path);
+    const response = await authenticatedFetch(path);
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error('Unable to load route details from the server');
+    }
+
+    return mapRouteFromApi(await response.json());
+  }
 }
 
 export function getConfiguredRouteDataProvider(): RouteDataProvider {
-  return new ApiRouteDataProvider(import.meta.env.VITE_API_URL ?? DEFAULT_API_BASE_URL);
+  return new ApiRouteDataProvider();
 }
 
 export const routeDataProvider = getConfiguredRouteDataProvider();

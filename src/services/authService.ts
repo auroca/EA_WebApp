@@ -1,6 +1,6 @@
 import type { AuthUser, CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
+import { getApiBaseUrl } from './config';
 
-const API_URL = import.meta.env.VITE_API_URL;
 const SESSION_KEY = 'trip2guide_session';
 
 const normalizeFavoriteRoutes = (value: unknown): string[] => {
@@ -24,6 +24,7 @@ const normalizeFavoriteRoutes = (value: unknown): string[] => {
 };
 
 const loadFavoriteRouteIds = async (userId: string, token: string): Promise<string[]> => {
+  const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/users/${userId}/favorites`, {
     method: 'GET',
     headers: {
@@ -42,6 +43,7 @@ const loadFavoriteRouteIds = async (userId: string, token: string): Promise<stri
 };
 
 export const registerUser = async (payload: RegisterPayload): Promise<CreatedUser> => {
+  const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/users`, {
     method: 'POST',
     headers: {
@@ -74,6 +76,7 @@ export const registerUser = async (payload: RegisterPayload): Promise<CreatedUse
 };
 
 export const loginUser = async (email: string, password: string): Promise<LoginResponse> => {
+  const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: {
@@ -109,6 +112,7 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
   };
 
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  console.log('[Login Token Stored in localStorage]', data.accessToken);
 
   return {
     token: data.accessToken,
@@ -118,6 +122,7 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
 
 export const logoutUser = async (): Promise<void> => {
   try {
+    const API_URL = getApiBaseUrl();
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include'

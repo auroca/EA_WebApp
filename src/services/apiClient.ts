@@ -1,11 +1,11 @@
 import { getStoredToken, logoutUser } from './authService';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { getApiBaseUrl } from './config';
 
 export const authenticatedFetch = async (
   input: string,
   init: RequestInit = {}
 ): Promise<Response> => {
+  const API_URL = getApiBaseUrl();
   const token = getStoredToken();
 
   const headers: HeadersInit = {
