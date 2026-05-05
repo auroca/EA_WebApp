@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = '/api';
+const DEFAULT_API_BASE_URL = 'http://localhost:1337';
 const STORAGE_KEY = '__EA_API_BASE_URL__';
 
 function resolveApiBaseUrl(): string {
@@ -22,24 +22,38 @@ function resolveApiBaseUrl(): string {
 }
 
 export function getApiBaseUrl(): string {
-  // Check if URL is already stored in localStorage
+  // Runtime/build configuration is the source of truth.
+  const resolved = resolveApiBaseUrl();
+
+  // Keep localStorage in sync for diagnostics and backward compatibility.
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && stored.trim().length > 0) {
-      console.log('[API Base URL from localStorage]', stored);
-      return stored;
+      const normalizedStored = stored.trim().replace(/\/+$/, '');
+
+      if (normalizedStored !== resolved) {
+        localStorage.setItem(STORAGE_KEY, resolved);
+        console.log('[API Base URL updated in localStorage]', {
+          previous: normalizedStored,
+          current: resolved
+        });
+      } else {
+        console.log('[API Base URL from localStorage]', normalizedStored);
+      }
+
+      return resolved;
     }
   } catch (error) {
     console.warn('[localStorage access failed]', error);
   }
 
-  // First time: resolve and store in localStorage
-  const url = resolveApiBaseUrl();
+  // First time: store the resolved URL in localStorage.
   try {
-    localStorage.setItem(STORAGE_KEY, url);
-    console.log('[API Base URL Stored in localStorage]', url);
+    localStorage.setItem(STORAGE_KEY, resolved);
+    console.log('[API Base URL Stored in localStorage]', resolved);
   } catch (error) {
     console.warn('[localStorage storage failed]', error);
   }
-  return url;
+
+  return resolved;
 }
