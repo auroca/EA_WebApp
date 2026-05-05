@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../services/authService';
+import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../../services/authService';
 import {
   getRoutesByUserId,
   getUserById,
   updateRouteById,
   updateUserById,
   type UpdateRoutePayload
-} from '../services/profileService';
-import type { AuthUser } from '../types/auth';
-import type { Route } from '../types/route';
-import TopNav from './TopNav';
+} from '../../../services/profileService';
+import type { AuthUser } from '../../../types/auth';
+import type { Route } from '../../../types/route';
+import TopNav from '../../shared/TopNav';
 
 interface ProfilePageProps {
   onNavigate: (path: string) => void;

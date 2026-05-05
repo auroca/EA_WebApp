@@ -1,5 +1,5 @@
-import { getDifficultyBadgePath, toTitleCase } from '../utils/homeView';
-import type { Route } from '../types/route';
+import { getDifficultyBadgePath, toTitleCase } from '../../../utils/homeView';
+import type { Route } from '../../../types/route';
 
 interface RouteHeroSectionProps {
   name: string;

@@ -1,11 +1,11 @@
-import type { Route } from '../types/route';
+import type { Route } from '../../../types/route';
 import {
   getDifficultyBadgePath,
   getFeaturedOverlayText,
   getRouteImage,
   toTitleCase
-} from '../utils/homeView';
-import { buildRouteDetailUrl } from '../utils/routeNavigation';
+} from '../../../utils/homeView';
+import { buildRouteDetailUrl } from '../../../utils/routeNavigation';
 
 interface FeaturedRoutesSectionProps {
   routes: Route[];

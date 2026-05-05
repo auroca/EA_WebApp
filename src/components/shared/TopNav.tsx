@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { getStoredUser, isAuthenticated, logoutUser } from '../services/authService';
-import { getTopNavIconPath, topNavItems, type TopNavKey } from '../utils/homeView';
+import { getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
 
 interface TopNavProps {
   activeTopNav: TopNavKey;

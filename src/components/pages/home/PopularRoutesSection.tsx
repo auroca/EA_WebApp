@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
-import type { Route } from '../types/route';
-import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../utils/homeView';
-import { buildRouteDetailUrl } from '../utils/routeNavigation';
-import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../services/authService';
-import { toggleFavoriteRouteByUserId } from '../services/profileService';
+import type { Route } from '../../../types/route';
+import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../../../utils/homeView';
+import { buildRouteDetailUrl } from '../../../utils/routeNavigation';
+import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../../services/authService';
+import { toggleFavoriteRouteByUserId } from '../../../services/profileService';
 
 interface PopularRoutesSectionProps {
   routes: Route[];

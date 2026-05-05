@@ -1,4 +1,4 @@
-import { getTopNavIconPath, type SortOption } from '../utils/homeView';
+import { getTopNavIconPath, type SortOption } from '../../utils/homeView';
 
 interface SearchAreaProps {
   searchInput: string;

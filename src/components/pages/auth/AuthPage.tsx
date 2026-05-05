@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { loginUser, registerUser } from '../services/authService';
-import { routeDataProvider } from '../services/routeService';
-import type { AuthMode } from '../types/auth';
+import { loginUser, registerUser } from '../../../services/authService';
+import { routeDataProvider } from '../../../services/routeService';
+import type { AuthMode } from '../../../types/auth';
 
 interface AuthPageProps {
   mode: AuthMode;

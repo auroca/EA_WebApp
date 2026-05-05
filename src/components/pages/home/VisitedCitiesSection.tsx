@@ -1,4 +1,4 @@
-import { buildRouteSearchUrl } from '../utils/routeNavigation';
+import { buildRouteSearchUrl } from '../../../utils/routeNavigation';
 
 interface NearbyLocation {
   id: string;

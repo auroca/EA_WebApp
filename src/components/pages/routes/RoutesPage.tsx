@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import SearchArea from './SearchArea';
-import SearchResults from './SearchResults';
-import TopNav from './TopNav';
-import { routeDataProvider } from '../services/routeService';
-import type { Route } from '../types/route';
-import { sortRoutes, type SortOption } from '../utils/homeView';
+import SearchArea from '../../shared/SearchArea';
+import SearchResults from '../../shared/SearchResults';
+import TopNav from '../../shared/TopNav';
+import { routeDataProvider } from '../../../services/routeService';
+import type { Route } from '../../../types/route';
+import { sortRoutes, type SortOption } from '../../../utils/homeView';
 
 const DEFAULT_PAGE_SIZE = 10;
 
