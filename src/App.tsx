@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import './index.css';
+import AccessibilityPanel from './components/AccessibilityPanel';
 import AuthPage from './components/AuthPage';
 import FavoritesPage from './components/FavoritesPage';
 import FeaturedRoutesSection from './components/FeaturedRoutesSection';
@@ -46,6 +47,7 @@ function App() {
   const configuredPopularRoutes = homeData.popularRouteIds
     .map((routeId) => routesById.get(routeId))
     .filter((route): route is Route => Boolean(route));
+
   const popularRoutes =
     configuredPopularRoutes.length > 0
       ? configuredPopularRoutes.slice(0, 5)
@@ -203,38 +205,44 @@ function App() {
   }, [searchPage, totalPages]);
 
   if (currentPath === '/login') {
-    return (
-      <AuthPage
-        mode={'login' as AuthMode}
-        onNavigate={navigateTo}
-      />
-    );
+    return <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />;
   }
 
   if (currentPath === '/register') {
-    return (
-      <AuthPage
-        mode={'register' as AuthMode}
-        onNavigate={navigateTo}
-      />
-    );
+    return <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />;
   }
 
   if (currentPath === '/profile') {
-    return <ProfilePage onNavigate={navigateTo} />;
+    return (
+      <>
+        <ProfilePage onNavigate={navigateTo} />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   if (currentPath === '/favorites') {
-    return <FavoritesPage />;
+    return (
+      <>
+        <FavoritesPage />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   if (currentPath === '/routes') {
-    return <RoutesPage />;
+    return (
+      <>
+        <RoutesPage />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
+      <AccessibilityPanel />
 
       <section className="home-content">
         <SearchArea

@@ -47,19 +47,15 @@ function FavoritesPage() {
   const visibleFavoriteRoutes = sortedFavoriteRoutes.slice(startIndex, endIndex);
 
   useEffect(() => {
+    if (!isAuthenticated() || !user?._id) {
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      return;
+    }
+
     let mounted = true;
 
     const loadFavoriteRoutes = async (): Promise<void> => {
-      if (!isAuthenticated() || !user?._id) {
-        if (mounted) {
-          setFavoriteRoutes([]);
-          setError('You need to log in to view favorite routes.');
-          setIsLoading(false);
-        }
-
-        return;
-      }
-
       try {
         const routes = await getFavoriteRoutesByUserId(user._id);
 
