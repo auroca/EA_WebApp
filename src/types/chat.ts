@@ -25,14 +25,14 @@ export interface ChatDetail {
   updatedAt?: string;
 }
 
-export interface GrupMessageEvent {
+export interface ChatMessageEvent {
   chat_id: string;
   username: string;
   message: string;
   timestamp: string;
 }
 
-export interface GrupParticipantsEvent {
+export interface ChatParticipantsEvent {
   chat_id: string;
   participants: string[];
   count: number;

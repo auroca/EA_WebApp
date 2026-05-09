@@ -1675,6 +1675,28 @@ a {
   color: #ffffff;
 }
 
+.chat-create-group-button {
+  width: 100%;
+  margin-top: 12px;
+  height: 40px;
+  border: 1px solid #d4d8e0;
+  border-radius: 10px;
+  background: #f9fafc;
+  color: #111827;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-create-group-button:hover {
+  background: #ecf3ff;
+  border-color: #c7d6f0;
+}
+
+.chat-create-group-button:active {
+  background: #e6f0ff;
+}
+
 @media (max-width: 920px) {
   .chat-page-layout {
     grid-template-columns: 1fr;

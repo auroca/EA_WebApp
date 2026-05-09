@@ -58,3 +58,24 @@ export const joinChatById = async (chatId: string, password: string): Promise<Ch
 
   return (await response.json()) as ChatDetail;
 };
+
+export const createChat = async (name: string, password?: string): Promise<ChatDetail> => {
+  const body: { name: string; password?: string } = { name };
+  if (password && password.trim().length > 0) {
+    body.password = password;
+  }
+
+  const response = await authenticatedFetch('/chats', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response, 'Unable to create this chat.'));
+  }
+
+  return (await response.json()) as ChatDetail;
+};

@@ -3,13 +3,13 @@ import type { Socket } from 'socket.io-client';
 import TopNav from '../../shared/TopNav';
 import { getStoredToken, getStoredUser, isAuthenticated } from '../../../services/authService';
 import { getOrCreateChatSocket } from '../../../services/chatSocket';
-import { getAllChats, getChatById, getChatsByUser, joinChatById } from '../../../services/chatService';
+import { getAllChats, getChatById, getChatsByUser, joinChatById, createChat } from '../../../services/chatService';
 import type {
   ChatDetail,
   ChatHistoryMessage,
   ChatSummary,
-  GrupMessageEvent,
-  GrupParticipantsEvent
+  ChatMessageEvent,
+  ChatParticipantsEvent
 } from '../../../types/chat';
 
 const resolveMessageAuthor = (entry: ChatHistoryMessage): { id: string; username: string } => {
@@ -57,6 +57,11 @@ function ChatPage() {
   const [joinPasswordOpenFor, setJoinPasswordOpenFor] = useState<ChatSummary | null>(null);
   const [joinPasswordValue, setJoinPasswordValue] = useState<string>('');
   const [joinError, setJoinError] = useState<string>('');
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState<boolean>(false);
+  const [createGroupName, setCreateGroupName] = useState<string>('');
+  const [createGroupPassword, setCreateGroupPassword] = useState<string>('');
+  const [createGroupError, setCreateGroupError] = useState<string>('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
   const participantSet = useMemo(() => new Set(participantChatIds), [participantChatIds]);
 
@@ -120,7 +125,7 @@ function ChatPage() {
     const socket = getOrCreateChatSocket(token);
     socketRef.current = socket;
 
-    const handleIncomingMessage = (event: GrupMessageEvent): void => {
+    const handleIncomingMessage = (event: ChatMessageEvent): void => {
       if (event.chat_id !== selectedChatId) {
         return;
       }
@@ -135,7 +140,7 @@ function ChatPage() {
       ]);
     };
 
-    const handleParticipantsUpdate = (event: GrupParticipantsEvent): void => {
+    const handleParticipantsUpdate = (event: ChatParticipantsEvent): void => {
       if (event.chat_id !== selectedChatId) {
         return;
       }
@@ -143,14 +148,36 @@ function ChatPage() {
       setOnlineParticipants(event.participants);
     };
 
-    socket.on('grup:message', handleIncomingMessage);
-    socket.on('grup:participants', handleParticipantsUpdate);
+    const handleChatReload = async (): Promise<void> => {
+      // Only reload if user is available
+      if (!user?._id) {
+        return;
+      }
+
+      try {
+        const [availableChats, myChats] = await Promise.all([
+          getAllChats(),
+          getChatsByUser(user._id)
+        ]);
+
+        const myChatIds = myChats.map((chat) => chat._id);
+        setAllChats(availableChats);
+        setParticipantChatIds(myChatIds);
+      } catch (error) {
+        console.error('Error reloading chats:', error);
+      }
+    };
+
+    socket.on('chat:message', handleIncomingMessage);
+    socket.on('chat:participants', handleParticipantsUpdate);
+    socket.on('chat:reload', handleChatReload);
 
     return () => {
-      socket.off('grup:message', handleIncomingMessage);
-      socket.off('grup:participants', handleParticipantsUpdate);
+      socket.off('chat:message', handleIncomingMessage);
+      socket.off('chat:participants', handleParticipantsUpdate);
+      socket.off('chat:reload', handleChatReload);
     };
-  }, [selectedChatId, token]);
+  }, [selectedChatId, token, user?._id]);
 
   useEffect(() => {
     if (!selectedChatId || !participantSet.has(selectedChatId)) {
@@ -253,13 +280,61 @@ function ChatPage() {
       return;
     }
 
-    socketRef.current.emit('grup:message', {
+    socketRef.current.emit('chat:message', {
       chat_id: selectedChatId,
       username: user.username,
       message: content
     });
 
     setMessageInput('');
+  };
+
+  const handleCreateGroup = async (): Promise<void> => {
+    const groupName = createGroupName.trim();
+
+    if (!groupName) {
+      setCreateGroupError('Group name is required.');
+      return;
+    }
+
+    if (groupName.length < 2) {
+      setCreateGroupError('Group name must be at least 2 characters.');
+      return;
+    }
+
+    try {
+      setIsCreatingGroup(true);
+      setCreateGroupError('');
+
+      const newChat = await createChat(groupName, createGroupPassword);
+
+      setParticipantChatIds((current) => [...current, newChat._id]);
+      setAllChats((current) => [
+        ...current,
+        {
+          _id: newChat._id,
+          name: newChat.name,
+          hasPassword: !!createGroupPassword && createGroupPassword.trim().length > 0
+        }
+      ]);
+
+      setSelectedChatId(newChat._id);
+      setSelectedChat(newChat);
+      setMessages(newChat.chatHistory ?? []);
+      setOnlineParticipants(newChat.participants.map((participant) => participant.username));
+
+      setShowCreateGroupModal(false);
+      setCreateGroupName('');
+      setCreateGroupPassword('');
+    } catch (error) {
+      if (error instanceof Error) {
+        setCreateGroupError(error.message);
+      } else {
+        setCreateGroupError('Unable to create group.');
+      }
+    } finally {
+      setIsCreatingGroup(false);
+    }
   };
 
   if (!isAuthenticated() || !user?._id || !token) {
@@ -312,6 +387,19 @@ function ChatPage() {
                 );
               })}
             </ul>
+          ) : null}
+
+          {!isLoading && !loadError ? (
+            <button
+              type="button"
+              className="chat-create-group-button"
+              onClick={() => {
+                setShowCreateGroupModal(true);
+                setCreateGroupError('');
+              }}
+            >
+              + Create Group
+            </button>
           ) : null}
         </aside>
 
@@ -425,6 +513,62 @@ function ChatPage() {
                 }}
               >
                 {joiningChatId === joinPasswordOpenFor._id ? 'Joining...' : 'Join'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showCreateGroupModal ? (
+        <div className="chat-join-modal-overlay">
+          <div className="chat-join-modal">
+            <h3>Create New Group</h3>
+            <p>Enter a name for your group and optionally set a password.</p>
+
+            <input
+              type="text"
+              className="chat-join-password-input"
+              value={createGroupName}
+              onChange={(event) => setCreateGroupName(event.target.value)}
+              placeholder="Group name"
+              disabled={isCreatingGroup}
+            />
+
+            <input
+              type="password"
+              className="chat-join-password-input"
+              value={createGroupPassword}
+              onChange={(event) => setCreateGroupPassword(event.target.value)}
+              placeholder="Password (optional)"
+              disabled={isCreatingGroup}
+            />
+
+            {createGroupError ? <p className="status-message error">{createGroupError}</p> : null}
+
+            <div className="chat-join-actions">
+              <button
+                type="button"
+                className="chat-join-cancel"
+                onClick={() => {
+                  setShowCreateGroupModal(false);
+                  setCreateGroupName('');
+                  setCreateGroupPassword('');
+                  setCreateGroupError('');
+                }}
+                disabled={isCreatingGroup}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="chat-join-confirm"
+                disabled={isCreatingGroup}
+                onClick={() => {
+                  void handleCreateGroup();
+                }}
+              >
+                {isCreatingGroup ? 'Creating...' : 'Create'}
               </button>
             </div>
           </div>
