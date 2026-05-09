@@ -15,6 +15,7 @@ import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
+import AccessibilityPanel from './components/shared/AccessibilityPanel';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
@@ -47,6 +48,7 @@ function App() {
   const configuredPopularRoutes = homeData.popularRouteIds
     .map((routeId) => routesById.get(routeId))
     .filter((route): route is Route => Boolean(route));
+
   const popularRoutes =
     configuredPopularRoutes.length > 0
       ? configuredPopularRoutes.slice(0, 5)
@@ -204,29 +206,29 @@ function App() {
   }, [searchPage, totalPages]);
 
   if (currentPath === '/login') {
-    return (
-      <AuthPage
-        mode={'login' as AuthMode}
-        onNavigate={navigateTo}
-      />
-    );
+    return <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />;
   }
 
   if (currentPath === '/register') {
-    return (
-      <AuthPage
-        mode={'register' as AuthMode}
-        onNavigate={navigateTo}
-      />
-    );
+    return <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />;
   }
 
   if (currentPath === '/profile') {
-    return <ProfilePage onNavigate={navigateTo} />;
+    return (
+      <>
+        <ProfilePage onNavigate={navigateTo} />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   if (currentPath === '/favorites') {
-    return <FavoritesPage />;
+    return (
+      <>
+        <FavoritesPage />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   if (currentPath === '/chats') {
@@ -234,12 +236,18 @@ function App() {
   }
 
   if (currentPath === '/routes') {
-    return <RoutesPage />;
+    return (
+      <>
+        <RoutesPage />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
+      <AccessibilityPanel />
 
       <section className="home-content">
         <SearchArea
