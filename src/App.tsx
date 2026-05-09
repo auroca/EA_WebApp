@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import './index.css';
 import AuthPage from './components/pages/auth/AuthPage';
 import FavoritesPage from './components/pages/favorites/FavoritesPage';
+import ChatPage from './components/pages/chat/ChatPage';
 import FeaturedRoutesSection from './components/pages/home/FeaturedRoutesSection';
 import PopularRoutesSection from './components/pages/home/PopularRoutesSection';
 import ProfilePage from './components/pages/profile/ProfilePage';
@@ -226,6 +227,10 @@ function App() {
 
   if (currentPath === '/favorites') {
     return <FavoritesPage />;
+  }
+
+  if (currentPath === '/chats') {
+    return <ChatPage />;
   }
 
   if (currentPath === '/routes') {
