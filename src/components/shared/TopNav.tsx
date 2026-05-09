@@ -69,7 +69,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
       <div className="top-nav-menu">
         {topNavItems
-          .filter((item) => item.key !== 'user')
+          .filter((item) => item.key !== 'user' && (loggedIn || (item.key !== 'chats' && item.key !== 'favorites')))
           .map((item) => {
             const isSelected = item.key === activeTopNav;
             const className = isSelected ? 'nav-item nav-item-active' : 'nav-item';
@@ -122,6 +122,26 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   className={className}
                   aria-label={item.label}
                   onClick={() => navigateTo('/favorites')}
+                >
+                  <img
+                    className="nav-icon"
+                    src={getTopNavIconPath(item.icon, isSelected)}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                  <span className="nav-label">{item.label}</span>
+                </button>
+              );
+            }
+
+            if (item.key === 'chats') {
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={className}
+                  aria-label={item.label}
+                  onClick={() => navigateTo('/chats')}
                 >
                   <img
                     className="nav-icon"
