@@ -8,8 +8,58 @@
     <script src="/env.js"></script>
   </head>
   <body>
+    <script>
+      (function () {
+        try {
+          const savedSettings = localStorage.getItem('accessibility-settings');
+
+          if (!savedSettings) {
+            return;
+          }
+
+          const settings = JSON.parse(savedSettings);
+
+          document.body.classList.remove(
+            'accessibility-dark-mode',
+            'accessibility-light-mode',
+            'accessibility-monochrome',
+            'accessibility-low-saturation',
+            'accessibility-high-saturation',
+            'accessibility-high-contrast'
+          );
+
+          if (settings.colorMode === 'dark') {
+            document.body.classList.add('accessibility-dark-mode');
+          }
+
+          if (settings.colorMode === 'light') {
+            document.body.classList.add('accessibility-light-mode');
+          }
+
+          if (settings.colorMode === 'monochrome') {
+            document.body.classList.add('accessibility-monochrome');
+          }
+
+          if (settings.colorMode === 'lowSaturation') {
+            document.body.classList.add('accessibility-low-saturation');
+          }
+
+          if (settings.colorMode === 'highSaturation') {
+            document.body.classList.add('accessibility-high-saturation');
+          }
+
+          if (settings.colorMode === 'highContrast') {
+            document.body.classList.add('accessibility-high-contrast');
+          }
+        } catch (error) {
+          // Keep the page usable if localStorage contains invalid data.
+        }
+      })();
+    </script>
+
     <div id="root"></div>
     <div id="global-footer-mount"></div>
+
     <script>
       fetch('/footer.html')
         .then((response) => {
@@ -29,6 +79,7 @@
           // Footer is optional. Keep app running if it fails to load.
         });
     </script>
+
     <script type="module" src="/src/routeMain.tsx"></script>
   </body>
 </html>

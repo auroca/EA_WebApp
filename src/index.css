@@ -1730,3 +1730,493 @@ a {
     height: 42px;
   }
 }
+
+/* App theme fix: use the accessibility panel body classes */
+body.accessibility-dark-mode {
+  color-scheme: dark;
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+body.accessibility-light-mode {
+  color-scheme: light;
+  background: #f3f4f6;
+  color: #131318;
+}
+
+/* DARK MODE */
+body.accessibility-dark-mode #root,
+body.accessibility-dark-mode .home-page,
+body.accessibility-dark-mode .auth-page,
+body.accessibility-dark-mode .profile-page {
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode .home-page {
+  background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+}
+
+body.accessibility-dark-mode .top-nav,
+body.accessibility-dark-mode .auth-shell,
+body.accessibility-dark-mode .auth-card,
+body.accessibility-dark-mode .top-nav-user-menu,
+body.accessibility-dark-mode .search-bar,
+body.accessibility-dark-mode .filter-panel,
+body.accessibility-dark-mode .search-results-toolbar,
+body.accessibility-dark-mode .search-result-item,
+body.accessibility-dark-mode .profile-card,
+body.accessibility-dark-mode .profile-route-card,
+body.accessibility-dark-mode .chat-sidebar,
+body.accessibility-dark-mode .chat-main,
+body.accessibility-dark-mode .chat-room-item,
+body.accessibility-dark-mode .chat-join-modal,
+body.accessibility-dark-mode footer {
+  background: #111827;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .auth-page {
+  background: #0b1220;
+}
+
+body.accessibility-dark-mode .auth-shell {
+  background: #111827;
+}
+
+body.accessibility-dark-mode .auth-card {
+  background: transparent;
+}
+
+body.accessibility-dark-mode .top-nav {
+  background: rgba(17, 24, 39, 0.96);
+  border-bottom-color: #334155;
+}
+
+body.accessibility-dark-mode .filter-group + .filter-group {
+  border-top-color: #334155;
+}
+
+body.accessibility-dark-mode .chat-header,
+body.accessibility-dark-mode .chat-input-row {
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .auth-divider-line {
+  background: #334155;
+}
+
+body.accessibility-dark-mode .chat-room-item,
+body.accessibility-dark-mode .auth-social-button,
+body.accessibility-dark-mode .auth-secondary-button,
+body.accessibility-dark-mode .auth-main-page-button,
+body.accessibility-dark-mode .search-results-page-button,
+body.accessibility-dark-mode .profile-btn-secondary,
+body.accessibility-dark-mode .chat-create-group-button,
+body.accessibility-dark-mode .chat-join-cancel,
+body.accessibility-dark-mode .top-nav-auth-link {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .chat-room-item:hover,
+body.accessibility-dark-mode .filter-panel button:hover,
+body.accessibility-dark-mode .auth-main-page-button:hover,
+body.accessibility-dark-mode .search-results-page-button:hover:not(:disabled),
+body.accessibility-dark-mode .top-nav-auth-link:hover {
+  background: #263449;
+}
+
+body.accessibility-dark-mode .chat-room-item-active {
+  background: #24324a;
+  border-color: #475569;
+}
+
+body.accessibility-dark-mode input,
+body.accessibility-dark-mode textarea,
+body.accessibility-dark-mode select,
+body.accessibility-dark-mode .auth-input,
+body.accessibility-dark-mode .chat-input,
+body.accessibility-dark-mode .chat-join-password-input,
+body.accessibility-dark-mode .profile-field input,
+body.accessibility-dark-mode .profile-field textarea,
+body.accessibility-dark-mode .profile-field select,
+body.accessibility-dark-mode .search-results-size select {
+  background: #0b1220;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .search-bar input {
+  background: transparent;
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode input::placeholder,
+body.accessibility-dark-mode textarea::placeholder,
+body.accessibility-dark-mode .search-bar input::placeholder {
+  color: #94a3b8;
+}
+
+body.accessibility-dark-mode .auth-title,
+body.accessibility-dark-mode .auth-brand,
+body.accessibility-dark-mode .auth-switch button,
+body.accessibility-dark-mode .profile-title,
+body.accessibility-dark-mode .profile-card-header h2,
+body.accessibility-dark-mode .profile-field span,
+body.accessibility-dark-mode .profile-route-header h3,
+body.accessibility-dark-mode .chat-sidebar-title,
+body.accessibility-dark-mode .chat-title,
+body.accessibility-dark-mode .chat-empty-state h3,
+body.accessibility-dark-mode .chat-room-name,
+body.accessibility-dark-mode .chat-join-modal h3,
+body.accessibility-dark-mode .search-result-content h3,
+body.accessibility-dark-mode .featured-item h4,
+body.accessibility-dark-mode .popular-card h3,
+body.accessibility-dark-mode .category-card h3,
+body.accessibility-dark-mode .block-head h2,
+body.accessibility-dark-mode .top-nav-user-menu-value,
+body.accessibility-dark-mode .nav-item,
+body.accessibility-dark-mode .top-nav-user-button,
+body.accessibility-dark-mode .filter-panel button,
+body.accessibility-dark-mode .search-results-summary,
+body.accessibility-dark-mode .search-results-size,
+body.accessibility-dark-mode .search-results-page-indicator,
+body.accessibility-dark-mode footer,
+body.accessibility-dark-mode footer * {
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode .auth-subtitle,
+body.accessibility-dark-mode .auth-legal-text,
+body.accessibility-dark-mode .auth-switch,
+body.accessibility-dark-mode .auth-divider-text,
+body.accessibility-dark-mode .profile-subtitle,
+body.accessibility-dark-mode .profile-label,
+body.accessibility-dark-mode .profile-route-header p,
+body.accessibility-dark-mode .profile-route-meta,
+body.accessibility-dark-mode .profile-loading,
+body.accessibility-dark-mode .profile-empty,
+body.accessibility-dark-mode .chat-online-count,
+body.accessibility-dark-mode .chat-empty-state,
+body.accessibility-dark-mode .chat-empty-state p,
+body.accessibility-dark-mode .chat-room-meta,
+body.accessibility-dark-mode .chat-join-modal p,
+body.accessibility-dark-mode .search-result-content p,
+body.accessibility-dark-mode .search-result-content span,
+body.accessibility-dark-mode .search-result-meta,
+body.accessibility-dark-mode .featured-item p,
+body.accessibility-dark-mode .popular-card p,
+body.accessibility-dark-mode .status-message,
+body.accessibility-dark-mode .top-nav-user-menu-label {
+  color: #cbd5e1;
+}
+
+body.accessibility-dark-mode .auth-primary-button,
+body.accessibility-dark-mode .top-nav-auth-link-primary,
+body.accessibility-dark-mode .top-nav-user-logout,
+body.accessibility-dark-mode .profile-btn-primary,
+body.accessibility-dark-mode .user-dropdown-button,
+body.accessibility-dark-mode .chat-send-button,
+body.accessibility-dark-mode .chat-join-confirm,
+body.accessibility-dark-mode .search-submit-button {
+  background: #f8fafc;
+  color: #0b1220;
+}
+
+body.accessibility-dark-mode .nav-item-active,
+body.accessibility-dark-mode .top-nav-user-button-active {
+  background: #e5e7eb;
+  color: #0b1220;
+}
+
+body.accessibility-dark-mode .nav-item-active *,
+body.accessibility-dark-mode .top-nav-user-button-active * {
+  color: #0b1220;
+}
+
+body.accessibility-dark-mode .search-result-favorite-button {
+  background: #f8fafc;
+  color: #0b1220;
+}
+
+body.accessibility-dark-mode .chat-message-bubble {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode .chat-message-author,
+body.accessibility-dark-mode .chat-message-time {
+  color: #cbd5e1;
+}
+
+body.accessibility-dark-mode .chat-message-bubble-mine {
+  background: #dcfce7;
+  color: #052e16;
+}
+
+body.accessibility-dark-mode .chat-message-bubble-mine * {
+  color: #052e16;
+}
+
+body.accessibility-dark-mode .profile-tag {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode .profile-error {
+  background: #450a0a;
+  color: #fecaca;
+}
+
+body.accessibility-dark-mode .auth-error,
+body.accessibility-dark-mode .status-message.error {
+  color: #fca5a5;
+}
+
+/* LIGHT MODE: force clean reset when user selects light */
+body.accessibility-light-mode #root,
+body.accessibility-light-mode .home-page,
+body.accessibility-light-mode .auth-page,
+body.accessibility-light-mode .profile-page {
+  background: #f3f4f6;
+  color: #131318;
+}
+
+body.accessibility-light-mode .home-page {
+  background: linear-gradient(180deg, #f7f8fb 0%, #f2f3f7 100%);
+}
+
+body.accessibility-light-mode .auth-page {
+  background: #f5f5f5;
+}
+
+body.accessibility-light-mode .auth-shell,
+body.accessibility-light-mode .top-nav,
+body.accessibility-light-mode .top-nav-user-menu,
+body.accessibility-light-mode .filter-panel,
+body.accessibility-light-mode .search-results-toolbar,
+body.accessibility-light-mode .search-result-item,
+body.accessibility-light-mode .profile-card,
+body.accessibility-light-mode .chat-sidebar,
+body.accessibility-light-mode .chat-main,
+body.accessibility-light-mode .chat-join-modal {
+  background: #ffffff;
+  color: #111827;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Accessibility color modes - affect everything */
+body.accessibility-monochrome {
+  filter: grayscale(1) !important;
+}
+
+body.accessibility-low-saturation {
+  filter: saturate(0.45) !important;
+}
+
+body.accessibility-high-saturation {
+  filter: saturate(1.8) !important;
+}
+
+/* High contrast clean fix - no global filter, no hard white boxes */
+body.accessibility-high-contrast {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast #root,
+body.accessibility-high-contrast .home-page,
+body.accessibility-high-contrast .route-page,
+body.accessibility-high-contrast .profile-page,
+body.accessibility-high-contrast .auth-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+  filter: none !important;
+}
+
+body.accessibility-high-contrast .top-nav {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #2f2f2f !important;
+}
+
+body.accessibility-high-contrast .search-bar,
+body.accessibility-high-contrast .filter-panel,
+body.accessibility-high-contrast .search-results-toolbar,
+body.accessibility-high-contrast .search-result-item,
+body.accessibility-high-contrast .profile-card,
+body.accessibility-high-contrast .profile-route-card,
+body.accessibility-high-contrast .chat-sidebar,
+body.accessibility-high-contrast .chat-main,
+body.accessibility-high-contrast .chat-room-item,
+body.accessibility-high-contrast .chat-join-modal,
+body.accessibility-high-contrast .route-fact-card,
+body.accessibility-high-contrast .route-panel,
+body.accessibility-high-contrast .route-highlights,
+body.accessibility-high-contrast .route-highlight-item,
+body.accessibility-high-contrast footer {
+  background: #050505 !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
+}
+
+body.accessibility-high-contrast h1,
+body.accessibility-high-contrast h2,
+body.accessibility-high-contrast h3,
+body.accessibility-high-contrast h4,
+body.accessibility-high-contrast p,
+body.accessibility-high-contrast span,
+body.accessibility-high-contrast label,
+body.accessibility-high-contrast a,
+body.accessibility-high-contrast footer * {
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast input,
+body.accessibility-high-contrast textarea,
+body.accessibility-high-contrast select {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+body.accessibility-high-contrast input::placeholder,
+body.accessibility-high-contrast textarea::placeholder {
+  color: #d1d5db !important;
+  opacity: 1;
+}
+
+body.accessibility-high-contrast button,
+body.accessibility-high-contrast .search-submit-button,
+body.accessibility-high-contrast .auth-primary-button,
+body.accessibility-high-contrast .profile-btn-primary,
+body.accessibility-high-contrast .chat-send-button,
+body.accessibility-high-contrast .chat-join-confirm,
+body.accessibility-high-contrast .search-results-page-button {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+body.accessibility-high-contrast .nav-item,
+body.accessibility-high-contrast .top-nav-user-button {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+
+body.accessibility-high-contrast .nav-item-active,
+body.accessibility-high-contrast .top-nav-user-button-active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0 !important;
+}
+
+body.accessibility-high-contrast .nav-item-active *,
+body.accessibility-high-contrast .top-nav-user-button-active * {
+  color: #000000 !important;
+}
+
+body.accessibility-high-contrast .search-result-favorite-button,
+body.accessibility-high-contrast .favorite-button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0 !important;
+}
+
+body.accessibility-high-contrast .chat-message-bubble,
+body.accessibility-high-contrast .chat-message-bubble-mine {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #3a3a3a !important;
+}
+
+body.accessibility-high-contrast .route-hero {
+  border: 0 !important;
+}
+
+body.accessibility-high-contrast .route-hero::before,
+body.accessibility-high-contrast .route-hero::after,
+body.accessibility-high-contrast .featured-card::before,
+body.accessibility-high-contrast .featured-card::after {
+  background: rgba(0, 0, 0, 0.55) !important;
+}
+
+body.accessibility-high-contrast img {
+  filter: none !important;
+}
+/* High contrast cleanup: logo and search input */
+body.accessibility-high-contrast .top-nav-brand,
+body.accessibility-high-contrast .top-nav-brand img,
+body.accessibility-high-contrast .logo,
+body.accessibility-high-contrast img[src*="logo"] {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+body.accessibility-high-contrast .search-bar input {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+body.accessibility-high-contrast .search-bar {
+  border: 1px solid #555555 !important;
+  background: #050505 !important;
+}
+
+body.accessibility-high-contrast .filter-button {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+body.accessibility-high-contrast .search-submit-button {
+  border: 1px solid #555555 !important;
+  background: #111111 !important;
+}
+/* High contrast cleanup: user dropdown */
+body.accessibility-high-contrast .top-nav-user-menu {
+  background: #050505 !important;
+  color: #ffffff !important;
+  border: 1px solid #3a3a3a !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+body.accessibility-high-contrast .top-nav-user-menu * {
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast .top-nav-user-menu-label {
+  color: #cbd5e1 !important;
+}
+
+body.accessibility-high-contrast .top-nav-user-menu-value {
+  color: #ffffff !important;
+}
+
+body.accessibility-high-contrast .top-nav-user-menu .user-dropdown-button,
+body.accessibility-high-contrast .top-nav-user-menu button,
+body.accessibility-high-contrast .top-nav-user-logout {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+body.accessibility-high-contrast .top-nav-user-menu .user-dropdown-button:hover,
+body.accessibility-high-contrast .top-nav-user-menu button:hover,
+body.accessibility-high-contrast .top-nav-user-logout:hover {
+  background: #1f1f1f !important;
+}
