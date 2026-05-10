@@ -4,6 +4,7 @@ import RouteDescriptionSection from './components/pages/routes/RouteDescriptionS
 import RouteGallery from './components/pages/routes/RouteGallery';
 import RouteHeroSection from './components/pages/routes/RouteHeroSection';
 import RouteHighlights from './components/pages/routes/RouteHighlights';
+import RouteMap from './components/pages/routes/RouteMap';
 import RouteQuickFacts from './components/pages/routes/RouteQuickFacts';
 import SearchArea from './components/shared/SearchArea';
 import SearchResults from './components/shared/SearchResults';
@@ -376,6 +377,8 @@ function RouteApp() {
             />
 
             <RouteDescriptionSection description={selectedRoute.description} />
+
+            <RouteMap route={selectedRoute} />
 
             <RouteHighlights tags={selectedRoute.tags} />
 
