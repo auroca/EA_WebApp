@@ -1,5 +1,7 @@
 import type { HomeRoutesData, PaginationMeta, Route, RoutePageData } from '../types/route';
 import { authenticatedFetch } from './apiClient';
+import { getApiBaseUrl } from './config';
+import { getStoredToken } from './authService';
 
 type PropertyMap = Record<string, string>;
 
@@ -308,6 +310,32 @@ function normalizeRouteItem(item: unknown): Route | null {
     .map((tag) => tag.trim())
     .filter(Boolean);
 
+  // Handle points if present
+  let points: any[] | undefined;
+  if (Array.isArray(candidate.points)) {
+    points = candidate.points
+      .filter((point): point is Record<string, unknown> => typeof point === 'object' && point !== null)
+      .map((point, idx) => ({
+        _id: typeof point._id === 'string' ? point._id : '',
+        name: typeof point.name === 'string' && point.name.trim().length > 0 ? point.name : `Point ${idx + 1}`,
+        description: typeof point.description === 'string' ? point.description : undefined,
+        latitude: typeof point.latitude === 'number' ? point.latitude : 0,
+        longitude: typeof point.longitude === 'number' ? point.longitude : 0,
+        image: typeof point.image === 'string' ? point.image : undefined,
+        routeId: typeof point.routeId === 'string' && point.routeId.trim().length > 0 ? point.routeId : (typeof candidate._id === 'string' ? candidate._id : ''),
+        index: typeof point.index === 'number' && point.index > 0 ? point.index : idx + 1,
+        createdAt: typeof point.createdAt === 'string' ? point.createdAt : undefined,
+        updatedAt: typeof point.updatedAt === 'string' ? point.updatedAt : undefined
+      }))
+      .filter(
+        (point) =>
+          point._id &&
+          point.name &&
+          Number.isFinite(point.latitude) &&
+          Number.isFinite(point.longitude)
+      );
+  }
+
   const normalized: Route = {
     _id: typeof candidate._id === 'string' ? candidate._id : '',
     name: typeof candidate.name === 'string' ? candidate.name : '',
@@ -326,7 +354,8 @@ function normalizeRouteItem(item: unknown): Route | null {
     country: typeof candidate.country === 'string' ? candidate.country : '',
     distance: typeof candidate.distance === 'number' ? candidate.distance : undefined,
     duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
-    tags
+    tags,
+    points
   };
 
   if (
@@ -467,7 +496,14 @@ export class ApiRouteDataProvider implements RouteDataProvider {
 
   async getRouteById(routeId: string): Promise<Route | null> {
     const path = `/routes/${encodeURIComponent(routeId)}`;
-    console.log('[Route Detail Request]', path);
+    const apiUrl = getApiBaseUrl();
+    const token = getStoredToken();
+    const fullUrl = `${apiUrl}${path}`;
+    console.log('[Route Detail Request]', {
+      path,
+      fullUrl,
+      token: token ? `Bearer ${token.substring(0, 20)}...` : 'No token'
+    });
     const response = await authenticatedFetch(path);
 
     if (response.status === 404) {

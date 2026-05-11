@@ -5,6 +5,13 @@ import { loginUser, registerUser } from '../../../services/authService';
 import { routeDataProvider } from '../../../services/routeService';
 import type { AuthMode } from '../../../types/auth';
 
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+
+const PASSWORD_ERROR =
+  'The password must have at least 6 characters, one uppercase letter, one number and one special character.';
+
+const PASSWORD_CONFIRM_ERROR = 'Passwords do not match.';
+
 interface AuthPageProps {
   mode: AuthMode;
   onNavigate: (path: string) => void;
@@ -22,6 +29,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
 
     return redirect;
   }, []);
+
   const routeIdFromRedirect = useMemo(() => {
     if (!redirectPath.startsWith('/route.html')) {
       return '';
@@ -41,6 +49,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const [error, setError] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
   const [username, setUsername] = useState<string>('');
@@ -103,6 +112,22 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError('');
+
+    if (!password) {
+      setError('Please enter a password.');
+      return;
+    }
+
+    if (!isLogin && !PASSWORD_REGEX.test(password)) {
+      setError(PASSWORD_ERROR);
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      setError(PASSWORD_CONFIRM_ERROR);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -152,6 +177,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
         <section className="auth-card">
           <h1 className="auth-title">{title}</h1>
           <p className="auth-subtitle">{subtitle}</p>
+
           {routeIdFromRedirect ? (
             <p className="auth-error auth-route-warning">
               Login to view {routeNameFromRedirect || 'this route'}.
@@ -196,6 +222,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                     onChange={(event) => setName(event.target.value)}
                     autoComplete="given-name"
                   />
+
                   <input
                     className="auth-input"
                     type="text"
@@ -204,6 +231,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                     onChange={(event) => setSurname(event.target.value)}
                     autoComplete="family-name"
                   />
+
                   <input
                     className="auth-input"
                     type="text"
@@ -224,6 +252,17 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
               />
 
+              {!isLogin ? (
+                <input
+                  className="auth-input"
+                  type="password"
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  autoComplete="new-password"
+                />
+              ) : null}
+
               {error ? <p className="auth-error">{error}</p> : null}
 
               <div className="auth-actions-row">
@@ -233,6 +272,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   onClick={() => {
                     setStep(1);
                     setError('');
+                    setConfirmPassword('');
                   }}
                 >
                   Back
@@ -274,7 +314,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
           <div className="auth-switch">
             {isLogin ? (
               <>
-                <span>Don\'t have an account?</span>
+                <span>Don&apos;t have an account?</span>
                 <button type="button" onClick={() => onNavigate('/register')}>
                   Sign up
                 </button>

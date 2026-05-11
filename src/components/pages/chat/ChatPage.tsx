@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import TopNav from '../../shared/TopNav';
+import AccessibilityPanel from '../../shared/AccessibilityPanel';
 import { getStoredToken, getStoredUser, isAuthenticated } from '../../../services/authService';
 import { getOrCreateChatSocket } from '../../../services/chatSocket';
 import { getAllChats, getChatById, getChatsByUser, joinChatById, createChat } from '../../../services/chatService';
@@ -341,6 +342,7 @@ function ChatPage() {
     return (
       <main className="home-page">
         <TopNav activeTopNav={'chats'} />
+        <AccessibilityPanel />
         <section className="home-content">
           <p className="status-message error">You need to log in to use chats.</p>
         </section>
@@ -351,6 +353,7 @@ function ChatPage() {
   return (
     <main className="home-page">
       <TopNav activeTopNav={'chats'} />
+      <AccessibilityPanel />
 
       <section className="home-content chat-page-layout">
         <aside className="chat-sidebar">

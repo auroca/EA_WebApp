@@ -1,3 +1,16 @@
+export interface Point {
+  _id: string;
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  image?: string;
+  routeId: string;
+  index: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Route {
   _id: string;
   name: string;
@@ -12,6 +25,7 @@ export interface Route {
   distance?: number;
   duration?: number;
   tags: string[];
+  points?: Point[];
 }
 
 export interface HomeRoutesData {

@@ -4,10 +4,12 @@ import RouteDescriptionSection from './components/pages/routes/RouteDescriptionS
 import RouteGallery from './components/pages/routes/RouteGallery';
 import RouteHeroSection from './components/pages/routes/RouteHeroSection';
 import RouteHighlights from './components/pages/routes/RouteHighlights';
+import RouteMap from './components/pages/routes/RouteMap';
 import RouteQuickFacts from './components/pages/routes/RouteQuickFacts';
 import SearchArea from './components/shared/SearchArea';
 import SearchResults from './components/shared/SearchResults';
 import TopNav from './components/shared/TopNav';
+import AccessibilityPanel from './components/shared/AccessibilityPanel';
 import { isAuthenticated } from './services/authService';
 import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { HomeRoutesData, Route, RoutePageData } from './types/route';
@@ -298,96 +300,106 @@ function RouteApp() {
   };
 
   if (currentPath === '/profile') {
-    return <ProfilePage onNavigate={(path) => navigateTo(path)} />;
+    return (
+      <>
+        <ProfilePage onNavigate={(path) => navigateTo(path)} />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   return (
-    <main className="route-page">
-      <TopNav activeTopNav="routes" />
+    <>
+      <main className="route-page">
+        <TopNav activeTopNav="routes" />
+        <AccessibilityPanel />
 
-      <section className="route-shell">
-        <SearchArea
-          searchInput={searchInput}
-          isSearchActive={isSearchActive}
-          hasActiveFilter={hasActiveFilter}
-          isFilterOpen={isFilterOpen}
-          sortOption={sortOption}
-          onSearchChange={setSearchInput}
-          onSearchFocus={() => setIsSearchFocused(true)}
-          onSearchBlur={() => setIsSearchFocused(false)}
-          onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
-          onClearSearch={clearSearch}
-          onSelectSortOption={handleSelectSortOption}
-        />
-
-        {!error && isRouteListMode && !isListLoading ? (
-          <SearchResults
-            title="Routes"
-            routes={pagedRouteListResults}
-            totalResults={totalRouteListResults}
-            currentPage={safeListPage}
-            pageSize={listPageSize}
-            totalPages={totalRouteListPages}
-            onPreviousPage={() => setListPage((current) => Math.max(1, current - 1))}
-            onNextPage={() => setListPage((current) => Math.min(totalRouteListPages, current + 1))}
-            onPageSizeChange={(value) => setListPageSize(value)}
+        <section className="route-shell">
+          <SearchArea
+            searchInput={searchInput}
+            isSearchActive={isSearchActive}
+            hasActiveFilter={hasActiveFilter}
+            isFilterOpen={isFilterOpen}
+            sortOption={sortOption}
+            onSearchChange={setSearchInput}
+            onSearchFocus={() => setIsSearchFocused(true)}
+            onSearchBlur={() => setIsSearchFocused(false)}
+            onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
+            onClearSearch={clearSearch}
+            onSelectSortOption={handleSelectSortOption}
           />
-        ) : null}
 
-        {hasActiveSearch ? (
-          <SearchResults
-            routes={pagedSearchResults}
-            totalResults={totalSearchResults}
-            currentPage={safeSearchPage}
-            pageSize={searchPageSize}
-            totalPages={totalSearchPages}
-            onPreviousPage={() => setSearchPage((current) => Math.max(1, current - 1))}
-            onNextPage={() => setSearchPage((current) => Math.min(totalSearchPages, current + 1))}
-            onPageSizeChange={(value) => setSearchPageSize(value)}
-          />
-        ) : null}
-
-        {(isRouteListMode && isListLoading) || (hasActiveSearch && isFullRoutesLoading) || (routeId.length > 0 && isRouteDetailLoading) ? (
-          <p className="status-message">Loading route information...</p>
-        ) : null}
-
-        {!isFullRoutesLoading && !isRouteDetailLoading && error ? <p className="status-message error">{error}</p> : null}
-
-        {!isRouteDetailLoading && routeId && !selectedRoute ? (
-          <p className="status-message error">Route not found.</p>
-        ) : null}
-
-        {!isRouteDetailLoading && selectedRoute ? (
-          <>
-            <RouteHeroSection
-              name={selectedRoute.name}
-              coverImage={getRouteImage(selectedRoute)}
-              city={selectedRoute.city}
-              country={selectedRoute.country}
-              difficulty={selectedRoute.difficulty}
-              distance={selectedRoute.distance}
-              duration={selectedRoute.duration}
-              tags={selectedRoute.tags}
+          {!error && isRouteListMode && !isListLoading ? (
+            <SearchResults
+              title="Routes"
+              routes={pagedRouteListResults}
+              totalResults={totalRouteListResults}
+              currentPage={safeListPage}
+              pageSize={listPageSize}
+              totalPages={totalRouteListPages}
+              onPreviousPage={() => setListPage((current) => Math.max(1, current - 1))}
+              onNextPage={() => setListPage((current) => Math.min(totalRouteListPages, current + 1))}
+              onPageSizeChange={(value) => setListPageSize(value)}
             />
+          ) : null}
 
-            <RouteQuickFacts
-              distance={selectedRoute.distance}
-              duration={selectedRoute.duration}
+          {hasActiveSearch ? (
+            <SearchResults
+              routes={pagedSearchResults}
+              totalResults={totalSearchResults}
+              currentPage={safeSearchPage}
+              pageSize={searchPageSize}
+              totalPages={totalSearchPages}
+              onPreviousPage={() => setSearchPage((current) => Math.max(1, current - 1))}
+              onNextPage={() => setSearchPage((current) => Math.min(totalSearchPages, current + 1))}
+              onPageSizeChange={(value) => setSearchPageSize(value)}
             />
+          ) : null}
 
-            <RouteDescriptionSection description={selectedRoute.description} />
+          {(isRouteListMode && isListLoading) || (hasActiveSearch && isFullRoutesLoading) || (routeId.length > 0 && isRouteDetailLoading) ? (
+            <p className="status-message">Loading route information...</p>
+          ) : null}
 
-            <RouteHighlights tags={selectedRoute.tags} />
+          {!isFullRoutesLoading && !isRouteDetailLoading && error ? <p className="status-message error">{error}</p> : null}
 
-            <RouteGallery
-              routeName={selectedRoute.name}
-              coverImage={getRouteImage(selectedRoute)}
-              galleryItems={selectedRoute.images}
-            />
-          </>
-        ) : null}
-      </section>
-    </main>
+          {!isRouteDetailLoading && routeId && !selectedRoute ? (
+            <p className="status-message error">Route not found.</p>
+          ) : null}
+
+          {!isRouteDetailLoading && selectedRoute ? (
+            <>
+              <RouteHeroSection
+                name={selectedRoute.name}
+                coverImage={getRouteImage(selectedRoute)}
+                city={selectedRoute.city}
+                country={selectedRoute.country}
+                difficulty={selectedRoute.difficulty}
+                distance={selectedRoute.distance}
+                duration={selectedRoute.duration}
+                tags={selectedRoute.tags}
+              />
+
+              <RouteQuickFacts
+                distance={selectedRoute.distance}
+                duration={selectedRoute.duration}
+              />
+
+              <RouteDescriptionSection description={selectedRoute.description} />
+
+              <RouteMap route={selectedRoute} />
+
+              <RouteHighlights tags={selectedRoute.tags} />
+
+              <RouteGallery
+                routeName={selectedRoute.name}
+                coverImage={getRouteImage(selectedRoute)}
+                galleryItems={selectedRoute.images}
+              />
+            </>
+          ) : null}
+        </section>
+      </main>
+    </>
   );
 }
 
