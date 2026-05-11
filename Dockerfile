@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for building and serving the Vite React app
 
-# Build stage
+# Build stage 
 FROM node:18-alpine AS build
 WORKDIR /app
 
