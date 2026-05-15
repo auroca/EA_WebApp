@@ -28,6 +28,28 @@ export interface Route {
   points?: Point[];
 }
 
+export interface RoutePointCreateInput {
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  image?: string;
+  index: number;
+}
+
+export interface RouteCreateInput {
+  name: string;
+  description: string;
+  cover_image: string;
+  city: string;
+  country: string;
+  distance: number;
+  duration: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  tags: string[];
+  points: RoutePointCreateInput[];
+}
+
 export interface HomeRoutesData {
   routes: Route[];
   popularRouteIds: string[];

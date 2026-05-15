@@ -165,7 +165,6 @@ function getOsrmProfile(mode: TransportMode): 'driving' | 'foot' | 'bike' {
     return 'bike';
   }
 
-  // For transit we approximate by road network when no GTFS-backed provider is configured.
   return 'driving';
 }
 
@@ -225,7 +224,6 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
         }
       } catch {
         if (mounted) {
-          // Fallback to direct point-to-point lines when routing service is unavailable.
           setStreetPath(points.map((point) => [point.latitude, point.longitude] as [number, number]));
         }
       }
@@ -290,7 +288,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
       .addTo(map);
 
     points.forEach((point, idx) => {
-      const pointOrder = point.index > 0 ? point.index : idx + 1;
+      const pointOrder = idx + 1;
 
       const marker = L.marker([point.latitude, point.longitude], {
         icon: L.divIcon({

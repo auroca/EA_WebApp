@@ -7,6 +7,7 @@ import {
   updateUserById,
   type UpdateRoutePayload
 } from '../../../services/profileService';
+import { routeDataProvider } from '../../../services/routeService';
 import type { AuthUser } from '../../../types/auth';
 import type { Route } from '../../../types/route';
 import TopNav from '../../shared/TopNav';
@@ -28,7 +29,6 @@ interface RouteFormState {
   name: string;
   description: string;
   cover_image: string;
-  imagesText: string;
   difficulty: 'easy' | 'medium' | 'hard';
   city: string;
   country: string;
@@ -50,7 +50,6 @@ const createRouteFormState = (route: Route): RouteFormState => ({
   name: route.name ?? '',
   description: route.description ?? '',
   cover_image: route.cover_image ?? '',
-  imagesText: route.images.join(', '),
   difficulty: route.difficulty,
   city: route.city ?? '',
   country: route.country ?? '',
@@ -64,6 +63,18 @@ const parseCommaSeparatedValues = (value: string): string[] =>
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+
+const getRoutePreviewImage = (route: Route): string => {
+  if (route.cover_image && route.cover_image.trim().length > 0) {
+    return route.cover_image;
+  }
+
+  if ((route.images ?? []).length > 0 && route.images[0].trim().length > 0) {
+    return route.images[0];
+  }
+
+  return '';
+};
 
 function ProfilePage({ onNavigate }: ProfilePageProps) {
   const sessionUser = useMemo(() => getStoredUser(), []);
@@ -92,6 +103,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [editingRouteId, setEditingRouteId] = useState('');
   const [routeForm, setRouteForm] = useState<RouteFormState | null>(null);
   const [savingRoute, setSavingRoute] = useState(false);
+  const [deletingRouteId, setDeletingRouteId] = useState('');
   const [routeMessage, setRouteMessage] = useState('');
 
   useEffect(() => {
@@ -112,23 +124,17 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
           getRoutesByUserId(sessionUser._id)
         ]);
 
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
         setUser(userData);
         setUserForm(createUserFormState(userData));
         setRoutes(userRoutes);
       } catch (error) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
         setPageError(error instanceof Error ? error.message : 'Unable to load the profile.');
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 
@@ -147,18 +153,14 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
   };
 
   const resetUserForm = (): void => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     setUserForm(createUserFormState(user));
     setUserMessage('');
   };
 
   const handleSaveUser = async (): Promise<void> => {
-    if (!user?._id) {
-      return;
-    }
+    if (!user?._id) return;
 
     const wantsPasswordChange =
       userForm.newPassword.trim().length > 0 ||
@@ -238,9 +240,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   const handleRouteFieldChange = (field: keyof RouteFormState, value: string): void => {
     setRouteForm((prev) => {
-      if (!prev) {
-        return prev;
-      }
+      if (!prev) return prev;
 
       return {
         ...prev,
@@ -250,19 +250,24 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
   };
 
   const handleSaveRoute = async (originalRoute: Route): Promise<void> => {
-    if (!routeForm) {
-      return;
-    }
+    if (!routeForm) return;
 
     setSavingRoute(true);
     setRouteMessage('');
 
     try {
+      const coverImage = routeForm.cover_image.trim();
+
       const payload: UpdateRoutePayload = {
         name: routeForm.name.trim(),
         description: routeForm.description.trim(),
-        cover_image: routeForm.cover_image.trim(),
-        images: parseCommaSeparatedValues(routeForm.imagesText),
+        cover_image: coverImage,
+        images: coverImage
+          ? [
+              coverImage,
+              ...(originalRoute.images ?? []).filter((image) => image !== coverImage)
+            ]
+          : originalRoute.images ?? [],
         userId: originalRoute.userId,
         difficulty: routeForm.difficulty,
         city: routeForm.city.trim(),
@@ -277,6 +282,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       setRoutes((prev) =>
         prev.map((route) => (route._id === updatedRoute._id ? updatedRoute : route))
       );
+
       setEditingRouteId('');
       setRouteForm(null);
       setRouteMessage('Route updated successfully.');
@@ -284,6 +290,30 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       setRouteMessage(error instanceof Error ? error.message : 'Unable to save the route.');
     } finally {
       setSavingRoute(false);
+    }
+  };
+
+  const handleDeleteRoute = async (route: Route): Promise<void> => {
+    const confirmed = window.confirm(`Delete route "${route.name}"? This action cannot be undone.`);
+
+    if (!confirmed) return;
+
+    setDeletingRouteId(route._id);
+    setRouteMessage('');
+
+    try {
+      await routeDataProvider.deleteRoute(route._id);
+      setRoutes((prev) => prev.filter((item) => item._id !== route._id));
+      setRouteMessage('Route deleted successfully.');
+
+      if (editingRouteId === route._id) {
+        setEditingRouteId('');
+        setRouteForm(null);
+      }
+    } catch (error) {
+      setRouteMessage(error instanceof Error ? error.message : 'Unable to delete the route.');
+    } finally {
+      setDeletingRouteId('');
     }
   };
 
@@ -458,43 +488,67 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
               <div className="profile-routes-list">
                 {routes.map((route) => {
                   const isEditingThisRoute = editingRouteId === route._id && routeForm;
+                  const previewImage = getRoutePreviewImage(route);
 
                   return (
                     <article className="profile-route-card" key={route._id}>
                       {!isEditingThisRoute ? (
-                        <>
-                          <div className="profile-route-header">
-                            <div>
-                              <h3>{route.name}</h3>
-                              <p>
-                                {route.city}, {route.country}
-                              </p>
+                        <div className="profile-route-preview-layout">
+                          <div className="profile-route-image-wrap">
+                            {previewImage ? (
+                              <img src={previewImage} alt={route.name} />
+                            ) : (
+                              <div className="profile-route-image-placeholder">No image</div>
+                            )}
+                          </div>
+
+                          <div className="profile-route-content">
+                            <div className="profile-route-header">
+                              <div>
+                                <h3>{route.name}</h3>
+                                <p>
+                                  {route.city}, {route.country}
+                                </p>
+                              </div>
+
+                              <div className="profile-actions-inline">
+                                <button
+                                  className="profile-btn-secondary"
+                                  onClick={() => {
+                                    void handleDeleteRoute(route);
+                                  }}
+                                  disabled={deletingRouteId === route._id}
+                                >
+                                  {deletingRouteId === route._id ? 'Deleting...' : 'Delete route'}
+                                </button>
+
+                                <button
+                                  className="profile-btn-primary"
+                                  onClick={() => startEditingRoute(route)}
+                                  disabled={deletingRouteId === route._id}
+                                >
+                                  Edit route
+                                </button>
+                              </div>
                             </div>
 
-                            <button
-                              className="profile-btn-primary"
-                              onClick={() => startEditingRoute(route)}
-                            >
-                              Edit route
-                            </button>
-                          </div>
+                            <div className="profile-route-meta">
+                              <span>Difficulty: {route.difficulty}</span>
+                              <span>Distance: {route.distance ?? '-'} km</span>
+                              <span>Duration: {route.duration ?? '-'} min</span>
+                            </div>
 
-                          <div className="profile-route-meta">
-                            <span>Difficulty: {route.difficulty}</span>
-                            <span>Distance: {route.distance ?? '-'} km</span>
-                            <span>Duration: {route.duration ?? '-'} min</span>
-                          </div>
+                            <p className="profile-route-description">{route.description}</p>
 
-                          <p className="profile-route-description">{route.description}</p>
-
-                          <div className="profile-tag-list">
-                            {route.tags.map((tag) => (
-                              <span key={`${route._id}-${tag}`} className="profile-tag">
-                                {tag}
-                              </span>
-                            ))}
+                            <div className="profile-tag-list">
+                              {route.tags.map((tag) => (
+                                <span key={`${route._id}-${tag}`} className="profile-tag">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </>
+                        </div>
                       ) : (
                         <>
                           <div className="profile-route-header">
@@ -521,116 +575,121 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                             </div>
                           </div>
 
-                          <div className="profile-form-grid">
-                            <label className="profile-field">
-                              <span>Name</span>
-                              <input
-                                value={routeForm.name}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('name', event.target.value)
-                                }
-                              />
-                            </label>
+                          <div className="profile-route-edit-layout">
+                            <div className="profile-route-edit-preview">
+                              {routeForm.cover_image.trim().length > 0 ? (
+                                <img
+                                  src={routeForm.cover_image}
+                                  alt={routeForm.name || 'Route cover'}
+                                />
+                              ) : (
+                                <div className="profile-route-image-placeholder">
+                                  No cover image
+                                </div>
+                              )}
+                            </div>
 
-                            <label className="profile-field">
-                              <span>Difficulty</span>
-                              <select
-                                value={routeForm.difficulty}
-                                onChange={(event) =>
-                                  handleRouteFieldChange(
-                                    'difficulty',
-                                    event.target.value as 'easy' | 'medium' | 'hard'
-                                  )
-                                }
-                              >
-                                <option value="easy">easy</option>
-                                <option value="medium">medium</option>
-                                <option value="hard">hard</option>
-                              </select>
-                            </label>
+                            <div className="profile-form-grid">
+                              <label className="profile-field">
+                                <span>Name</span>
+                                <input
+                                  value={routeForm.name}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('name', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field">
-                              <span>City</span>
-                              <input
-                                value={routeForm.city}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('city', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field">
+                                <span>Difficulty</span>
+                                <select
+                                  value={routeForm.difficulty}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange(
+                                      'difficulty',
+                                      event.target.value as 'easy' | 'medium' | 'hard'
+                                    )
+                                  }
+                                >
+                                  <option value="easy">easy</option>
+                                  <option value="medium">medium</option>
+                                  <option value="hard">hard</option>
+                                </select>
+                              </label>
 
-                            <label className="profile-field">
-                              <span>Country</span>
-                              <input
-                                value={routeForm.country}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('country', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field">
+                                <span>City</span>
+                                <input
+                                  value={routeForm.city}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('city', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field">
-                              <span>Distance</span>
-                              <input
-                                type="number"
-                                value={routeForm.distance}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('distance', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field">
+                                <span>Country</span>
+                                <input
+                                  value={routeForm.country}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('country', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field">
-                              <span>Duration</span>
-                              <input
-                                type="number"
-                                value={routeForm.duration}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('duration', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field">
+                                <span>Distance</span>
+                                <input
+                                  type="number"
+                                  value={routeForm.distance}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('distance', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field profile-field-full">
-                              <span>Description</span>
-                              <textarea
-                                rows={4}
-                                value={routeForm.description}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('description', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field">
+                                <span>Duration</span>
+                                <input
+                                  type="number"
+                                  value={routeForm.duration}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('duration', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field profile-field-full">
-                              <span>Cover image</span>
-                              <input
-                                value={routeForm.cover_image}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('cover_image', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field profile-field-full">
+                                <span>Description</span>
+                                <textarea
+                                  rows={4}
+                                  value={routeForm.description}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('description', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field profile-field-full">
-                              <span>Images (comma separated)</span>
-                              <input
-                                value={routeForm.imagesText}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('imagesText', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field profile-field-full">
+                                <span>Cover image URL</span>
+                                <input
+                                  value={routeForm.cover_image}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('cover_image', event.target.value)
+                                  }
+                                />
+                              </label>
 
-                            <label className="profile-field profile-field-full">
-                              <span>Tags (comma separated)</span>
-                              <input
-                                value={routeForm.tagsText}
-                                onChange={(event) =>
-                                  handleRouteFieldChange('tagsText', event.target.value)
-                                }
-                              />
-                            </label>
+                              <label className="profile-field profile-field-full">
+                                <span>Tags comma separated</span>
+                                <input
+                                  value={routeForm.tagsText}
+                                  onChange={(event) =>
+                                    handleRouteFieldChange('tagsText', event.target.value)
+                                  }
+                                />
+                              </label>
+                            </div>
                           </div>
                         </>
                       )}

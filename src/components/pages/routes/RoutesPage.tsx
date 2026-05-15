@@ -8,7 +8,11 @@ import { sortRoutes, type SortOption } from '../../../utils/homeView';
 
 const DEFAULT_PAGE_SIZE = 10;
 
-function RoutesPage() {
+interface RoutesPageProps {
+  onNavigate: (path: string) => void;
+}
+
+function RoutesPage({ onNavigate }: RoutesPageProps) {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -121,7 +125,7 @@ function RoutesPage() {
 
   return (
     <main className="home-page">
-      <TopNav activeTopNav={'routes'} />
+      <TopNav activeTopNav="routes" />
 
       <section className="home-content">
         <SearchArea
@@ -138,12 +142,24 @@ function RoutesPage() {
           onSelectSortOption={handleSelectSortOption}
         />
 
+        <div className="routes-page-title-row">
+          <h1>Routes</h1>
+
+          <button
+            type="button"
+            className="create-route-primary-button"
+            onClick={() => onNavigate('/routes/create')}
+          >
+            Create your route
+          </button>
+        </div>
+
         {isLoading ? <p className="status-message">Loading routes...</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
         {!isLoading && !error ? (
           <SearchResults
-            title="Routes"
+            title=""
             routes={visibleRoutes}
             totalResults={totalResults}
             currentPage={safeCurrentPage}

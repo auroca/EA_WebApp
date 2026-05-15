@@ -1,4 +1,4 @@
-import type { HomeRoutesData, PaginationMeta, Route, RoutePageData } from '../types/route';
+import type { HomeRoutesData, PaginationMeta, Route, RouteCreateInput, RoutePageData } from '../types/route';
 import { authenticatedFetch } from './apiClient';
 import { getApiBaseUrl } from './config';
 import { getStoredToken } from './authService';
@@ -9,6 +9,8 @@ export interface RouteDataProvider {
   getHomeData(): Promise<HomeRoutesData>;
   getRoutePage(options: RoutePageOptions): Promise<RoutePageData>;
   getRouteById(routeId: string): Promise<Route | null>;
+  createRoute(input: RouteCreateInput): Promise<Route>;
+  deleteRoute(routeId: string): Promise<void>;
 }
 
 export interface RoutePageOptions {
@@ -36,20 +38,6 @@ const emptyRoutePageData: RoutePageData = {
     totalPages: 1
   }
 };
-
-function parsePopularRouteIds(content: string): string[] {
-  const uniqueIds = new Set<string>();
-  const idMatches = content.match(/'([^']+)'|"([^"]+)"/g) ?? [];
-
-  for (const rawMatch of idMatches) {
-    const normalized = rawMatch.replace(/^['"]|['"]$/g, '').trim();
-    if (normalized) {
-      uniqueIds.add(normalized);
-    }
-  }
-
-  return [...uniqueIds];
-}
 
 function parseProperties(content: string): PropertyMap {
   const result: PropertyMap = {};
@@ -196,7 +184,7 @@ function mapRoutesFromProperties(map: PropertyMap): Route[] {
 
       return {
         ...item,
-        cover_image: firstImage
+        cover_image: item.cover_image && item.cover_image.trim().length > 0 ? item.cover_image : firstImage
       };
     })
     .filter(
@@ -205,7 +193,6 @@ function mapRoutesFromProperties(map: PropertyMap): Route[] {
           item._id &&
             item.name &&
             item.description &&
-            item.cover_image &&
             item.images &&
             item.userId &&
             item.difficulty &&
@@ -310,20 +297,24 @@ function normalizeRouteItem(item: unknown): Route | null {
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-  // Handle points if present
-  let points: any[] | undefined;
+  let points: Route['points'];
   if (Array.isArray(candidate.points)) {
     points = candidate.points
       .filter((point): point is Record<string, unknown> => typeof point === 'object' && point !== null)
       .map((point, idx) => ({
-        _id: typeof point._id === 'string' ? point._id : '',
+        _id: typeof point._id === 'string' ? point._id : String(point._id ?? ''),
         name: typeof point.name === 'string' && point.name.trim().length > 0 ? point.name : `Point ${idx + 1}`,
         description: typeof point.description === 'string' ? point.description : undefined,
         latitude: typeof point.latitude === 'number' ? point.latitude : 0,
         longitude: typeof point.longitude === 'number' ? point.longitude : 0,
         image: typeof point.image === 'string' ? point.image : undefined,
-        routeId: typeof point.routeId === 'string' && point.routeId.trim().length > 0 ? point.routeId : (typeof candidate._id === 'string' ? candidate._id : ''),
-        index: typeof point.index === 'number' && point.index > 0 ? point.index : idx + 1,
+        routeId:
+          typeof point.routeId === 'string' && point.routeId.trim().length > 0
+            ? point.routeId
+            : typeof candidate._id === 'string'
+              ? candidate._id
+              : '',
+        index: typeof point.index === 'number' && point.index >= 0 ? point.index : idx,
         createdAt: typeof point.createdAt === 'string' ? point.createdAt : undefined,
         updatedAt: typeof point.updatedAt === 'string' ? point.updatedAt : undefined
       }))
@@ -337,16 +328,19 @@ function normalizeRouteItem(item: unknown): Route | null {
   }
 
   const normalized: Route = {
-    _id: typeof candidate._id === 'string' ? candidate._id : '',
+    _id: typeof candidate._id === 'string' ? candidate._id : String(candidate._id ?? ''),
     name: typeof candidate.name === 'string' ? candidate.name : '',
     description: typeof candidate.description === 'string' ? candidate.description : '',
-    cover_image: coverImageFromImages,
+    cover_image:
+      typeof candidate.cover_image === 'string' && candidate.cover_image.trim().length > 0
+        ? candidate.cover_image
+        : coverImageFromImages,
     images,
     city_image:
       typeof candidate.city_image === 'string' && candidate.city_image.trim().length > 0
         ? candidate.city_image
         : undefined,
-    userId: typeof candidate.userId === 'string' ? candidate.userId : '',
+    userId: typeof candidate.userId === 'string' ? candidate.userId : String(candidate.userId ?? ''),
     difficulty: sanitizeDifficulty(
       typeof candidate.difficulty === 'string' ? candidate.difficulty : undefined
     ),
@@ -515,6 +509,38 @@ export class ApiRouteDataProvider implements RouteDataProvider {
     }
 
     return mapRouteFromApi(await response.json());
+  }
+
+  async createRoute(input: RouteCreateInput): Promise<Route> {
+    const response = await authenticatedFetch('/routes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(input)
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to create route on the server');
+    }
+
+    const route = mapRouteFromApi(await response.json());
+
+    if (!route) {
+      throw new Error('Unable to read created route from the server');
+    }
+
+    return route;
+  }
+
+  async deleteRoute(routeId: string): Promise<void> {
+    const response = await authenticatedFetch(`/routes/${encodeURIComponent(routeId)}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to delete route from the server');
+    }
   }
 }
 
