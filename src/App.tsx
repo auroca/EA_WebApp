@@ -7,6 +7,7 @@ import FeaturedRoutesSection from './components/pages/home/FeaturedRoutesSection
 import PopularRoutesSection from './components/pages/home/PopularRoutesSection';
 import ProfilePage from './components/pages/profile/ProfilePage';
 import RoutesPage from './components/pages/routes/RoutesPage';
+import CreateRoutePage from './components/pages/routes/CreateRoutePage';
 import SearchArea from './components/shared/SearchArea';
 import SearchResults from './components/shared/SearchResults';
 import TopNav from './components/shared/TopNav';
@@ -19,15 +20,21 @@ import AccessibilityPanel from './components/shared/AccessibilityPanel';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
-const getCurrentPath = (): string => {
-  const path = window.location.pathname.trim();
+const normalizePath = (path: string): string => {
+  const cleanPath = path.trim();
 
-  if (path === '' || path === '/' || path === '/index.html') {
+  if (cleanPath === '' || cleanPath === '/' || cleanPath === '/index.html') {
     return '/';
   }
 
-  return path;
+  if (cleanPath.length > 1 && cleanPath.endsWith('/')) {
+    return cleanPath.slice(0, -1);
+  }
+
+  return cleanPath;
 };
+
+const getCurrentPath = (): string => normalizePath(window.location.pathname);
 
 function App() {
   const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
@@ -137,9 +144,11 @@ function App() {
   };
 
   const navigateTo = (path: string): void => {
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
-      setCurrentPath(path);
+    const nextPath = normalizePath(path);
+
+    if (getCurrentPath() !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+      setCurrentPath(nextPath);
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
@@ -165,6 +174,7 @@ function App() {
 
     const loadHomeData = async (): Promise<void> => {
       try {
+        setIsLoading(true);
         const result = await routeDataProvider.getHomeData();
 
         if (mounted) {
@@ -232,13 +242,27 @@ function App() {
   }
 
   if (currentPath === '/chats') {
-    return <ChatPage />;
+    return (
+      <>
+        <ChatPage />
+        <AccessibilityPanel />
+      </>
+    );
+  }
+
+  if (currentPath === '/routes/create') {
+    return (
+      <>
+        <CreateRoutePage onNavigate={navigateTo} />
+        <AccessibilityPanel />
+      </>
+    );
   }
 
   if (currentPath === '/routes') {
     return (
       <>
-        <RoutesPage />
+        <RoutesPage onNavigate={navigateTo} />
         <AccessibilityPanel />
       </>
     );

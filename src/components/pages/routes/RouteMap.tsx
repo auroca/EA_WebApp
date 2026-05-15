@@ -24,7 +24,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
   const [error, setError] = useState<string>('');
   const [points, setPoints] = useState<Point[]>(route.points || []);
 
-  // Load route details if points are not available
   useEffect(() => {
     if (route.points && route.points.length > 0) {
       setPoints(route.points);
@@ -57,7 +56,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
     void loadRouteDetails();
   }, [route]);
 
-  // Initialize map
   useEffect(() => {
     if (isLoading || !mapContainer.current || map.current) {
       return;
@@ -67,14 +65,12 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       return;
     }
 
-    // Initialize Leaflet map
     map.current = L.map(mapContainer.current, {
       center: [points[0].latitude, points[0].longitude],
       zoom: 13,
       scrollWheelZoom: true
     });
 
-    // Base layers (no API keys required)
     const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
@@ -98,7 +94,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       maxZoom: 19
     });
 
-    // Default view can be changed by users with the control on top-right.
     satelliteLayer.addTo(map.current);
 
     const baseLayers: Record<string, L.TileLayer> = {
@@ -110,11 +105,10 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
 
     L.control.layers(baseLayers, undefined, { position: 'topright', collapsed: false }).addTo(map.current);
 
-    // Add markers for each point
     points.forEach((point, idx) => {
       if (!map.current) return;
 
-      const pointOrder = point.index > 0 ? point.index : idx + 1;
+      const pointOrder = idx + 1;
 
       const markerIcon = L.divIcon({
         html: `<div class="point-marker-icon">${pointOrder}</div>`,
@@ -128,7 +122,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
         icon: markerIcon
       }).addTo(map.current);
 
-      // Create popup content with basic info
       const popupContent = document.createElement('div');
       popupContent.className = 'point-popup-content';
       popupContent.innerHTML = `
@@ -140,7 +133,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       const popup = L.popup().setContent(popupContent);
       marker.bindPopup(popup);
 
-      // Load full point details on marker click
       marker.on('click', async () => {
         try {
           const detailedPoint = await pointService.getPointById(point._id);
@@ -159,8 +151,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
               html += `<p class="point-popup-description">${detailedPoint.description}</p>`;
             }
 
-            const detailedOrder = detailedPoint.index > 0 ? detailedPoint.index : pointOrder;
-            html += `<p class="point-popup-index">Point ${detailedOrder}</p>`;
+            html += `<p class="point-popup-index">Point ${pointOrder}</p>`;
 
             enhancedPopupContent.innerHTML = html;
             marker.setPopupContent(enhancedPopupContent);
@@ -173,11 +164,10 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       markersRef.current.set(point._id, { marker, popup });
     });
 
-    // Adjust map bounds to fit all markers
     if (points.length > 0) {
       const bounds = L.latLngBounds(points.map((point) => [point.latitude, point.longitude] as [number, number]));
       map.current.fitBounds(bounds, { padding: [50, 50] });
-      // Immediate invalidate
+
       setTimeout(() => {
         if (!map.current) return;
         try {
@@ -188,7 +178,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       }, 0);
     }
 
-    // Retries and whenReady
     const deferred = setTimeout(() => {
       if (!map.current) return;
       try {
@@ -216,7 +205,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       }
     });
 
-    // ResizeObserver to handle layout changes
     let ro: ResizeObserver | null = null;
     try {
       ro = new ResizeObserver(() => {
@@ -247,8 +235,6 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
           // ignore
         }
       }
-      // Don't remove map on unmount to preserve state
-      // (could call map.current?.remove() if desired)
     };
   }, [points, isLoading]);
 

@@ -30,23 +30,15 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
-  const navigateTo = (path: string): void => {
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
-      window.dispatchEvent(new PopStateEvent('popstate'));
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    }
-
-    setMenuOpen(false);
-  };
-
   const navigateFull = (path: string): void => {
-    // Perform a full page redirect to match site-wide logo behavior
+    setMenuOpen(false);
+
     if (window.location.pathname !== path) {
       window.location.href = path;
+      return;
     }
 
-    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const handleLogout = async (): Promise<void> => {
@@ -83,12 +75,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   aria-label={item.label}
                   onClick={() => navigateFull('/')}
                 >
-                  <img
-                    className="nav-icon"
-                    src={getTopNavIconPath(item.icon, isSelected)}
-                    alt=""
-                    aria-hidden="true"
-                  />
+                  <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                   <span className="nav-label">{item.label}</span>
                 </button>
               );
@@ -101,14 +88,9 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   type="button"
                   className={className}
                   aria-label={item.label}
-                  onClick={() => navigateTo('/routes')}
+                  onClick={() => navigateFull('/routes')}
                 >
-                  <img
-                    className="nav-icon"
-                    src={getTopNavIconPath(item.icon, isSelected)}
-                    alt=""
-                    aria-hidden="true"
-                  />
+                  <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                   <span className="nav-label">{item.label}</span>
                 </button>
               );
@@ -121,14 +103,9 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   type="button"
                   className={className}
                   aria-label={item.label}
-                  onClick={() => navigateTo('/favorites')}
+                  onClick={() => navigateFull('/favorites')}
                 >
-                  <img
-                    className="nav-icon"
-                    src={getTopNavIconPath(item.icon, isSelected)}
-                    alt=""
-                    aria-hidden="true"
-                  />
+                  <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                   <span className="nav-label">{item.label}</span>
                 </button>
               );
@@ -141,14 +118,9 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   type="button"
                   className={className}
                   aria-label={item.label}
-                  onClick={() => navigateTo('/chats')}
+                  onClick={() => navigateFull('/chats')}
                 >
-                  <img
-                    className="nav-icon"
-                    src={getTopNavIconPath(item.icon, isSelected)}
-                    alt=""
-                    aria-hidden="true"
-                  />
+                  <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                   <span className="nav-label">{item.label}</span>
                 </button>
               );
@@ -156,12 +128,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
             return (
               <button key={item.key} type="button" className={className} aria-label={item.label}>
-                <img
-                  className="nav-icon"
-                  src={getTopNavIconPath(item.icon, isSelected)}
-                  alt=""
-                  aria-hidden="true"
-                />
+                <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                 <span className="nav-label">{item.label}</span>
               </button>
             );
@@ -185,12 +152,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Open user menu"
           >
-            <img
-              className="nav-icon"
-              src={getTopNavIconPath('user', menuOpen)}
-              alt=""
-              aria-hidden="true"
-            />
+            <img className="nav-icon" src={getTopNavIconPath('user', menuOpen)} alt="" aria-hidden="true" />
             <span className="nav-label">{user?.username ?? 'User'}</span>
           </button>
 
@@ -206,11 +168,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
                 <span className="top-nav-user-menu-value">{user?.username ?? '-'}</span>
               </div>
 
-              <button
-                type="button"
-                className="user-dropdown-button"
-                onClick={() => navigateTo('/profile')}
-              >
+              <button type="button" className="user-dropdown-button" onClick={() => navigateFull('/profile')}>
                 View profile
               </button>
 
