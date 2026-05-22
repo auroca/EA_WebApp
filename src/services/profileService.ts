@@ -17,7 +17,6 @@ export interface UpdateRoutePayload {
   description: string;
   cover_image: string;
   images: string[];
-  userId: string;
   difficulty: 'easy' | 'medium' | 'hard';
   city: string;
   country: string;
@@ -55,11 +54,13 @@ const normalizeUserFromApi = (payload: unknown): AuthUser => {
     favoriteRoutes: Array.isArray(candidate.favoriteRoutes)
       ? candidate.favoriteRoutes
           .map((item) => {
-            if (typeof item === 'string') {
-              return item;
-            }
+            if (typeof item === 'string') return item;
 
-            if (item && typeof item === 'object' && typeof (item as { _id?: unknown })._id === 'string') {
+            if (
+              item &&
+              typeof item === 'object' &&
+              typeof (item as { _id?: unknown })._id === 'string'
+            ) {
               return (item as { _id: string })._id;
             }
 
@@ -71,9 +72,7 @@ const normalizeUserFromApi = (payload: unknown): AuthUser => {
 };
 
 const normalizeRouteFromApi = (payload: unknown): Route | null => {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
+  if (!payload || typeof payload !== 'object') return null;
 
   const candidate = payload as Record<string, unknown>;
 
@@ -82,10 +81,7 @@ const normalizeRouteFromApi = (payload: unknown): Route | null => {
     : [];
 
   const tags = Array.isArray(candidate.tags)
-    ? candidate.tags
-        .filter((item): item is string => typeof item === 'string')
-        .map((tag) => tag.trim())
-        .filter(Boolean)
+    ? candidate.tags.filter((item): item is string => typeof item === 'string')
     : [];
 
   const difficulty =
@@ -122,21 +118,13 @@ const normalizeRoutesFromApi = (payload: unknown): Route[] => {
       .filter((item): item is Route => item !== null);
   }
 
-  if (
-    payload &&
-    typeof payload === 'object' &&
-    Array.isArray((payload as { data?: unknown[] }).data)
-  ) {
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { data?: unknown[] }).data)) {
     return (payload as { data: unknown[] }).data
       .map((item) => normalizeRouteFromApi(item))
       .filter((item): item is Route => item !== null);
   }
 
-  if (
-    payload &&
-    typeof payload === 'object' &&
-    Array.isArray((payload as { routes?: unknown[] }).routes)
-  ) {
+  if (payload && typeof payload === 'object' && Array.isArray((payload as { routes?: unknown[] }).routes)) {
     return (payload as { routes: unknown[] }).routes
       .map((item) => normalizeRouteFromApi(item))
       .filter((item): item is Route => item !== null);
@@ -148,14 +136,10 @@ const normalizeRoutesFromApi = (payload: unknown): Route[] => {
 export const getUserById = async (userId: string): Promise<AuthUser> => {
   const response = await authenticatedFetch(`/users/${userId}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
-  if (!response.ok) {
-    throw new Error(await parseApiError(response, 'Unable to load the user.'));
-  }
+  if (!response.ok) throw new Error(await parseApiError(response, 'Unable to load the user.'));
 
   return normalizeUserFromApi(await response.json());
 };
@@ -166,15 +150,11 @@ export const updateUserById = async (
 ): Promise<AuthUser> => {
   const response = await authenticatedFetch(`/users/${userId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
 
-  if (!response.ok) {
-    throw new Error(await parseApiError(response, 'Unable to update the user.'));
-  }
+  if (!response.ok) throw new Error(await parseApiError(response, 'Unable to update the user.'));
 
   return normalizeUserFromApi(await response.json());
 };
@@ -185,14 +165,10 @@ export const getRoutesByUserId = async (userId: string): Promise<Route[]> => {
 
   const response = await authenticatedFetch(`/routes?${searchParams.toString()}`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
-  if (!response.ok) {
-    throw new Error(await parseApiError(response, 'Unable to load user routes.'));
-  }
+  if (!response.ok) throw new Error(await parseApiError(response, 'Unable to load user routes.'));
 
   return normalizeRoutesFromApi(await response.json());
 };
@@ -203,21 +179,15 @@ export const updateRouteById = async (
 ): Promise<Route> => {
   const response = await authenticatedFetch(`/routes/${routeId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
 
-  if (!response.ok) {
-    throw new Error(await parseApiError(response, 'Unable to update the route.'));
-  }
+  if (!response.ok) throw new Error(await parseApiError(response, 'Unable to update the route.'));
 
   const updatedRoute = normalizeRouteFromApi(await response.json());
 
-  if (!updatedRoute) {
-    throw new Error('Invalid route response from server.');
-  }
+  if (!updatedRoute) throw new Error('Invalid route response from server.');
 
   return updatedRoute;
 };
@@ -225,9 +195,7 @@ export const updateRouteById = async (
 export const getFavoriteRoutesByUserId = async (userId: string): Promise<Route[]> => {
   const response = await authenticatedFetch(`/users/${userId}/favorites`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
   if (!response.ok) {
@@ -237,12 +205,13 @@ export const getFavoriteRoutesByUserId = async (userId: string): Promise<Route[]
   return normalizeRoutesFromApi(await response.json());
 };
 
-export const addFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+export const addFavoriteRouteByUserId = async (
+  userId: string,
+  routeId: string
+): Promise<Route[]> => {
   const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
   if (!response.ok) {
@@ -252,12 +221,13 @@ export const addFavoriteRouteByUserId = async (userId: string, routeId: string):
   return normalizeRoutesFromApi(await response.json());
 };
 
-export const removeFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+export const removeFavoriteRouteByUserId = async (
+  userId: string,
+  routeId: string
+): Promise<Route[]> => {
   const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
   if (!response.ok) {
@@ -267,12 +237,13 @@ export const removeFavoriteRouteByUserId = async (userId: string, routeId: strin
   return normalizeRoutesFromApi(await response.json());
 };
 
-export const toggleFavoriteRouteByUserId = async (userId: string, routeId: string): Promise<Route[]> => {
+export const toggleFavoriteRouteByUserId = async (
+  userId: string,
+  routeId: string
+): Promise<Route[]> => {
   const response = await authenticatedFetch(`/users/${userId}/favorites/${routeId}/toggle`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
 
   if (!response.ok) {

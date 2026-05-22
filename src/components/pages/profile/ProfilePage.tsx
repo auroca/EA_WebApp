@@ -268,7 +268,6 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
               ...(originalRoute.images ?? []).filter((image) => image !== coverImage)
             ]
           : originalRoute.images ?? [],
-        userId: originalRoute.userId,
         difficulty: routeForm.difficulty,
         city: routeForm.city.trim(),
         country: routeForm.country.trim(),
