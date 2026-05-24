@@ -172,7 +172,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
         if (!map.current) return;
         try {
           map.current.invalidateSize(true);
-        } catch (e) {
+        } catch (_error) {
           // ignore
         }
       }, 0);
@@ -182,7 +182,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       if (!map.current) return;
       try {
         map.current.invalidateSize(true);
-      } catch (e) {
+      } catch (_error) {
         // ignore
       }
     }, 200);
@@ -191,7 +191,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       if (!map.current) return;
       try {
         map.current.invalidateSize(true);
-      } catch (e) {
+      } catch (_error) {
         // ignore
       }
     }, 500);
@@ -200,38 +200,42 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
       if (!map.current) return;
       try {
         map.current.invalidateSize(true);
-      } catch (e) {
+      } catch (_error) {
         // ignore
       }
     });
 
     let ro: ResizeObserver | null = null;
+    const observedContainer = mapContainer.current;
+
     try {
       ro = new ResizeObserver(() => {
         if (!map.current) return;
         requestAnimationFrame(() => {
           try {
-            map.current && map.current.invalidateSize(true);
-          } catch (e) {
+            if (map.current) {
+              map.current.invalidateSize(true);
+            }
+          } catch (_error) {
             // ignore
           }
         });
       });
 
-      if (mapContainer.current) {
-        ro.observe(mapContainer.current);
+      if (observedContainer) {
+        ro.observe(observedContainer);
       }
-    } catch (err) {
+    } catch (_error) {
       // ResizeObserver not supported - ignore
     }
 
     return () => {
       clearTimeout(deferred);
       clearTimeout(deferred2);
-      if (ro && mapContainer.current) {
+      if (ro && observedContainer) {
         try {
-          ro.unobserve(mapContainer.current);
-        } catch (e) {
+          ro.unobserve(observedContainer);
+        } catch (_error) {
           // ignore
         }
       }

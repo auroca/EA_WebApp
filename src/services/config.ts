@@ -1,18 +1,23 @@
 const DEFAULT_API_BASE_URL = 'http://localhost:1337';
 const STORAGE_KEY = '__EA_API_BASE_URL__';
 
+declare global {
+  interface Window {
+    __EA_API_URL__?: string;
+  }
+}
+
 function resolveApiBaseUrl(): string {
   // Runtime override injected by the container via /env.js
   // The docker entrypoint will create `window.__EA_API_URL__` if provided.
-  const runtime = (window as any).__EA_API_URL__ as string | undefined;
+  const runtime = window.__EA_API_URL__;
 
   if (runtime && runtime.trim().length > 0) {
     return runtime.trim().replace(/\/+$/, '');
   }
 
   // Build-time environment variable (Vite) as fallback
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildTime = (import.meta as any).env?.VITE_API_URL as string | undefined;
+  const buildTime = import.meta.env?.VITE_API_URL;
 
   if (buildTime && buildTime.trim().length > 0) {
     return buildTime.trim().replace(/\/+$/, '');

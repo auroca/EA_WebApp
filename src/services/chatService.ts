@@ -8,6 +8,7 @@ const parseErrorMessage = async (response: Response, fallback: string): Promise<
       return data.message;
     }
   } catch {
+    // Keep the fallback message when the error payload cannot be parsed.
   }
 
   return fallback;
