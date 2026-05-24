@@ -67,6 +67,7 @@ export const registerUser = async (payload: RegisterPayload): Promise<CreatedUse
         message = errorData.error.details[0].message;
       }
     } catch {
+      // Keep the generic message when the error payload cannot be parsed.
     }
 
     throw new Error(message);

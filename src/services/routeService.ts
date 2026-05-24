@@ -251,7 +251,7 @@ function readImagesField(block: string): string[] {
 
   return rawImages
     .split(',')
-    .map((image) => image.trim().replace(/^'/, '').replace(/'$/, '').replace(/\"/g, '"').replace(/\\'/g, "'"))
+    .map((image) => image.trim().replace(/^'/, '').replace(/'$/, '').replace(/"/g, '"').replace(/\\'/g, "'"))
     .filter(Boolean);
 }
 
@@ -366,7 +366,7 @@ function normalizeRouteItem(item: unknown): Route | null {
   return normalized;
 }
 
-function mapHomeData(content: string): HomeRoutesData {
+function _mapHomeData(content: string): HomeRoutesData {
   const objectLiteralRoutes = mapRoutesFromObjectLiteral(content);
   if (objectLiteralRoutes.length > 0) {
     return {
