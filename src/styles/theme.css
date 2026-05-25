@@ -1,0 +1,57 @@
+:root {
+  --font-sans: 'Arial Rounded MT Bold', 'Arial Rounded MT', Arial, sans-serif;
+  --font-sans-alt: 'Trebuchet MS', 'Century Gothic', 'Arial Rounded MT Bold', sans-serif;
+
+  --color-white: #ffffff;
+  --color-black: #0f1219;
+
+  --color-bg: #f3f4f6;
+  --color-bg-soft: #f7f8fb;
+  --color-bg-soft-2: #f2f3f7;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f6f7fb;
+  --color-surface-subtle: #f0f2f7;
+  --color-surface-alt: #ececf1;
+  --color-surface-glass: rgba(255, 255, 255, 0.96);
+  --color-surface-glass-95: rgba(255, 255, 255, 0.95);
+  --color-surface-glass-strong: rgba(255, 255, 255, 0.92);
+  --color-surface-glass-soft: rgba(255, 255, 255, 0.86);
+
+  --color-text: #131318;
+  --color-text-strong: #0f1219;
+  --color-text-secondary: #2d3340;
+  --color-text-body: #303548;
+  --color-text-muted: #6b7280;
+  --color-text-subtle: #39465f;
+  --color-text-contrast: #111827;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e5e7ef;
+  --color-border-strong: #d8dde8;
+  --color-border-muted: #e7e8ef;
+  --color-border-subtle: #e4e5ec;
+  --color-border-soft: #e1e5ef;
+  --color-border-alt: #cfd6e4;
+  --color-border-light: #dbe3ee;
+  --color-border-light-2: #d3deea;
+  --color-border-light-3: #d9e2ee;
+
+  --color-accent: #0f1219;
+  --color-accent-hover: #1b2330;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 8px 18px rgba(15, 18, 25, 0.16);
+  --shadow-medium: 0 10px 28px rgba(18, 28, 43, 0.08);
+  --shadow-strong: 0 14px 30px rgba(15, 18, 25, 0.14);
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+}
