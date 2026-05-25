@@ -4,7 +4,7 @@
     radial-gradient(circle at 14% 8%, rgba(16, 97, 145, 0.17) 0, transparent 38%),
     radial-gradient(circle at 88% 22%, rgba(45, 173, 120, 0.2) 0, transparent 35%),
     linear-gradient(180deg, #f5f8fb 0%, #eef2f6 100%);
-  font-family: 'Trebuchet MS', 'Century Gothic', 'Arial Rounded MT Bold', sans-serif;
+  font-family: var(--font-sans-alt);
   color: #111725;
 }
 
@@ -90,8 +90,8 @@
   min-height: 36px;
   padding: 0 12px;
   border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid #dbe3ee;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
   box-shadow: 0 8px 18px rgba(18, 28, 43, 0.1);
   color: #0f1e30;
   font-size: 14px;
@@ -107,9 +107,9 @@
 .route-fact-card,
 .route-panel {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid #dbe3ee;
-  box-shadow: 0 10px 28px rgba(18, 28, 43, 0.08);
+  background: var(--color-surface-glass-soft);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-medium);
   backdrop-filter: blur(2px);
 }
 
@@ -212,9 +212,9 @@
   margin: 12px 0 16px;
   padding: 14px 16px;
   border-radius: 16px;
-  border: 1px solid #dbe3ee;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 10px 24px rgba(18, 28, 43, 0.08);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface-glass-soft);
+  box-shadow: var(--shadow-medium);
 }
 
 .search-results-summary {
@@ -237,8 +237,8 @@
   height: 36px;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid #cdd8e4;
-  background: #ffffff;
+  border: 1px solid var(--color-border-alt);
+  background: var(--color-surface);
   color: #13213a;
   font: inherit;
   font-weight: 700;
@@ -290,7 +290,7 @@
   position: relative;
   min-height: 150px;
   border-radius: 16px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--color-border-light);
   background: linear-gradient(145deg, #f9fbfd 0%, #f0f5f9 100%);
   overflow: hidden;
   display: block;

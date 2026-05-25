@@ -29,8 +29,8 @@
 .myway-back-button {
   margin-top: 14px;
   border: 0;
-  background: #0f1219;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
   border-radius: 10px;
   height: 34px;
   padding: 0 14px;
@@ -59,8 +59,8 @@
 
 .myway-start-button {
   border: 0;
-  background: #0f1219;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
   border-radius: 10px;
   height: 34px;
   padding: 0 14px;
@@ -92,8 +92,8 @@
 .myway-instructions {
   border-radius: 16px;
   border: 1px solid #d6e0ea;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 18px rgba(20, 31, 46, 0.08);
+  background: var(--color-surface-glass-strong);
+  box-shadow: var(--shadow-soft);
   padding: 14px 16px;
 }
 
@@ -113,7 +113,7 @@
   height: 560px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid #d3deea;
+  border: 1px solid var(--color-border-light-2);
   box-shadow: 0 16px 34px rgba(20, 31, 46, 0.12);
 }
 
@@ -136,8 +136,8 @@
   justify-content: space-between;
   gap: 12px;
   border-radius: 12px;
-  border: 1px solid #d9e2ee;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--color-border-light-3);
+  background: var(--color-surface-glass-95);
   box-shadow: 0 10px 20px rgba(20, 31, 46, 0.14);
   padding: 10px 12px;
 }
@@ -150,8 +150,8 @@
 
 .myway-cancel-button {
   border: 0;
-  background: #0f1219;
-  color: #ffffff;
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
   border-radius: 10px;
   height: 34px;
   padding: 0 14px;
