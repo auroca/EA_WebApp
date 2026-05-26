@@ -192,11 +192,11 @@ function mapRoutesFromProperties(map: PropertyMap): Route[] {
     .sort((a, b) => a[0] - b[0])
     .map((entry) => {
       const item = entry[1];
-      const firstImage = item.images?.[0]?.trim() ?? '';
+      const coverImage = item.cover_image?.trim() || item.images?.[0]?.trim() || '';
 
       return {
         ...item,
-        cover_image: firstImage
+        cover_image: coverImage
       };
     })
     .filter(
@@ -303,7 +303,10 @@ function normalizeRouteItem(item: unknown): Route | null {
   const images = Array.isArray(candidate.images)
     ? candidate.images.filter((image): image is string => typeof image === 'string')
     : [];
-  const coverImageFromImages = images[0]?.trim() ?? '';
+  const coverImage =
+    typeof candidate.cover_image === 'string' && candidate.cover_image.trim().length > 0
+      ? candidate.cover_image.trim()
+      : images[0]?.trim() ?? '';
   const tagsSource = Array.isArray(candidate.tags) ? candidate.tags : [];
   const tags = tagsSource
     .filter((tag): tag is string => typeof tag === 'string')
@@ -340,7 +343,7 @@ function normalizeRouteItem(item: unknown): Route | null {
     _id: typeof candidate._id === 'string' ? candidate._id : '',
     name: typeof candidate.name === 'string' ? candidate.name : '',
     description: typeof candidate.description === 'string' ? candidate.description : '',
-    cover_image: coverImageFromImages,
+    cover_image: coverImage,
     images,
     city_image:
       typeof candidate.city_image === 'string' && candidate.city_image.trim().length > 0
