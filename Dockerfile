@@ -1,8 +1,9 @@
 # Multi-stage Dockerfile for building and serving the Vite React app
 
 # Build stage 
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
+ENV HUSKY=0
 
 # Install dependencies (use package-lock if present)
 COPY package.json package-lock.json* ./
