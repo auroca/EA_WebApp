@@ -177,17 +177,53 @@ export const updateRouteById = async (
   routeId: string,
   payload: UpdateRoutePayload
 ): Promise<Route> => {
+  const {
+    name,
+    description,
+    cover_image,
+    images,
+    difficulty,
+    city,
+    country,
+    distance,
+    duration,
+    tags
+  } = payload;
+
+  const cleanPayload: UpdateRoutePayload = {
+    name,
+    description,
+    cover_image,
+    images,
+    difficulty,
+    city,
+    country,
+    tags
+  };
+
+  if (distance !== undefined) {
+    cleanPayload.distance = distance;
+  }
+
+  if (duration !== undefined) {
+    cleanPayload.duration = duration;
+  }
+
   const response = await authenticatedFetch(`/routes/${routeId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(cleanPayload)
   });
 
-  if (!response.ok) throw new Error(await parseApiError(response, 'Unable to update the route.'));
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to update the route.'));
+  }
 
   const updatedRoute = normalizeRouteFromApi(await response.json());
 
-  if (!updatedRoute) throw new Error('Invalid route response from server.');
+  if (!updatedRoute) {
+    throw new Error('Invalid route response from server.');
+  }
 
   return updatedRoute;
 };

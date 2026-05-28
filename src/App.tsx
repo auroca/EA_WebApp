@@ -17,6 +17,7 @@ import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 import AccessibilityPanel from './components/shared/AccessibilityPanel';
+import { isAuthenticated } from './services/authService';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
@@ -251,6 +252,11 @@ function App() {
   }
 
   if (currentPath === '/routes/create') {
+    if (!isAuthenticated()) {
+      window.location.href = `/login?redirect=${encodeURIComponent('/routes/create')}`;
+      return null;
+    }
+
     return (
       <>
         <CreateRoutePage onNavigate={navigateTo} />
