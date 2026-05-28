@@ -198,29 +198,59 @@ export const getRoutesByUserId = async (userId: string): Promise<Route[]> => {
 };
 
 export const updateRouteById = async (
-  routeId: string,
-  payload: UpdateRoutePayload
-): Promise<Route> => {
-  const response = await authenticatedFetch(`/routes/${routeId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
+    routeId: string,
+    payload: UpdateRoutePayload
+  ): Promise<Route> => {
+    const {
+      name,
+      description,
+      cover_image,
+      images,
+      difficulty,
+      city,
+      country,
+      distance,
+      duration,
+      tags
+    } = payload;
 
-  if (!response.ok) {
-    throw new Error(await parseApiError(response, 'Unable to update the route.'));
-  }
+    const cleanPayload: Partial<UpdateRoutePayload> = {
+      name,
+      description,
+      cover_image,
+      images,
+      difficulty,
+      city,
+      country,
+      tags
+    };
 
-  const updatedRoute = normalizeRouteFromApi(await response.json());
+    if (distance !== undefined) {
+      cleanPayload.distance = distance;
+    }
 
-  if (!updatedRoute) {
-    throw new Error('Invalid route response from server.');
-  }
+    if (duration !== undefined) {
+      cleanPayload.duration = duration;
+    }
 
-  return updatedRoute;
-};
+    const response = await authenticatedFetch(`/routes/${routeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanPayload)
+    });
+
+    if (!response.ok) {
+      throw new Error(await parseApiError(response, 'Unable to update the route.'));
+    }
+
+    const updatedRoute = normalizeRouteFromApi(await response.json());
+
+    if (!updatedRoute) {
+      throw new Error('Invalid route response from server.');
+    }
+
+    return updatedRoute;
+  };
 
 export const getFavoriteRoutesByUserId = async (userId: string): Promise<Route[]> => {
   const response = await authenticatedFetch(`/users/${userId}/favorites`, {
