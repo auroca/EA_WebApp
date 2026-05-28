@@ -5,6 +5,7 @@ import TopNav from '../../shared/TopNav';
 import { routeDataProvider } from '../../../services/routeService';
 import type { Route } from '../../../types/route';
 import { sortRoutes, type SortOption } from '../../../utils/homeView';
+import { isAuthenticated } from '../../../services/authService';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -123,6 +124,8 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
     setCurrentPage(1);
   };
 
+  const canCreateRoute = isAuthenticated();
+
   return (
     <main className="home-page">
       <TopNav activeTopNav="routes" />
@@ -145,13 +148,11 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
         <div className="routes-page-title-row">
           <h1>Routes</h1>
 
-          <button
-            type="button"
-            className="create-route-primary-button"
-            onClick={() => onNavigate('/routes/create')}
-          >
-            Create your route
-          </button>
+          {canCreateRoute ? (
+            <button className="create-route-primary-button" onClick={() => onNavigate('/routes/create')}>
+              Create your route
+            </button>
+          ) : null}
         </div>
 
         {isLoading ? <p className="status-message">Loading routes...</p> : null}
