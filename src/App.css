@@ -40,3 +40,139 @@
 .read-the-docs {
   color: #888;
 }
+
+.achievements {
+  margin-top: 24px;
+}
+
+.achievements h2 {
+  margin-bottom: 16px;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.achievement-card {
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  background: #fff;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.achievement-card.unlocked {
+  border-color: #f2c94c;
+}
+
+.achievement-card.locked {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+}
+
+.achievement-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+}
+
+.achievements {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.achievements-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.achievement-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.achievement-pill:hover {
+  background: #f8fafc;
+}
+
+.achievement-pill-icon {
+  font-size: 24px;
+}
+
+.achievement-detail {
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+  background: #f8fafc;
+}
+
+.achievement-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.achievement-detail-icon {
+  font-size: 36px;
+}
+
+.profile-nav-indicator-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-notification-dot {
+  position: absolute;
+  top: -4px;
+  right: -10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.achievements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.achievements-toggle-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #111827;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.achievements-toggle-button:hover {
+  opacity: 0.9;
+}
+
+.achievement-pill-locked {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
