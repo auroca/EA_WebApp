@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import TopNav from './components/shared/TopNav';
+import AppOverlays from './components/shared/AppOverlays';
 import MyWayNavigator from './components/pages/routes/MyWayNavigator';
 import { routeDataProvider } from './services/routeService';
 import { getApiBaseUrl } from './services/config';
@@ -68,35 +69,38 @@ function MyWayApp() {
   }, [routeId]);
 
   return (
-    <main className="myway-page">
-      <TopNav activeTopNav="routes" />
+    <>
+      <main className="myway-page">
+        <TopNav activeTopNav="routes" />
+        <AppOverlays />
 
-      <section className="myway-shell">
-        <article className="myway-hero route-panel">
-          <h1>Start Route</h1>
-          <p>
-            Follow the route in real time with GPS guidance. Your position appears as a blue marker and
-            the route points are connected for easy navigation.
-          </p>
-          {routeId ? (
-            <button
-              type="button"
-              className="myway-back-button"
-              onClick={() => {
-                window.location.href = buildRouteDetailUrl(routeId);
-              }}
-            >
-              Go back to route details
-            </button>
-          ) : null}
-        </article>
+        <section className="myway-shell">
+          <article className="myway-hero route-panel">
+            <h1>Start Route</h1>
+            <p>
+              Follow the route in real time with GPS guidance. Your position appears as a blue marker and
+              the route points are connected for easy navigation.
+            </p>
+            {routeId ? (
+              <button
+                type="button"
+                className="myway-back-button"
+                onClick={() => {
+                  window.location.href = buildRouteDetailUrl(routeId);
+                }}
+              >
+                Go back to route details
+              </button>
+            ) : null}
+          </article>
 
-        {isLoading ? <p className="status-message">Loading route navigation...</p> : null}
-        {!isLoading && error ? <p className="status-message error">{error}</p> : null}
+          {isLoading ? <p className="status-message">Loading route navigation...</p> : null}
+          {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
-        {!isLoading && !error && route ? <MyWayNavigator route={route} /> : null}
-      </section>
-    </main>
+          {!isLoading && !error && route ? <MyWayNavigator route={route} /> : null}
+        </section>
+      </main>
+    </>
   );
 }
 

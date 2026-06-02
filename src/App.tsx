@@ -16,7 +16,7 @@ import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
-import AccessibilityPanel from './components/shared/AccessibilityPanel';
+import AppOverlays from './components/shared/AppOverlays';
 import { isAuthenticated } from './services/authService';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
@@ -217,18 +217,28 @@ function App() {
   }, [searchPage, totalPages]);
 
   if (currentPath === '/login') {
-    return <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />;
+    return (
+      <>
+        <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />
+        <AppOverlays />
+      </>
+    );
   }
 
   if (currentPath === '/register') {
-    return <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />;
+    return (
+      <>
+        <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />
+        <AppOverlays />
+      </>
+    );
   }
 
   if (currentPath === '/profile') {
     return (
       <>
         <ProfilePage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -237,7 +247,7 @@ function App() {
     return (
       <>
         <FavoritesPage />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -246,7 +256,7 @@ function App() {
     return (
       <>
         <ChatPage />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -260,7 +270,7 @@ function App() {
     return (
       <>
         <CreateRoutePage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -269,7 +279,7 @@ function App() {
     return (
       <>
         <RoutesPage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -277,7 +287,7 @@ function App() {
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
-      <AccessibilityPanel />
+      <AppOverlays />
 
       <section className="home-content">
         <SearchArea
