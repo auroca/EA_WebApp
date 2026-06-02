@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { getStoredSession, getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { registerPushNotificationsForUser } from '../../services/notificationService';
 import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
 
 interface TopNavProps {
@@ -9,6 +10,9 @@ interface TopNavProps {
 function TopNav({ activeTopNav }: TopNavProps) {
   const [loggedIn, setLoggedIn] = useState<boolean>(isAuthenticated());
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [notificationStatus, setNotificationStatus] = useState<
+    'idle' | 'saving' | 'enabled' | 'blocked' | 'error'
+  >('idle');
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const user = getStoredUser();
 
@@ -30,6 +34,21 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      setNotificationStatus('blocked');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      setNotificationStatus('enabled');
+    }
+
+    if (Notification.permission === 'denied') {
+      setNotificationStatus('blocked');
+    }
+  }, []);
+
   const navigateFull = (path: string): void => {
     setMenuOpen(false);
 
@@ -47,6 +66,32 @@ function TopNav({ activeTopNav }: TopNavProps) {
     setLoggedIn(false);
     window.location.href = '/';
   };
+
+  const handleEnableNotifications = async (): Promise<void> => {
+    const session = getStoredSession();
+
+    if (!session) {
+      return;
+    }
+
+    setNotificationStatus('saving');
+
+    try {
+      await registerPushNotificationsForUser(session.user, session.token);
+      setNotificationStatus(Notification.permission === 'granted' ? 'enabled' : 'blocked');
+    } catch (error) {
+      console.warn('[Web push registration failed]', error);
+      setNotificationStatus('error');
+    }
+  };
+
+  const notificationButtonLabel = (() => {
+    if (notificationStatus === 'saving') return 'Enabling...';
+    if (notificationStatus === 'enabled') return 'Notifications enabled';
+    if (notificationStatus === 'blocked') return 'Notifications blocked';
+    if (notificationStatus === 'error') return 'Try notifications again';
+    return 'Enable notifications';
+  })();
 
   return (
     <nav className="top-nav">
@@ -170,6 +215,17 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
               <button type="button" className="user-dropdown-button" onClick={() => navigateFull('/profile')}>
                 View profile
+              </button>
+
+              <button
+                type="button"
+                className="user-dropdown-button"
+                onClick={() => {
+                  void handleEnableNotifications();
+                }}
+                disabled={notificationStatus === 'saving' || notificationStatus === 'enabled' || notificationStatus === 'blocked'}
+              >
+                {notificationButtonLabel}
               </button>
 
               <button

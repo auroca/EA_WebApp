@@ -17,7 +17,8 @@ import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 import AccessibilityPanel from './components/shared/AccessibilityPanel';
-import { isAuthenticated } from './services/authService';
+import { getStoredSession, isAuthenticated } from './services/authService';
+import { registerPushNotificationsForUser } from './services/notificationService';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
@@ -164,6 +165,20 @@ function App() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
+  }, []);
+
+  useEffect(() => {
+    const session = getStoredSession();
+
+    if (!session) {
+      return;
+    }
+
+    void registerPushNotificationsForUser(session.user, session.token, {
+      requestPermission: false,
+    }).catch((pushError) => {
+      console.warn('[Web push registration failed]', pushError);
+    });
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,9 @@
 import type { AuthUser, CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
 import { getApiBaseUrl } from './config';
+import {
+  registerPushNotificationsForUser,
+  unregisterPushNotificationsForUser,
+} from './notificationService';
 
 const SESSION_KEY = 'trip2guide_session';
 
@@ -115,6 +119,10 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   console.log('[Login Token Stored in localStorage]', data.accessToken);
 
+  void registerPushNotificationsForUser(normalizedUser, data.accessToken).catch((error) => {
+    console.warn('[Web push registration failed]', error);
+  });
+
   return {
     token: data.accessToken,
     user: normalizedUser
@@ -122,7 +130,15 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
 };
 
 export const logoutUser = async (): Promise<void> => {
+  const session = getStoredSession();
+
   try {
+    if (session) {
+      await unregisterPushNotificationsForUser(session.user, session.token).catch((error) => {
+        console.warn('[Web push unregistration failed]', error);
+      });
+    }
+
     const API_URL = getApiBaseUrl();
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
