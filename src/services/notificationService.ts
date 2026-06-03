@@ -54,7 +54,7 @@ const removeFcmTokenFromBackend = async (
 
 const getNotificationUrl = (data: Record<string, string>): string => {
   if (data.type === 'chat' && data.chatId) {
-    return '/chats';
+    return `/chats?chatId=${encodeURIComponent(data.chatId)}`;
   }
 
   if (data.type === 'route' && data.routeId) {
@@ -69,6 +69,12 @@ const showForegroundNotification = (payload: {
   body: string;
   data: Record<string, string>;
 }): void => {
+  window.dispatchEvent(
+    new CustomEvent('trip2guide:push-notification', {
+      detail: payload,
+    }),
+  );
+
   if (!('Notification' in window) || Notification.permission !== 'granted') {
     return;
   }
@@ -100,13 +106,13 @@ export const registerPushNotificationsForUser = async (
   options: { requestPermission?: boolean } = {},
 ): Promise<void> => {
   if (!('Notification' in window)) {
-    return;
+    throw new Error('This browser does not support web notifications.');
   }
 
   const fcmToken = await requestWebPushToken(options.requestPermission ?? true);
 
   if (!fcmToken) {
-    return;
+    throw new Error(`Web push token was not generated. Notification permission is ${Notification.permission}.`);
   }
 
   await sendFcmTokenToBackend(user._id, authToken, fcmToken);

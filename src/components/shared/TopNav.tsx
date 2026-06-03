@@ -13,6 +13,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
   const [notificationStatus, setNotificationStatus] = useState<
     'idle' | 'saving' | 'enabled' | 'blocked' | 'error'
   >('idle');
+  const [notificationMessage, setNotificationMessage] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const user = getStoredUser();
 
@@ -42,10 +43,12 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
     if (Notification.permission === 'granted') {
       setNotificationStatus('enabled');
+      setNotificationMessage('Click to sync this browser.');
     }
 
     if (Notification.permission === 'denied') {
       setNotificationStatus('blocked');
+      setNotificationMessage('Reset the permission in Chrome and try again.');
     }
   }, []);
 
@@ -75,19 +78,22 @@ function TopNav({ activeTopNav }: TopNavProps) {
     }
 
     setNotificationStatus('saving');
+    setNotificationMessage('');
 
     try {
       await registerPushNotificationsForUser(session.user, session.token);
-      setNotificationStatus(Notification.permission === 'granted' ? 'enabled' : 'blocked');
+      setNotificationStatus('enabled');
+      setNotificationMessage('Token saved for this browser.');
     } catch (error) {
       console.warn('[Web push registration failed]', error);
-      setNotificationStatus('error');
+      setNotificationStatus(Notification.permission === 'denied' ? 'blocked' : 'error');
+      setNotificationMessage(error instanceof Error ? error.message : 'Unable to enable notifications.');
     }
   };
 
   const notificationButtonLabel = (() => {
     if (notificationStatus === 'saving') return 'Enabling...';
-    if (notificationStatus === 'enabled') return 'Notifications enabled';
+    if (notificationStatus === 'enabled') return 'Sync notifications';
     if (notificationStatus === 'blocked') return 'Notifications blocked';
     if (notificationStatus === 'error') return 'Try notifications again';
     return 'Enable notifications';
@@ -223,10 +229,14 @@ function TopNav({ activeTopNav }: TopNavProps) {
                 onClick={() => {
                   void handleEnableNotifications();
                 }}
-                disabled={notificationStatus === 'saving' || notificationStatus === 'enabled' || notificationStatus === 'blocked'}
+                disabled={notificationStatus === 'saving'}
               >
                 {notificationButtonLabel}
               </button>
+
+              {notificationMessage ? (
+                <p className="top-nav-user-menu-hint">{notificationMessage}</p>
+              ) : null}
 
               <button
                 type="button"

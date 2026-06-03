@@ -7,7 +7,7 @@ importScripts(
 );
 
 firebase.initializeApp({
-  apiKey: "AIzaSyCpGTN-szabp8Kl7cb83FhFofO58PIUdACE",
+  apiKey: "AIzaSyB4qgRR9IXN4Ze5MVR5geZ0sAnUz_phrVs",
   authDomain: "trip2guide-f57a5.firebaseapp.com",
   projectId: "trip2guide-f57a5",
   storageBucket: "trip2guide-f57a5.firebasestorage.app",
@@ -38,7 +38,7 @@ self.addEventListener("notificationclick", (event) => {
   let url = "/";
 
   if (data.type === "chat" && data.chatId) {
-    url = "/chats";
+    url = `/chats?chatId=${encodeURIComponent(data.chatId)}`;
   }
 
   if (data.type === "route" && data.routeId) {
