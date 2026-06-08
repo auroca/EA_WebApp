@@ -170,8 +170,7 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
           <GeneralRoutesMap
               routes={routes}
              onSelectRoute={(routeId) => {
-               window.location.href = `/route.html?routeId=${encodeURIComponent(routeId)}`;
-           }}
+window.location.href = `/route.html?id=${encodeURIComponent(routeId)}`;           }}
             />
         ) : null}
 

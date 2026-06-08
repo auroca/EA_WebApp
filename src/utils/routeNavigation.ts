@@ -1,6 +1,5 @@
 export function buildRouteDetailUrl(routeId: string): string {
-  return `/route.html?routeId=${encodeURIComponent(routeId)}`;
-}
+return `/route.html?id=${encodeURIComponent(routeId)}`;}
 
 export function buildRouteSearchUrl(searchText: string): string {
   return `/route.html?search=${encodeURIComponent(searchText)}`;
