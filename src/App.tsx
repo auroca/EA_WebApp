@@ -17,9 +17,16 @@ import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 import AccessibilityPanel from './components/shared/AccessibilityPanel';
-import { isAuthenticated } from './services/authService';
+import { getStoredSession, isAuthenticated } from './services/authService';
+import { registerPushNotificationsForUser } from './services/notificationService';
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
+
+interface WebPushToast {
+  title: string;
+  body: string;
+  data: Record<string, string>;
+}
 
 const normalizePath = (path: string): string => {
   const cleanPath = path.trim();
@@ -49,6 +56,7 @@ function App() {
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
+  const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
 
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
@@ -154,6 +162,45 @@ function App() {
     }
   };
 
+  const getNotificationPath = (data: Record<string, string>): string => {
+    if (data.type === 'chat' && data.chatId) {
+      return `/chats?chatId=${encodeURIComponent(data.chatId)}`;
+    }
+
+    if (data.type === 'route' && data.routeId) {
+      return `/route.html?id=${encodeURIComponent(data.routeId)}`;
+    }
+
+    return '/';
+  };
+
+  const renderWebPushToast = () => {
+    if (!webPushToast) {
+      return null;
+    }
+
+    return (
+      <button
+        type="button"
+        className="web-push-toast"
+        onClick={() => {
+          const path = getNotificationPath(webPushToast.data);
+
+          if (path.startsWith('/route.html') || path.includes('?')) {
+            window.location.href = path;
+            return;
+          }
+
+          navigateTo(path);
+          setWebPushToast(null);
+        }}
+      >
+        <span className="web-push-toast-title">{webPushToast.title}</span>
+        {webPushToast.body ? <span className="web-push-toast-body">{webPushToast.body}</span> : null}
+      </button>
+    );
+  };
+
   useEffect(() => {
     const handlePopState = (): void => {
       setCurrentPath(getCurrentPath());
@@ -163,6 +210,39 @@ function App() {
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const session = getStoredSession();
+
+    if (!session) {
+      return;
+    }
+
+    void registerPushNotificationsForUser(session.user, session.token, {
+      requestPermission: false,
+    }).catch((pushError) => {
+      console.warn('[Web push registration failed]', pushError);
+    });
+  }, []);
+
+  useEffect(() => {
+    const handlePushNotification = (event: Event): void => {
+      const detail = (event as CustomEvent<WebPushToast>).detail;
+
+      if (!detail) {
+        return;
+      }
+
+      setWebPushToast(detail);
+      window.setTimeout(() => setWebPushToast(null), 7000);
+    };
+
+    window.addEventListener('trip2guide:push-notification', handlePushNotification);
+
+    return () => {
+      window.removeEventListener('trip2guide:push-notification', handlePushNotification);
     };
   }, []);
 
@@ -229,6 +309,7 @@ function App() {
       <>
         <ProfilePage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -238,6 +319,7 @@ function App() {
       <>
         <FavoritesPage />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -247,6 +329,7 @@ function App() {
       <>
         <ChatPage />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -261,6 +344,7 @@ function App() {
       <>
         <CreateRoutePage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -270,6 +354,7 @@ function App() {
       <>
         <RoutesPage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -278,6 +363,7 @@ function App() {
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
       <AccessibilityPanel />
+      {renderWebPushToast()}
 
       <section className="home-content">
         <SearchArea
