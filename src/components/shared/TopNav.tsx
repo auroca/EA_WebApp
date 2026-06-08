@@ -1,16 +1,69 @@
 import { useEffect, useRef, useState } from 'react';
 import { getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { getMyAchievements } from '../../services/achievementService';
 import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
 
 interface TopNavProps {
   activeTopNav: TopNavKey;
 }
 
+const getSeenAchievementsKey = (): string => {
+  const user = getStoredUser();
+  return `seenAchievements:${user?._id ?? 'guest'}`;
+};
+
+const getSeenAchievementCodes = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(getSeenAchievementsKey()) ?? '[]') as string[];
+  } catch {
+    return [];
+  }
+};
+
 function TopNav({ activeTopNav }: TopNavProps) {
   const [loggedIn, setLoggedIn] = useState<boolean>(isAuthenticated());
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [hasNewAchievements, setHasNewAchievements] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const user = getStoredUser();
+
+  useEffect(() => {
+    const checkNewAchievements = async (): Promise<void> => {
+      if (!isAuthenticated()) {
+        setHasNewAchievements(false);
+        return;
+      }
+
+      try {
+        const achievements = await getMyAchievements();
+        const unlockedCodes = achievements
+          .filter((achievement) => achievement.unlocked)
+          .map((achievement) => achievement.code);
+
+        const seenCodes = getSeenAchievementCodes();
+
+        setHasNewAchievements(unlockedCodes.some((code) => !seenCodes.includes(code)));
+      } catch {
+        setHasNewAchievements(false);
+      }
+    };
+
+    void checkNewAchievements();
+
+    const intervalId = window.setInterval(() => {
+      void checkNewAchievements();
+    }, 5000);
+
+    window.addEventListener('focus', checkNewAchievements);
+    window.addEventListener('achievements-seen-updated', checkNewAchievements);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', checkNewAchievements);
+      window.removeEventListener('achievements-seen-updated', checkNewAchievements);
+    };
+  }, []);
 
   useEffect(() => {
     const handleDocumentClick = (event: MouseEvent): void => {
@@ -153,7 +206,31 @@ function TopNav({ activeTopNav }: TopNavProps) {
             aria-label="Open user menu"
           >
             <img className="nav-icon" src={getTopNavIconPath('user', menuOpen)} alt="" aria-hidden="true" />
-            <span className="nav-label">{user?.username ?? 'User'}</span>
+
+            <span
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+            >
+              {user?.username ?? 'User'}
+
+              {hasNewAchievements ? (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-12px',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '999px',
+                    backgroundColor: 'red',
+                    zIndex: 9999
+                  }}
+                />
+              ) : null}
+            </span>
           </button>
 
           {menuOpen ? (
