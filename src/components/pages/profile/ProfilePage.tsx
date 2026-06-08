@@ -11,6 +11,7 @@ import { routeDataProvider } from '../../../services/routeService';
 import type { AuthUser } from '../../../types/auth';
 import type { Route } from '../../../types/route';
 import TopNav from '../../shared/TopNav';
+import Achievements from './Achievements';
 
 interface ProfilePageProps {
   onNavigate: (path: string) => void;
@@ -472,6 +473,10 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
               </div>
             )}
+                    </section>
+
+          <section className="profile-card">
+            <Achievements />
           </section>
 
           <section className="profile-card">

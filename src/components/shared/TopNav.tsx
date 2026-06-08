@@ -1,16 +1,74 @@
 import { useEffect, useRef, useState } from 'react';
-import { getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { getStoredSession, getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
+import { registerPushNotificationsForUser } from '../../services/notificationService';
+import { getMyAchievements } from '../../services/achievementService';
 import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
 
 interface TopNavProps {
   activeTopNav: TopNavKey;
 }
 
+const getSeenAchievementsKey = (): string => {
+  const user = getStoredUser();
+  return `seenAchievements:${user?._id ?? 'guest'}`;
+};
+
+const getSeenAchievementCodes = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(getSeenAchievementsKey()) ?? '[]') as string[];
+  } catch {
+    return [];
+  }
+};
+
 function TopNav({ activeTopNav }: TopNavProps) {
   const [loggedIn, setLoggedIn] = useState<boolean>(isAuthenticated());
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [notificationStatus, setNotificationStatus] = useState<
+    'idle' | 'saving' | 'enabled' | 'blocked' | 'error'
+  >('idle');
+  const [notificationMessage, setNotificationMessage] = useState<string>('');
+  const [hasNewAchievements, setHasNewAchievements] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const user = getStoredUser();
+
+  useEffect(() => {
+    const checkNewAchievements = async (): Promise<void> => {
+      if (!isAuthenticated()) {
+        setHasNewAchievements(false);
+        return;
+      }
+
+      try {
+        const achievements = await getMyAchievements();
+        const unlockedCodes = achievements
+          .filter((achievement) => achievement.unlocked)
+          .map((achievement) => achievement.code);
+
+        const seenCodes = getSeenAchievementCodes();
+
+        setHasNewAchievements(unlockedCodes.some((code) => !seenCodes.includes(code)));
+      } catch {
+        setHasNewAchievements(false);
+      }
+    };
+
+    void checkNewAchievements();
+
+    const intervalId = window.setInterval(() => {
+      void checkNewAchievements();
+    }, 5000);
+
+    window.addEventListener('focus', checkNewAchievements);
+    window.addEventListener('achievements-seen-updated', checkNewAchievements);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', checkNewAchievements);
+      window.removeEventListener('achievements-seen-updated', checkNewAchievements);
+    };
+  }, []);
 
   useEffect(() => {
     const handleDocumentClick = (event: MouseEvent): void => {
@@ -30,6 +88,23 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      setNotificationStatus('blocked');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      setNotificationStatus('enabled');
+      setNotificationMessage('Click to sync this browser.');
+    }
+
+    if (Notification.permission === 'denied') {
+      setNotificationStatus('blocked');
+      setNotificationMessage('Reset the permission in Chrome and try again.');
+    }
+  }, []);
+
   const navigateFull = (path: string): void => {
     setMenuOpen(false);
 
@@ -47,6 +122,35 @@ function TopNav({ activeTopNav }: TopNavProps) {
     setLoggedIn(false);
     window.location.href = '/';
   };
+
+  const handleEnableNotifications = async (): Promise<void> => {
+    const session = getStoredSession();
+
+    if (!session) {
+      return;
+    }
+
+    setNotificationStatus('saving');
+    setNotificationMessage('');
+
+    try {
+      await registerPushNotificationsForUser(session.user, session.token);
+      setNotificationStatus('enabled');
+      setNotificationMessage('Token saved for this browser.');
+    } catch (error) {
+      console.warn('[Web push registration failed]', error);
+      setNotificationStatus(Notification.permission === 'denied' ? 'blocked' : 'error');
+      setNotificationMessage(error instanceof Error ? error.message : 'Unable to enable notifications.');
+    }
+  };
+
+  const notificationButtonLabel = (() => {
+    if (notificationStatus === 'saving') return 'Enabling...';
+    if (notificationStatus === 'enabled') return 'Sync notifications';
+    if (notificationStatus === 'blocked') return 'Notifications blocked';
+    if (notificationStatus === 'error') return 'Try notifications again';
+    return 'Enable notifications';
+  })();
 
   return (
     <nav className="top-nav">
@@ -153,7 +257,31 @@ function TopNav({ activeTopNav }: TopNavProps) {
             aria-label="Open user menu"
           >
             <img className="nav-icon" src={getTopNavIconPath('user', menuOpen)} alt="" aria-hidden="true" />
-            <span className="nav-label">{user?.username ?? 'User'}</span>
+
+            <span
+              style={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+            >
+              {user?.username ?? 'User'}
+
+              {hasNewAchievements ? (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-12px',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '999px',
+                    backgroundColor: 'red',
+                    zIndex: 9999
+                  }}
+                />
+              ) : null}
+            </span>
           </button>
 
           {menuOpen ? (
@@ -171,6 +299,21 @@ function TopNav({ activeTopNav }: TopNavProps) {
               <button type="button" className="user-dropdown-button" onClick={() => navigateFull('/profile')}>
                 View profile
               </button>
+
+              <button
+                type="button"
+                className="user-dropdown-button"
+                onClick={() => {
+                  void handleEnableNotifications();
+                }}
+                disabled={notificationStatus === 'saving'}
+              >
+                {notificationButtonLabel}
+              </button>
+
+              {notificationMessage ? (
+                <p className="top-nav-user-menu-hint">{notificationMessage}</p>
+              ) : null}
 
               <button
                 type="button"
