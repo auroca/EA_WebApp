@@ -66,3 +66,12 @@ export interface RoutePageData {
   routes: Route[];
   pagination: PaginationMeta;
 }
+
+export type PolygonCoordinate = [number, number];
+
+export interface RouteZone {
+  id: string;
+  name: string;
+  description: string;
+  coordinates: PolygonCoordinate[];
+}

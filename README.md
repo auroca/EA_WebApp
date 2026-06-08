@@ -1,50 +1,22 @@
-# Sistema de gamificación: logros de usuario
+# Exercici: Mapa general de rutes amb cerques geoespacials
 
-## Descripción del ejercicio
+## Descripció
 
-Se ha desarrollado un sistema de gamificación basado en logros para la webApp de Trip2Guide. El objetivo es premiar determinadas acciones realizadas por los usuarios y ofrecer una experiencia más interactiva mediante la visualización de logros desbloqueados.
+S'ha implementat un mapa general de rutes on es poden seleccionar zones representades com a polígons. En seleccionar una zona, el frontend envia les coordenades del polígon al backend i es busquen les rutes que tenen punts dins d'aquesta àrea.
 
-## Estado actual del proyecto
+## Estat de l'exercici
 
-### Funcionalidades implementadas
+L'exercici està operatiu.
 
-#### Backend
+## Parts implementades
 
-Se ha implementado la gestión de logros mediante nuevos componentes en el backend:
+- S'ha afegit un camp geoespacial `location` al model `Point`.
+- El camp `location` utilitza format GeoJSON `Point`.
+- S'ha creat un índex `2dsphere` sobre `location`.
+- S'ha implementat l'endpoint `POST /routes/inside-polygon`.
+- El backend utilitza `$geoWithin` per trobar punts dins del polígon seleccionat.
+- El frontend mostra un mapa amb zones i les rutes trobades dins de cada zona.
+  
+## Conclusió
 
-- Creación de los modelos necesarios para almacenar los logros y los logros desbloqueados por cada usuario.
-- Implementación de la lógica de evaluación de logros.
-- Creación del endpoint para consultar los logros del usuario autenticado.
-- Integración de las rutas de logros dentro del servidor.
-
-Actualmente se encuentran implementados los siguientes logros:
-
-- Primera ruta creada.
-- Cinco rutas creadas.
-- Primera ruta añadida a favoritos.
-- Diez rutas añadidas a favoritos.
-
-#### Frontend
-
-Se ha implementado una nueva sección de logros dentro de la página de perfil del usuario.
-
-Las funcionalidades desarrolladas son:
-
-- Consulta de los logros del usuario mediante el endpoint del backend.
-- Visualización de los logros desbloqueados.
-- Visualización opcional de todos los logros disponibles mediante el botón "Ver todos".
-- Diferenciación visual entre logros desbloqueados y bloqueados.
-- Visualización del detalle de un logro al seleccionarlo.
-- Cierre del detalle al volver a seleccionar el mismo logro.
-- Indicador visual mediante un punto rojo en el menú de usuario cuando existen logros nuevos pendientes de revisar.
-- Marcado de logros como revisados una vez consultados por el usuario, para que el punto rojo desaparezca.
-
-### Funcionalidades operativas
-
-Actualmente el sistema permite:
-
-- Desbloquear logros automáticamente.
-- Consultar los logros desde el perfil.
-- Ver los detalles de cada logro.
-- Consultar tanto los logros desbloqueados como los bloqueados.
-- Recibir una notificapción visual cuando existe un nuevo logro.
+La funcionalitat principal està implementada: el mapa permet seleccionar una zona i realitzar una cerca geoespacial per trobar punts de ruta dins del polígon, retornant les rutes associades.
