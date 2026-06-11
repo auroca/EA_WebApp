@@ -20,6 +20,12 @@ import AccessibilityPanel from './components/shared/AccessibilityPanel';
 import { getStoredSession, isAuthenticated } from './services/authService';
 import { registerPushNotificationsForUser } from './services/notificationService';
 
+declare global {
+  interface Window {
+    _mtm?: Array<Record<string, unknown>>;
+  }
+}
+
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
 interface WebPushToast {
@@ -45,6 +51,28 @@ const normalizePath = (path: string): string => {
 const getCurrentPath = (): string => normalizePath(window.location.pathname);
 
 function App() {
+  useEffect(() => {
+    if (document.getElementById('matomo-tag-manager')) {
+      return;
+    }
+
+    const _mtm = (window._mtm = window._mtm || []);
+
+    _mtm.push({
+      'mtm.startTime': new Date().getTime(),
+      event: 'mtm.Start'
+    });
+
+    const script = document.createElement('script');
+    script.id = 'matomo-tag-manager';
+    script.async = true;
+    script.src =
+      'https://cdn.matomo.cloud/jairolopez.matomo.cloud/container_nXVcsiT4_dev_b970ac5fc8f6d44e08172a65.js';
+
+    document.head.appendChild(script);
+  }, []);
+
+
   const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
   const activeTopNav: TopNavKey = 'home';
   const [homeData, setHomeData] = useState<HomeRoutesData>(emptyHomeData);
