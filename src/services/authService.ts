@@ -1,5 +1,6 @@
 import type { AuthUser, CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
 import { getApiBaseUrl } from './config';
+import { GOOGLE_CLIENT_ID} from './config';
 import {
   registerPushNotificationsForUser,
   unregisterPushNotificationsForUser,
@@ -128,6 +129,81 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
     user: normalizedUser
   };
 };
+
+const saveLoginSession = async (data: any): Promise<LoginResponse> => {
+  const favoriteRoutes = data.user?._id
+    ? await loadFavoriteRouteIds(data.user._id, data.accessToken)
+    : normalizeFavoriteRoutes(data.user?.favoriteRoutes);
+
+  const normalizedUser: AuthUser = {
+    ...data.user,
+    favoriteRoutes
+  };
+
+  const session: StoredSession = {
+    token: data.accessToken,
+    user: normalizedUser
+  };
+
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+  return {
+    token: data.accessToken,
+    user: normalizedUser
+  };
+};
+
+export const loginWithGoogle = async (accessToken: string): Promise<LoginResponse> => {
+  const API_URL = getApiBaseUrl();
+
+  const response = await fetch(`${API_URL}/auth/google`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({ accessToken })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Google login failed.');
+  }
+
+  return saveLoginSession(data);
+};
+
+export const getCreatorStats = async (): Promise<{
+  routesCreated: number;
+  pointsCreated: number;
+}> => {
+  const token = getStoredToken();
+
+  if (!token) {
+    throw new Error('User is not authenticated.');
+  }
+
+  const API_URL = getApiBaseUrl();
+
+  const response = await fetch(`${API_URL}/auth/me/creator-stats`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    credentials: 'include'
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Unable to load creator statistics.');
+  }
+
+  return data;
+};
+
+export const getGoogleClientId = () => GOOGLE_CLIENT_ID;
 
 export const logoutUser = async (): Promise<void> => {
   const session = getStoredSession();

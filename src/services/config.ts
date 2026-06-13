@@ -62,3 +62,6 @@ export function getApiBaseUrl(): string {
 
   return resolved;
 }
+
+export const GOOGLE_CLIENT_ID =
+  '136495957431-f36ubav6rnlu1aultggn38u5a239masj.apps.googleusercontent.com';

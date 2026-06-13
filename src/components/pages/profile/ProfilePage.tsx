@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../../services/authService';
+import {
+  getCreatorStats,
+  getStoredUser,
+  isAuthenticated,
+  saveStoredSessionUser
+} from '../../../services/authService';
 import {
   getRoutesByUserId,
   getUserById,
@@ -36,6 +41,11 @@ interface RouteFormState {
   distance: string;
   duration: string;
   tagsText: string;
+}
+
+interface CreatorStats {
+  routesCreated: number;
+  pointsCreated: number;
 }
 
 const createUserFormState = (user: AuthUser): UserFormState => ({
@@ -79,6 +89,7 @@ const getRoutePreviewImage = (route: Route): string => {
 
 function ProfilePage({ onNavigate }: ProfilePageProps) {
   const sessionUser = useMemo(() => getStoredUser(), []);
+
   const [user, setUser] = useState<AuthUser | null>(sessionUser);
   const [userForm, setUserForm] = useState<UserFormState>(
     sessionUser
@@ -94,6 +105,11 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
   );
 
   const [routes, setRoutes] = useState<Route[]>([]);
+  const [creatorStats, setCreatorStats] = useState<CreatorStats>({
+    routesCreated: 0,
+    pointsCreated: 0
+  });
+
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
 
@@ -120,9 +136,10 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         setLoading(true);
         setPageError('');
 
-        const [userData, userRoutes] = await Promise.all([
+        const [userData, userRoutes, stats] = await Promise.all([
           getUserById(sessionUser._id),
-          getRoutesByUserId(sessionUser._id)
+          getRoutesByUserId(sessionUser._id),
+          getCreatorStats()
         ]);
 
         if (!mounted) return;
@@ -130,6 +147,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         setUser(userData);
         setUserForm(createUserFormState(userData));
         setRoutes(userRoutes);
+        setCreatorStats(stats);
       } catch (error) {
         if (!mounted) return;
 
@@ -304,6 +322,10 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
     try {
       await routeDataProvider.deleteRoute(route._id);
       setRoutes((prev) => prev.filter((item) => item._id !== route._id));
+      setCreatorStats((prev) => ({
+        ...prev,
+        routesCreated: Math.max(prev.routesCreated - 1, 0)
+      }));
       setRouteMessage('Route deleted successfully.');
 
       if (editingRouteId === route._id) {
@@ -473,7 +495,25 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
               </div>
             )}
-                    </section>
+          </section>
+
+          <section className="profile-card">
+            <div className="profile-card-header">
+              <h2>Creator statistics</h2>
+            </div>
+
+            <div className="profile-info-grid">
+              <div>
+                <span className="profile-label">Routes created</span>
+                <strong>{creatorStats.routesCreated}</strong>
+              </div>
+
+              <div>
+                <span className="profile-label">Points created</span>
+                <strong>{creatorStats.pointsCreated}</strong>
+              </div>
+            </div>
+          </section>
 
           <section className="profile-card">
             <Achievements />
