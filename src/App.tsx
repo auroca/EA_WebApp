@@ -67,7 +67,7 @@ function App() {
     script.id = 'matomo-tag-manager';
     script.async = true;
     script.src =
-      'https://cdn.matomo.cloud/jairolopez.matomo.cloud/container_nXVcsiT4_dev_b970ac5fc8f6d44e08172a65.js';
+      'https://ea1-ws.upc.edu/js/container_hHz14aG4.js';
 
     document.head.appendChild(script);
   }, []);
