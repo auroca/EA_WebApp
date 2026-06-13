@@ -27,6 +27,35 @@ interface AuthPageProps {
   onNavigate: (path: string) => void;
 }
 
+const loadGoogleIdentityScript = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.oauth2) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve());
+      existingScript.addEventListener('error', () => reject(new Error('Google script failed to load.')));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Google script failed to load.'));
+
+    document.head.appendChild(script);
+  });
+};
+
 function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const isLogin = mode === 'login';
 
@@ -116,38 +145,42 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
     }
   };
 
-  const handleGoogleLogin = (): void => {
+  const handleGoogleLogin = async (): Promise<void> => {
     setError('');
 
-    if (!window.google?.accounts?.oauth2) {
-      setError('Google login is not available yet. Try again in a few seconds.');
-      return;
-    }
+    try {
+      await loadGoogleIdentityScript();
 
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: getGoogleClientId(),
-      scope: 'openid email profile',
-      callback: async (tokenResponse: { access_token?: string; error?: string }) => {
-        try {
-          if (tokenResponse.error || !tokenResponse.access_token) {
-            setError(tokenResponse.error || 'Google did not return a valid token.');
-            return;
-          }
-
-          setSubmitting(true);
-
-          await loginWithGoogle(tokenResponse.access_token);
-          finishSocialLogin();
-        } catch (googleError) {
-          console.error('Google login error:', googleError);
-          setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
-        } finally {
-          setSubmitting(false);
-        }
+      if (!window.google?.accounts?.oauth2) {
+        setError('Google login is not available yet. Try again in a few seconds.');
+        return;
       }
-    });
 
-    tokenClient.requestAccessToken();
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: getGoogleClientId(),
+        scope: 'openid email profile',
+        callback: async (tokenResponse: { access_token?: string; error?: string }) => {
+          try {
+            if (tokenResponse.error || !tokenResponse.access_token) {
+              setError(tokenResponse.error || 'Google did not return a valid token.');
+              return;
+            }
+
+            setSubmitting(true);
+            await loginWithGoogle(tokenResponse.access_token);
+            finishSocialLogin();
+          } catch (googleError) {
+            setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
+          } finally {
+            setSubmitting(false);
+          }
+        }
+      });
+
+      tokenClient.requestAccessToken();
+    } catch (googleError) {
+      setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
+    }
   };
 
   const handleContinue = (event: FormEvent): void => {
@@ -355,7 +388,9 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
           <button
             type="button"
             className="auth-social-button"
-            onClick={handleGoogleLogin}
+            onClick={() => {
+              void handleGoogleLogin();
+            }}
             disabled={submitting}
           >
             <FcGoogle className="auth-social-icon" />
