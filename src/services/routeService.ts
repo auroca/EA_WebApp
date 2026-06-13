@@ -9,6 +9,7 @@ export interface RouteDataProvider {
   getHomeData(): Promise<HomeRoutesData>;
   getRoutePage(options: RoutePageOptions): Promise<RoutePageData>;
   getRouteById(routeId: string): Promise<Route | null>;
+  getRoutesInsidePolygon(coordinates: [number, number][]): Promise<Route[]>;
   createRoute(input: RouteCreateInput): Promise<Route>;
   deleteRoute(routeId: string): Promise<void>;
 }
@@ -290,6 +291,7 @@ function normalizeRouteItem(item: unknown): Route | null {
   const images = Array.isArray(candidate.images)
     ? candidate.images.filter((image): image is string => typeof image === 'string')
     : [];
+
   const coverImageFromImages = images[0]?.trim() ?? '';
   const tagsSource = Array.isArray(candidate.tags) ? candidate.tags : [];
   const tags = tagsSource
@@ -298,6 +300,7 @@ function normalizeRouteItem(item: unknown): Route | null {
     .filter(Boolean);
 
   let points: Route['points'];
+
   if (Array.isArray(candidate.points)) {
     points = candidate.points
       .filter((point): point is Record<string, unknown> => typeof point === 'object' && point !== null)
@@ -493,11 +496,13 @@ export class ApiRouteDataProvider implements RouteDataProvider {
     const apiUrl = getApiBaseUrl();
     const token = getStoredToken();
     const fullUrl = `${apiUrl}${path}`;
+
     console.log('[Route Detail Request]', {
       path,
       fullUrl,
       token: token ? `Bearer ${token.substring(0, 20)}...` : 'No token'
     });
+
     const response = await authenticatedFetch(path);
 
     if (response.status === 404) {
@@ -509,6 +514,28 @@ export class ApiRouteDataProvider implements RouteDataProvider {
     }
 
     return mapRouteFromApi(await response.json());
+  }
+
+  async getRoutesInsidePolygon(coordinates: [number, number][]): Promise<Route[]> {
+    const response = await authenticatedFetch('/routes/inside-polygon', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ coordinates })
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to load routes inside the selected zone');
+    }
+
+    const rawRoutes = await response.json();
+
+    if (!Array.isArray(rawRoutes)) {
+      return [];
+    }
+
+    return rawRoutes.map((item) => mapRouteFromApi(item)).filter((item): item is Route => item !== null);
   }
 
   async createRoute(input: RouteCreateInput): Promise<Route> {

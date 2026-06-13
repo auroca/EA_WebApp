@@ -44,6 +44,9 @@ function ChatPage() {
   const user = getStoredUser();
   const token = getStoredToken();
   const socketRef = useRef<Socket | null>(null);
+  const requestedChatId = useMemo(() => {
+    return (new URLSearchParams(window.location.search).get('chatId') ?? '').trim();
+  }, []);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string>('');
@@ -91,8 +94,12 @@ function ChatPage() {
         setParticipantChatIds(myChatIds);
         setLoadError('');
 
-        if (myChats[0]) {
-          setSelectedChatId(myChats[0]._id);
+        const initialChat = requestedChatId && myChatIds.includes(requestedChatId)
+          ? requestedChatId
+          : myChats[0]?._id;
+
+        if (initialChat) {
+          setSelectedChatId(initialChat);
         }
       } catch (error) {
         if (!mounted) {
@@ -116,7 +123,7 @@ function ChatPage() {
     return () => {
       mounted = false;
     };
-  }, [user?._id]);
+  }, [requestedChatId, user?._id]);
 
   useEffect(() => {
     if (!isAuthenticated() || !token) {
@@ -230,6 +237,7 @@ function ChatPage() {
 
     if (participantSet.has(chat._id)) {
       setSelectedChatId(chat._id);
+      window.history.replaceState({}, '', `/chats?chatId=${encodeURIComponent(chat._id)}`);
       return;
     }
 
@@ -258,6 +266,7 @@ function ChatPage() {
       });
 
       setSelectedChatId(chat._id);
+      window.history.replaceState({}, '', `/chats?chatId=${encodeURIComponent(chat._id)}`);
       setSelectedChat(joinedChat);
       setMessages(joinedChat.chatHistory ?? []);
       setOnlineParticipants(joinedChat.participants.map((participant) => participant.username));
@@ -327,6 +336,7 @@ function ChatPage() {
       setShowCreateGroupModal(false);
       setCreateGroupName('');
       setCreateGroupPassword('');
+      window.history.replaceState({}, '', `/chats?chatId=${encodeURIComponent(newChat._id)}`);
     } catch (error) {
       if (error instanceof Error) {
         setCreateGroupError(error.message);

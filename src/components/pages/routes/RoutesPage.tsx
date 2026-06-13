@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import SearchArea from '../../shared/SearchArea';
 import SearchResults from '../../shared/SearchResults';
 import TopNav from '../../shared/TopNav';
+import GeneralRoutesMap from './GeneralRoutesMap';
 import { routeDataProvider } from '../../../services/routeService';
 import type { Route } from '../../../types/route';
 import { sortRoutes, type SortOption } from '../../../utils/homeView';
@@ -23,6 +24,7 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [showGeneralMap, setShowGeneralMap] = useState<boolean>(false);
 
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
@@ -148,15 +150,29 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
         <div className="routes-page-title-row">
           <h1>Routes</h1>
 
-          {canCreateRoute ? (
-            <button className="create-route-primary-button" onClick={() => onNavigate('/routes/create')}>
-              Create your route
+          <div className="routes-page-title-actions">
+            <button className="routes-map-toggle-button" onClick={() => setShowGeneralMap((prev) => !prev)}>
+              {showGeneralMap ? 'Hide zone map' : 'General route map with zones'}
             </button>
-          ) : null}
+
+            {canCreateRoute ? (
+              <button className="create-route-primary-button" onClick={() => onNavigate('/routes/create')}>
+                Create your route
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {isLoading ? <p className="status-message">Loading routes...</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
+
+        {!isLoading && !error && showGeneralMap ? (
+          <GeneralRoutesMap
+              routes={routes}
+             onSelectRoute={(routeId) => {
+window.location.href = `/route.html?id=${encodeURIComponent(routeId)}`;           }}
+            />
+        ) : null}
 
         {!isLoading && !error ? (
           <SearchResults

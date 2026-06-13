@@ -17,9 +17,22 @@ import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 import AccessibilityPanel from './components/shared/AccessibilityPanel';
-import { isAuthenticated } from './services/authService';
+import { getStoredSession, isAuthenticated } from './services/authService';
+import { registerPushNotificationsForUser } from './services/notificationService';
+
+declare global {
+  interface Window {
+    _mtm?: Array<Record<string, unknown>>;
+  }
+}
 
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
+
+interface WebPushToast {
+  title: string;
+  body: string;
+  data: Record<string, string>;
+}
 
 const normalizePath = (path: string): string => {
   const cleanPath = path.trim();
@@ -38,6 +51,28 @@ const normalizePath = (path: string): string => {
 const getCurrentPath = (): string => normalizePath(window.location.pathname);
 
 function App() {
+  useEffect(() => {
+    if (document.getElementById('matomo-tag-manager')) {
+      return;
+    }
+
+    const _mtm = (window._mtm = window._mtm || []);
+
+    _mtm.push({
+      'mtm.startTime': new Date().getTime(),
+      event: 'mtm.Start'
+    });
+
+    const script = document.createElement('script');
+    script.id = 'matomo-tag-manager';
+    script.async = true;
+    script.src =
+      'https://ea1-ws.upc.edu/js/container_hHz14aG4.js';
+
+    document.head.appendChild(script);
+  }, []);
+
+
   const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
   const activeTopNav: TopNavKey = 'home';
   const [homeData, setHomeData] = useState<HomeRoutesData>(emptyHomeData);
@@ -49,14 +84,14 @@ function App() {
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
-
+  const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
+  //
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
   const routesById = new Map(homeData.routes.map((route) => [route._id, route]));
   const configuredPopularRoutes = homeData.popularRouteIds
     .map((routeId) => routesById.get(routeId))
     .filter((route): route is Route => Boolean(route));
-
   const popularRoutes =
     configuredPopularRoutes.length > 0
       ? configuredPopularRoutes.slice(0, 5)
@@ -154,6 +189,45 @@ function App() {
     }
   };
 
+  const getNotificationPath = (data: Record<string, string>): string => {
+    if (data.type === 'chat' && data.chatId) {
+      return `/chats?chatId=${encodeURIComponent(data.chatId)}`;
+    }
+
+    if (data.type === 'route' && data.routeId) {
+      return `/route.html?id=${encodeURIComponent(data.routeId)}`;
+    }
+
+    return '/';
+  };
+
+  const renderWebPushToast = () => {
+    if (!webPushToast) {
+      return null;
+    }
+
+    return (
+      <button
+        type="button"
+        className="web-push-toast"
+        onClick={() => {
+          const path = getNotificationPath(webPushToast.data);
+
+          if (path.startsWith('/route.html') || path.includes('?')) {
+            window.location.href = path;
+            return;
+          }
+
+          navigateTo(path);
+          setWebPushToast(null);
+        }}
+      >
+        <span className="web-push-toast-title">{webPushToast.title}</span>
+        {webPushToast.body ? <span className="web-push-toast-body">{webPushToast.body}</span> : null}
+      </button>
+    );
+  };
+
   useEffect(() => {
     const handlePopState = (): void => {
       setCurrentPath(getCurrentPath());
@@ -163,6 +237,39 @@ function App() {
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const session = getStoredSession();
+
+    if (!session) {
+      return;
+    }
+
+    void registerPushNotificationsForUser(session.user, session.token, {
+      requestPermission: false,
+    }).catch((pushError) => {
+      console.warn('[Web push registration failed]', pushError);
+    });
+  }, []);
+
+  useEffect(() => {
+    const handlePushNotification = (event: Event): void => {
+      const detail = (event as CustomEvent<WebPushToast>).detail;
+
+      if (!detail) {
+        return;
+      }
+
+      setWebPushToast(detail);
+      window.setTimeout(() => setWebPushToast(null), 7000);
+    };
+
+    window.addEventListener('trip2guide:push-notification', handlePushNotification);
+
+    return () => {
+      window.removeEventListener('trip2guide:push-notification', handlePushNotification);
     };
   }, []);
 
@@ -229,6 +336,7 @@ function App() {
       <>
         <ProfilePage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -238,6 +346,7 @@ function App() {
       <>
         <FavoritesPage />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -247,6 +356,7 @@ function App() {
       <>
         <ChatPage />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -261,6 +371,7 @@ function App() {
       <>
         <CreateRoutePage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -270,6 +381,7 @@ function App() {
       <>
         <RoutesPage onNavigate={navigateTo} />
         <AccessibilityPanel />
+        {renderWebPushToast()}
       </>
     );
   }
@@ -278,6 +390,7 @@ function App() {
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
       <AccessibilityPanel />
+      {renderWebPushToast()}
 
       <section className="home-content">
         <SearchArea
