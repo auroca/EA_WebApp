@@ -85,14 +85,13 @@ function App() {
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
   const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
-
+  
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
   const routesById = new Map(homeData.routes.map((route) => [route._id, route]));
   const configuredPopularRoutes = homeData.popularRouteIds
     .map((routeId) => routesById.get(routeId))
     .filter((route): route is Route => Boolean(route));
-
   const popularRoutes =
     configuredPopularRoutes.length > 0
       ? configuredPopularRoutes.slice(0, 5)
