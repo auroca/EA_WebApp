@@ -1,9 +1,19 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { loginUser, registerUser } from '../../../services/authService';
+import {
+  getGoogleClientId,
+  loginUser,
+  loginWithGoogle,
+  registerUser
+} from '../../../services/authService';
 import { routeDataProvider } from '../../../services/routeService';
 import type { AuthMode } from '../../../types/auth';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
 
@@ -19,6 +29,7 @@ interface AuthPageProps {
 
 function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const isLogin = mode === 'login';
+
   const redirectPath = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const redirect = (params.get('redirect') ?? '').trim();
@@ -96,6 +107,48 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
       mounted = false;
     };
   }, [routeIdFromRedirect]);
+
+  const finishSocialLogin = (): void => {
+    if (redirectPath) {
+      window.location.href = redirectPath;
+    } else {
+      onNavigate('/');
+    }
+  };
+
+  const handleGoogleLogin = (): void => {
+    setError('');
+
+    if (!window.google?.accounts?.oauth2) {
+      setError('Google login is not available yet. Try again in a few seconds.');
+      return;
+    }
+
+    const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: getGoogleClientId(),
+      scope: 'openid email profile',
+      callback: async (tokenResponse: { access_token?: string; error?: string }) => {
+        try {
+          if (tokenResponse.error || !tokenResponse.access_token) {
+            setError(tokenResponse.error || 'Google did not return a valid token.');
+            return;
+          }
+
+          setSubmitting(true);
+
+          await loginWithGoogle(tokenResponse.access_token);
+          finishSocialLogin();
+        } catch (googleError) {
+          console.error('Google login error:', googleError);
+          setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
+        } finally {
+          setSubmitting(false);
+        }
+      }
+    });
+
+    tokenClient.requestAccessToken();
+  };
 
   const handleContinue = (event: FormEvent): void => {
     event.preventDefault();
@@ -299,14 +352,14 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
             <span className="auth-divider-line" />
           </div>
 
-          <button type="button" className="auth-social-button">
+          <button
+            type="button"
+            className="auth-social-button"
+            onClick={handleGoogleLogin}
+            disabled={submitting}
+          >
             <FcGoogle className="auth-social-icon" />
             <span>Continue with Google</span>
-          </button>
-
-          <button type="button" className="auth-social-button">
-            <FaApple className="auth-social-icon auth-social-icon-apple" />
-            <span>Continue with Apple</span>
           </button>
 
           <p className="auth-legal-text">{legalText}</p>
