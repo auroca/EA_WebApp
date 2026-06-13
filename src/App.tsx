@@ -85,7 +85,7 @@ function App() {
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
   const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
-  
+  //
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
   const routesById = new Map(homeData.routes.map((route) => [route._id, route]));
