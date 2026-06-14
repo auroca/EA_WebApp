@@ -38,7 +38,21 @@ export function toTitleCase(value: string): string {
 }
 
 export function getRouteImage(route: Route): string {
-  return route.images[0]?.trim() ?? '';
+  const routeWithCover = route as Route & {
+    cover_image?: string;
+    coverImageUrl?: string;
+    coverImage?: string;
+    image?: string;
+  };
+
+  return (
+    routeWithCover.cover_image?.trim() ||
+    routeWithCover.coverImageUrl?.trim() ||
+    routeWithCover.coverImage?.trim() ||
+    routeWithCover.image?.trim() ||
+    route.images?.[0]?.trim() ||
+    ''
+  );
 }
 
 export function getDifficultyBadgePath(difficulty: Route['difficulty']): string {
