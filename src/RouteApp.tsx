@@ -15,6 +15,7 @@ import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { HomeRoutesData, Route, RoutePageData } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption } from './utils/homeView';
 import { getRouteIdFromSearch, getSearchTextFromSearch } from './utils/routeNavigation';
+import RouteReviewsSection from './components/pages/routes/RouteReviewsSection';
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
@@ -385,6 +386,8 @@ function RouteApp() {
               />
 
               <RouteDescriptionSection description={selectedRoute.description} />
+
+              <RouteReviewsSection routeId={selectedRoute._id} />
 
               <RouteMap route={selectedRoute} />
 

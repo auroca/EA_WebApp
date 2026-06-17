@@ -135,3 +135,226 @@
 .point-marker-icon.active {
   background-color: #ff6b6b;
 }
+
+.route-reviews-section {
+  display: grid;
+  gap: 18px;
+}
+
+.route-reviews-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.route-reviews-header p {
+  margin: 6px 0 0;
+}
+
+.route-reviews-average {
+  min-width: 82px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  text-align: center;
+  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  color: #ffffff;
+}
+
+.route-reviews-average strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.route-reviews-average span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.route-review-form {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #d5e6e0;
+  background: #ffffff;
+}
+
+.route-review-form h3 {
+  margin: 0;
+  color: #13213a;
+}
+
+.route-review-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #39465f;
+  text-transform: capitalize;
+}
+
+.route-review-form input,
+.route-review-form textarea,
+.route-review-form select {
+  width: 100%;
+  border: 1px solid #c8d5e3;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #13213a;
+  background: #ffffff;
+}
+
+.route-review-form textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.route-review-rating-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.route-review-form button {
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.route-review-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.route-review-success {
+  margin: 0;
+  color: #1f8c77;
+  font-weight: 800;
+}
+
+.route-review-login-message {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #d5e6e0;
+  color: #39465f;
+  font-weight: 700;
+}
+
+.route-review-list {
+  display: grid;
+  gap: 12px;
+}
+
+.route-review-card {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #d5e6e0;
+  background: #ffffff;
+}
+
+.route-review-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-review-card h3 {
+  margin: 0;
+  color: #13213a;
+}
+
+.route-review-card-header span {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #1f6f63;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.route-review-ratings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.route-review-ratings span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef4f8;
+  color: #20304a;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+@media (max-width: 720px) {
+  .route-reviews-header {
+    flex-direction: column;
+  }
+
+  .route-review-rating-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+body.accessibility-dark-mode .route-review-form,
+body.accessibility-dark-mode .route-review-card,
+body.accessibility-dark-mode .route-review-login-message {
+  background: #111827;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .route-review-form h3,
+body.accessibility-dark-mode .route-review-card h3 {
+  color: #f8fafc;
+}
+
+body.accessibility-dark-mode .route-review-form label,
+body.accessibility-dark-mode .route-review-login-message {
+  color: #cbd5e1;
+}
+
+body.accessibility-dark-mode .route-review-form input,
+body.accessibility-dark-mode .route-review-form textarea,
+body.accessibility-dark-mode .route-review-form select {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+body.accessibility-dark-mode .route-review-card-header span,
+body.accessibility-dark-mode .route-review-ratings span {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+body.accessibility-high-contrast .route-review-form,
+body.accessibility-high-contrast .route-review-card,
+body.accessibility-high-contrast .route-review-login-message {
+  background: #050505 !important;
+  color: #ffffff !important;
+  border: 1px solid #3a3a3a !important;
+}
+
+body.accessibility-high-contrast .route-review-form input,
+body.accessibility-high-contrast .route-review-form textarea,
+body.accessibility-high-contrast .route-review-form select {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
