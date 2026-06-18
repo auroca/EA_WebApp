@@ -134,6 +134,34 @@
   color: #122037;
 }
 
+.route-fact-card--rating h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.route-fact-card--rating h3 svg {
+  align-self: center;
+  width: 0.85em;
+  height: 0.85em;
+  color: #f2b205;
+  flex-shrink: 0;
+}
+
+.route-fact-card--rating h3 small {
+  color: #5f6977;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.route-fact-card__meta {
+  display: block;
+  margin-top: 6px;
+  color: #5f6977;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .route-description-grid {
   display: grid;
   grid-template-columns: 1fr;

@@ -383,6 +383,8 @@ function RouteApp() {
               <RouteQuickFacts
                 distance={selectedRoute.distance}
                 duration={selectedRoute.duration}
+                ratingAverage={selectedRoute.ratingAverage}
+                reviewsCount={selectedRoute.reviewsCount}
               />
 
               <RouteDescriptionSection description={selectedRoute.description} />

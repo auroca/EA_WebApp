@@ -351,6 +351,14 @@ function normalizeRouteItem(item: unknown): Route | null {
     country: typeof candidate.country === 'string' ? candidate.country : '',
     distance: typeof candidate.distance === 'number' ? candidate.distance : undefined,
     duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
+    ratingAverage:
+      typeof candidate.ratingAverage === 'number' && Number.isFinite(candidate.ratingAverage)
+        ? candidate.ratingAverage
+        : undefined,
+    reviewsCount:
+      typeof candidate.reviewsCount === 'number' && Number.isFinite(candidate.reviewsCount)
+        ? candidate.reviewsCount
+        : undefined,
     tags,
     points
   };

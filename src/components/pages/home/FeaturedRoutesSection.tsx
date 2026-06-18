@@ -1,4 +1,5 @@
 import type { Route } from '../../../types/route';
+import { FaStar } from 'react-icons/fa';
 import {
   getDifficultyBadgePath,
   getFeaturedOverlayText,
@@ -21,6 +22,10 @@ function FeaturedRoutesSection({ routes }: FeaturedRoutesSectionProps) {
       <div className="scroll-strip featured-strip">
         {routes.map((route, index) => {
           const featuredLabel = getFeaturedOverlayText(index);
+          const formattedRating =
+            typeof route.ratingAverage === 'number' && Number.isFinite(route.ratingAverage)
+              ? route.ratingAverage.toFixed(1)
+              : '-';
 
           return (
             <article className="featured-item" key={route._id}>
@@ -45,7 +50,12 @@ function FeaturedRoutesSection({ routes }: FeaturedRoutesSectionProps) {
                       event.currentTarget.style.display = 'none';
                     }}
                   />
-                  {toTitleCase(route.difficulty)} · {route.city}, {route.country}
+                  <span>{toTitleCase(route.difficulty)}</span>
+                  <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                    <FaStar aria-hidden="true" />
+                    {formattedRating}
+                  </span>
+                  <span>· {route.city}, {route.country}</span>
                 </p>
               </a>
             </article>

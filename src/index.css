@@ -745,6 +745,21 @@ a {
   color: #f2b205;
 }
 
+.route-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #f2b205;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.route-card-rating svg {
+  width: 0.9em;
+  height: 0.9em;
+  flex-shrink: 0;
+}
+
 .difficulty-badge {
   width: 0.95em;
   height: 0.95em;

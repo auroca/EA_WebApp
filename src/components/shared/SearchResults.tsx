@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaStar } from 'react-icons/fa';
 import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../services/authService';
 import { toggleFavoriteRouteByUserId } from '../../services/profileService';
 import type { Route } from '../../types/route';
@@ -119,6 +119,10 @@ function SearchResults({
         <div className="search-results-list">
           {routes.map((route) => {
             const isFavorite = favoriteIds.includes(route._id);
+            const formattedRating =
+              typeof route.ratingAverage === 'number' && Number.isFinite(route.ratingAverage)
+                ? route.ratingAverage.toFixed(1)
+                : '-';
 
             return (
               <article className="search-result-item" key={route._id}>
@@ -148,6 +152,10 @@ function SearchResults({
                         }}
                       />
                       <span>{toTitleCase(route.difficulty)}</span>
+                      <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                        <FaStar aria-hidden="true" />
+                        {formattedRating}
+                      </span>
                     </div>
                     <p>{route.description}</p>
                     <span>
