@@ -1,27 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
-import ProfilePage from './components/pages/profile/ProfilePage';
-import RouteDescriptionSection from './components/pages/routes/RouteDescriptionSection';
-import RouteGallery from './components/pages/routes/RouteGallery';
-import RouteHeroSection from './components/pages/routes/RouteHeroSection';
-import RouteHighlights from './components/pages/routes/RouteHighlights';
-import RouteMap from './components/pages/routes/RouteMap';
-import RouteQuickFacts from './components/pages/routes/RouteQuickFacts';
-import SearchArea from './components/shared/SearchArea';
-import SearchResults from './components/shared/SearchResults';
-import TopNav from './components/shared/TopNav';
-import AccessibilityPanel from './components/shared/AccessibilityPanel';
-import { isAuthenticated } from './services/authService';
-import { emptyHomeData, routeDataProvider } from './services/routeService';
-import type { HomeRoutesData, Route, RoutePageData } from './types/route';
-import { getRouteImage, sortRoutes, type SortOption } from './utils/homeView';
-import { getRouteIdFromSearch, getSearchTextFromSearch } from './utils/routeNavigation';
-import RouteReviewsSection from './components/pages/routes/RouteReviewsSection';
+import { useEffect, useMemo, useState } from "react";
+import ProfilePage from "./components/pages/profile/ProfilePage";
+import RouteDescriptionSection from "./components/pages/routes/RouteDescriptionSection";
+import RouteGallery from "./components/pages/routes/RouteGallery";
+import RouteHeroSection from "./components/pages/routes/RouteHeroSection";
+import RouteHighlights from "./components/pages/routes/RouteHighlights";
+import RouteMap from "./components/pages/routes/RouteMap";
+import RouteQuickFacts from "./components/pages/routes/RouteQuickFacts";
+import SearchArea from "./components/shared/SearchArea";
+import SearchResults from "./components/shared/SearchResults";
+import TopNav from "./components/shared/TopNav";
+import AccessibilityPanel from "./components/shared/AccessibilityPanel";
+import { isAuthenticated } from "./services/authService";
+import { emptyHomeData, routeDataProvider } from "./services/routeService";
+import type { HomeRoutesData, Route, RoutePageData } from "./types/route";
+import { getRouteImage, sortRoutes, type SortOption } from "./utils/homeView";
+import {
+  getRouteIdFromSearch,
+  getSearchTextFromSearch,
+} from "./utils/routeNavigation";
+import RouteReviewsSection from "./components/pages/routes/RouteReviewsSection";
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
 
-  if (path === '' || path === '/' || path === '/index.html') {
-    return '/';
+  if (path === "" || path === "/" || path === "/index.html") {
+    return "/";
   }
 
   return path;
@@ -29,29 +32,39 @@ const getCurrentPath = (): string => {
 
 function RouteApp() {
   const [currentPath, setCurrentPath] = useState<string>(getCurrentPath());
-  const [currentSearch, setCurrentSearch] = useState<string>(window.location.search);
+  const [currentSearch, setCurrentSearch] = useState<string>(
+    window.location.search,
+  );
 
   const routeId = getRouteIdFromSearch(currentSearch);
   const searchText = getSearchTextFromSearch(currentSearch);
 
-  const initialIsRouteListMode = routeId.length === 0 && searchText.trim().length === 0;
+  const initialIsRouteListMode =
+    routeId.length === 0 && searchText.trim().length === 0;
   const initialIsRouteDetailOrSearch = !initialIsRouteListMode;
 
-  const [fullRouteData, setFullRouteData] = useState<HomeRoutesData>(emptyHomeData);
+  const [fullRouteData, setFullRouteData] =
+    useState<HomeRoutesData>(emptyHomeData);
   const [routePageData, setRoutePageData] = useState<RoutePageData>({
     routes: [],
     pagination: {
       page: 1,
       limit: 10,
       total: 0,
-      totalPages: 1
-    }
+      totalPages: 1,
+    },
   });
-  const [isListLoading, setIsListLoading] = useState<boolean>(initialIsRouteListMode);
-  const [isFullRoutesLoading, setIsFullRoutesLoading] = useState<boolean>(initialIsRouteDetailOrSearch);
-  const [isRouteDetailLoading, setIsRouteDetailLoading] = useState<boolean>(routeId.length > 0);
+  const [isListLoading, setIsListLoading] = useState<boolean>(
+    initialIsRouteListMode,
+  );
+  const [isFullRoutesLoading, setIsFullRoutesLoading] = useState<boolean>(
+    initialIsRouteDetailOrSearch,
+  );
+  const [isRouteDetailLoading, setIsRouteDetailLoading] = useState<boolean>(
+    routeId.length > 0,
+  );
   const [routeDetail, setRouteDetail] = useState<Route | null>(null);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [searchInput, setSearchInput] = useState<string>(searchText);
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
@@ -61,14 +74,14 @@ function RouteApp() {
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(10);
 
-  const navigateTo = (path: string, search: string = ''): void => {
+  const navigateTo = (path: string, search: string = ""): void => {
     const nextUrl = `${path}${search}`;
 
     if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
-      window.history.pushState({}, '', nextUrl);
+      window.history.pushState({}, "", nextUrl);
       setCurrentPath(path);
       setCurrentSearch(search);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, behavior: "auto" });
     }
   };
 
@@ -81,7 +94,7 @@ function RouteApp() {
 
   const searchResults = normalizedSearchQuery
     ? fullRouteData.routes.filter((route) => {
-        const searchableTags = route.tags.join(' ').toLowerCase();
+        const searchableTags = route.tags.join(" ").toLowerCase();
 
         return (
           route.city.toLowerCase().includes(normalizedSearchQuery) ||
@@ -96,15 +109,21 @@ function RouteApp() {
   const visibleSearchResults = sortRoutes(searchResults, sortOption);
   const totalRouteListResults = routePageData.pagination.total;
   const totalRouteListPages = routePageData.pagination.totalPages;
-  const safeListPage = Math.min(routePageData.pagination.page, totalRouteListPages);
+  const safeListPage = Math.min(
+    routePageData.pagination.page,
+    totalRouteListPages,
+  );
   const pagedRouteListResults = routeListResults;
 
   const totalSearchResults = visibleSearchResults.length;
-  const totalSearchPages = Math.max(1, Math.ceil(totalSearchResults / searchPageSize));
+  const totalSearchPages = Math.max(
+    1,
+    Math.ceil(totalSearchResults / searchPageSize),
+  );
   const safeSearchPage = Math.min(searchPage, totalSearchPages);
   const pagedSearchResults = visibleSearchResults.slice(
     (safeSearchPage - 1) * searchPageSize,
-    safeSearchPage * searchPageSize
+    safeSearchPage * searchPageSize,
   );
 
   const selectedRoute: Route | null = useMemo(() => {
@@ -125,10 +144,10 @@ function RouteApp() {
       setCurrentSearch(window.location.search);
     };
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
@@ -160,12 +179,12 @@ function RouteApp() {
       try {
         const result = await routeDataProvider.getRoutePage({
           page: listPage,
-          limit: listPageSize
+          limit: listPageSize,
         });
 
         if (mounted) {
           setRoutePageData(result);
-          setError('');
+          setError("");
         }
       } catch (loadError) {
         if (!mounted) {
@@ -175,7 +194,7 @@ function RouteApp() {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load route list.');
+          setError("Unable to load route list.");
         }
       } finally {
         if (mounted) {
@@ -210,7 +229,7 @@ function RouteApp() {
 
         if (mounted) {
           setFullRouteData(result);
-          setError('');
+          setError("");
         }
       } catch (loadError) {
         if (!mounted) {
@@ -220,7 +239,7 @@ function RouteApp() {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load route information.');
+          setError("Unable to load route information.");
         }
       } finally {
         if (mounted) {
@@ -253,7 +272,7 @@ function RouteApp() {
 
         if (mounted) {
           setRouteDetail(result);
-          setError('');
+          setError("");
         }
       } catch (loadError) {
         if (!mounted) {
@@ -263,7 +282,7 @@ function RouteApp() {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load route information.');
+          setError("Unable to load route information.");
         }
       } finally {
         if (mounted) {
@@ -290,7 +309,7 @@ function RouteApp() {
   }, [requiresAuthForDetail]);
 
   const clearSearch = (): void => {
-    setSearchInput('');
+    setSearchInput("");
     setSortOption(null);
     setIsFilterOpen(false);
   };
@@ -300,7 +319,7 @@ function RouteApp() {
     setIsFilterOpen(false);
   };
 
-  if (currentPath === '/profile') {
+  if (currentPath === "/profile") {
     return (
       <>
         <ProfilePage onNavigate={(path) => navigateTo(path)} />
@@ -338,8 +357,14 @@ function RouteApp() {
               currentPage={safeListPage}
               pageSize={listPageSize}
               totalPages={totalRouteListPages}
-              onPreviousPage={() => setListPage((current) => Math.max(1, current - 1))}
-              onNextPage={() => setListPage((current) => Math.min(totalRouteListPages, current + 1))}
+              onPreviousPage={() =>
+                setListPage((current) => Math.max(1, current - 1))
+              }
+              onNextPage={() =>
+                setListPage((current) =>
+                  Math.min(totalRouteListPages, current + 1),
+                )
+              }
               onPageSizeChange={(value) => setListPageSize(value)}
             />
           ) : null}
@@ -351,17 +376,27 @@ function RouteApp() {
               currentPage={safeSearchPage}
               pageSize={searchPageSize}
               totalPages={totalSearchPages}
-              onPreviousPage={() => setSearchPage((current) => Math.max(1, current - 1))}
-              onNextPage={() => setSearchPage((current) => Math.min(totalSearchPages, current + 1))}
+              onPreviousPage={() =>
+                setSearchPage((current) => Math.max(1, current - 1))
+              }
+              onNextPage={() =>
+                setSearchPage((current) =>
+                  Math.min(totalSearchPages, current + 1),
+                )
+              }
               onPageSizeChange={(value) => setSearchPageSize(value)}
             />
           ) : null}
 
-          {(isRouteListMode && isListLoading) || (hasActiveSearch && isFullRoutesLoading) || (routeId.length > 0 && isRouteDetailLoading) ? (
+          {(isRouteListMode && isListLoading) ||
+          (hasActiveSearch && isFullRoutesLoading) ||
+          (routeId.length > 0 && isRouteDetailLoading) ? (
             <p className="status-message">Loading route information...</p>
           ) : null}
 
-          {!isFullRoutesLoading && !isRouteDetailLoading && error ? <p className="status-message error">{error}</p> : null}
+          {!isFullRoutesLoading && !isRouteDetailLoading && error ? (
+            <p className="status-message error">{error}</p>
+          ) : null}
 
           {!isRouteDetailLoading && routeId && !selectedRoute ? (
             <p className="status-message error">Route not found.</p>
@@ -387,9 +422,14 @@ function RouteApp() {
                 reviewsCount={selectedRoute.reviewsCount}
               />
 
-              <RouteDescriptionSection description={selectedRoute.description} />
+              <RouteDescriptionSection
+                description={selectedRoute.description}
+              />
 
-              <RouteReviewsSection routeId={selectedRoute._id} />
+              <RouteReviewsSection
+                routeId={selectedRoute._id}
+                ratingAverage={selectedRoute.ratingAverage}
+              />
 
               <RouteMap route={selectedRoute} />
 

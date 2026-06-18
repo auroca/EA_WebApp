@@ -1,12 +1,18 @@
-import type { AuthUser, CreatedUser, LoginResponse, RegisterPayload, StoredSession } from '../types/auth';
-import { getApiBaseUrl } from './config';
-import { GOOGLE_CLIENT_ID} from './config';
+import type {
+  AuthUser,
+  CreatedUser,
+  LoginResponse,
+  RegisterPayload,
+  StoredSession,
+} from "../types/auth";
+import { getApiBaseUrl } from "./config";
+import { GOOGLE_CLIENT_ID } from "./config";
 import {
   registerPushNotificationsForUser,
   unregisterPushNotificationsForUser,
-} from './notificationService';
+} from "./notificationService";
 
-const SESSION_KEY = 'trip2guide_session';
+const SESSION_KEY = "trip2guide_session";
 
 const normalizeFavoriteRoutes = (value: unknown): string[] => {
   if (!Array.isArray(value)) {
@@ -15,28 +21,35 @@ const normalizeFavoriteRoutes = (value: unknown): string[] => {
 
   return value
     .map((item) => {
-      if (typeof item === 'string') {
+      if (typeof item === "string") {
         return item;
       }
 
-      if (item && typeof item === 'object' && typeof (item as { _id?: unknown })._id === 'string') {
+      if (
+        item &&
+        typeof item === "object" &&
+        typeof (item as { _id?: unknown })._id === "string"
+      ) {
         return (item as { _id: string })._id;
       }
 
-      return '';
+      return "";
     })
     .filter((item) => item.length > 0);
 };
 
-const loadFavoriteRouteIds = async (userId: string, token: string): Promise<string[]> => {
+const loadFavoriteRouteIds = async (
+  userId: string,
+  token: string,
+): Promise<string[]> => {
   const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/users/${userId}/favorites`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    credentials: 'include'
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -47,19 +60,21 @@ const loadFavoriteRouteIds = async (userId: string, token: string): Promise<stri
   return normalizeFavoriteRoutes(data);
 };
 
-export const registerUser = async (payload: RegisterPayload): Promise<CreatedUser> => {
+export const registerUser = async (
+  payload: RegisterPayload,
+): Promise<CreatedUser> => {
   const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/users`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    credentials: 'include',
-    body: JSON.stringify(payload)
+    credentials: "include",
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    let message = 'Unable to register the user.';
+    let message = "Unable to register the user.";
 
     try {
       const errorData = await response.json();
@@ -81,25 +96,30 @@ export const registerUser = async (payload: RegisterPayload): Promise<CreatedUse
   return (await response.json()) as CreatedUser;
 };
 
-export const loginUser = async (email: string, password: string): Promise<LoginResponse> => {
+export const loginUser = async (
+  email: string,
+  password: string,
+): Promise<LoginResponse> => {
   const API_URL = getApiBaseUrl();
   const response = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    credentials: 'include',
+    credentials: "include",
     body: JSON.stringify({
       email: email.trim(),
-      password
-    })
+      password,
+    }),
   });
 
   const data = await response.json();
 
   if (!response.ok) {
     const message =
-      data?.message || data?.error?.details?.[0]?.message || 'Invalid credentials.';
+      data?.message ||
+      data?.error?.details?.[0]?.message ||
+      "Invalid credentials.";
     throw new Error(message);
   }
 
@@ -109,24 +129,26 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
 
   const normalizedUser: AuthUser = {
     ...data.user,
-    favoriteRoutes
+    favoriteRoutes,
   };
 
   const session: StoredSession = {
     token: data.accessToken,
-    user: normalizedUser
+    user: normalizedUser,
   };
 
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  console.log('[Login Token Stored in localStorage]', data.accessToken);
+  console.log("[Login Token Stored in localStorage]", data.accessToken);
 
-  void registerPushNotificationsForUser(normalizedUser, data.accessToken).catch((error) => {
-    console.warn('[Web push registration failed]', error);
-  });
+  void registerPushNotificationsForUser(normalizedUser, data.accessToken).catch(
+    (error) => {
+      console.warn("[Web push registration failed]", error);
+    },
+  );
 
   return {
     token: data.accessToken,
-    user: normalizedUser
+    user: normalizedUser,
   };
 };
 
@@ -137,38 +159,40 @@ const saveLoginSession = async (data: any): Promise<LoginResponse> => {
 
   const normalizedUser: AuthUser = {
     ...data.user,
-    favoriteRoutes
+    favoriteRoutes,
   };
 
   const session: StoredSession = {
     token: data.accessToken,
-    user: normalizedUser
+    user: normalizedUser,
   };
 
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
   return {
     token: data.accessToken,
-    user: normalizedUser
+    user: normalizedUser,
   };
 };
 
-export const loginWithGoogle = async (accessToken: string): Promise<LoginResponse> => {
+export const loginWithGoogle = async (
+  accessToken: string,
+): Promise<LoginResponse> => {
   const API_URL = getApiBaseUrl();
 
   const response = await fetch(`${API_URL}/auth/google`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    credentials: 'include',
-    body: JSON.stringify({ accessToken })
+    credentials: "include",
+    body: JSON.stringify({ accessToken }),
   });
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.message || 'Google login failed.');
+    throw new Error(data?.message || "Google login failed.");
   }
 
   return saveLoginSession(data);
@@ -177,27 +201,28 @@ export const loginWithGoogle = async (accessToken: string): Promise<LoginRespons
 export const getCreatorStats = async (): Promise<{
   routesCreated: number;
   pointsCreated: number;
+  reviewsWritten?: number;
 }> => {
   const token = getStoredToken();
 
   if (!token) {
-    throw new Error('User is not authenticated.');
+    throw new Error("User is not authenticated.");
   }
 
   const API_URL = getApiBaseUrl();
 
   const response = await fetch(`${API_URL}/auth/me/creator-stats`, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
-    credentials: 'include'
+    credentials: "include",
   });
 
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data?.message || 'Unable to load creator statistics.');
+    throw new Error(data?.message || "Unable to load creator statistics.");
   }
 
   return data;
@@ -210,15 +235,18 @@ export const logoutUser = async (): Promise<void> => {
 
   try {
     if (session) {
-      await unregisterPushNotificationsForUser(session.user, session.token).catch((error) => {
-        console.warn('[Web push unregistration failed]', error);
+      await unregisterPushNotificationsForUser(
+        session.user,
+        session.token,
+      ).catch((error) => {
+        console.warn("[Web push unregistration failed]", error);
       });
     }
 
     const API_URL = getApiBaseUrl();
     await fetch(`${API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include'
+      method: "POST",
+      credentials: "include",
     });
   } finally {
     localStorage.removeItem(SESSION_KEY);
@@ -256,7 +284,7 @@ export const saveStoredSessionUser = (user: AuthUser): void => {
 
   const updatedSession: StoredSession = {
     ...session,
-    user
+    user,
   };
 
   localStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
