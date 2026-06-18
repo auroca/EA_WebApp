@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaStar } from 'react-icons/fa';
 import type { Route } from '../../../types/route';
 import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../../../utils/homeView';
 import { buildRouteDetailUrl } from '../../../utils/routeNavigation';
@@ -45,6 +45,10 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
       <div className="scroll-strip popular-strip">
         {routes.map((route) => {
           const isFavorite = favoriteIds.includes(route._id);
+          const formattedRating =
+            typeof route.ratingAverage === 'number' && Number.isFinite(route.ratingAverage)
+              ? route.ratingAverage.toFixed(1)
+              : '-';
 
           return (
             <article className="popular-card" key={route._id}>
@@ -69,7 +73,12 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
                       event.currentTarget.style.display = 'none';
                     }}
                   />
-                  {toTitleCase(route.difficulty)} · {route.city}, {route.country}
+                  <span>{toTitleCase(route.difficulty)}</span>
+                  <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                    <FaStar aria-hidden="true" />
+                    {formattedRating}
+                  </span>
+                  <span>· {route.city}, {route.country}</span>
                 </p>
               </a>
             </article>

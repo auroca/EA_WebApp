@@ -171,6 +171,23 @@
   font-weight: 700;
 }
 
+.route-review-toggle {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(18, 28, 43, 0.12);
+}
+
+.route-review-toggle:hover {
+  filter: brightness(1.04);
+}
+
 .route-review-form {
   display: grid;
   gap: 12px;
@@ -250,6 +267,28 @@
   font-weight: 700;
 }
 
+.route-review-own-notice {
+  display: grid;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #eef7f4;
+  border: 1px solid #c7e4dc;
+  color: #1f6f63;
+}
+
+.route-review-own-notice strong {
+  font-size: 14px;
+}
+
+.route-review-own-notice span {
+  color: #39465f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .route-review-list {
   display: grid;
   gap: 12px;
@@ -262,6 +301,11 @@
   background: #ffffff;
 }
 
+.route-review-card--mine {
+  border-color: #1f8c77;
+  box-shadow: 0 10px 20px rgba(31, 140, 119, 0.1);
+}
+
 .route-review-card-header {
   display: flex;
   align-items: flex-start;
@@ -272,6 +316,17 @@
 .route-review-card h3 {
   margin: 0;
   color: #13213a;
+}
+
+.route-review-mine-label {
+  display: inline-flex;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #1f6f63;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .route-review-card-header span {

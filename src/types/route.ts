@@ -24,6 +24,8 @@ export interface Route {
   country: string;
   distance?: number;
   duration?: number;
+  ratingAverage?: number;
+  reviewsCount?: number;
   tags: string[];
   points?: Point[];
 }
