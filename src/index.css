@@ -1,4 +1,4 @@
-@import './styles/theme.css';
+@import "./styles/theme.css";
 
 * {
   box-sizing: border-box;
@@ -31,7 +31,11 @@ a {
 
 .home-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--color-bg-soft) 0%, var(--color-bg-soft-2) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-bg-soft) 0%,
+    var(--color-bg-soft-2) 100%
+  );
 }
 
 .top-nav {
@@ -1376,13 +1380,21 @@ a {
   gap: 16px;
 }
 
-.profile-route-card {
+.profile-reviews-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.profile-route-card,
+.profile-review-card {
   border: 1px solid #e8ebf0;
   border-radius: 16px;
   padding: 18px;
 }
 
-.profile-route-header {
+.profile-route-header,
+.profile-review-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1390,13 +1402,29 @@ a {
   margin-bottom: 12px;
 }
 
-.profile-route-header h3 {
+.profile-route-header h3,
+.profile-review-header h3 {
   margin: 0 0 4px;
 }
 
-.profile-route-header p {
+.profile-route-header p,
+.profile-review-header p {
   margin: 0;
   color: #667085;
+}
+
+.profile-review-header strong {
+  white-space: nowrap;
+}
+
+.profile-review-comment {
+  margin: 0 0 12px;
+  color: #344054;
+  line-height: 1.45;
+}
+
+.profile-review-actions {
+  margin-top: 14px;
 }
 
 .profile-route-meta {
@@ -1428,12 +1456,14 @@ a {
 
 @media (max-width: 768px) {
   .profile-info-grid,
-  .profile-form-grid {
+  .profile-form-grid,
+  .profile-reviews-list {
     grid-template-columns: 1fr;
   }
 
   .profile-card-header,
   .profile-route-header,
+  .profile-review-header,
   .profile-header {
     flex-direction: column;
     align-items: stretch;
@@ -1827,6 +1857,7 @@ body.accessibility-dark-mode .search-results-toolbar,
 body.accessibility-dark-mode .search-result-item,
 body.accessibility-dark-mode .profile-card,
 body.accessibility-dark-mode .profile-route-card,
+body.accessibility-dark-mode .profile-review-card,
 body.accessibility-dark-mode .chat-sidebar,
 body.accessibility-dark-mode .chat-main,
 body.accessibility-dark-mode .chat-room-item,
@@ -1927,6 +1958,7 @@ body.accessibility-dark-mode .profile-title,
 body.accessibility-dark-mode .profile-card-header h2,
 body.accessibility-dark-mode .profile-field span,
 body.accessibility-dark-mode .profile-route-header h3,
+body.accessibility-dark-mode .profile-review-header h3,
 body.accessibility-dark-mode .chat-sidebar-title,
 body.accessibility-dark-mode .chat-title,
 body.accessibility-dark-mode .chat-empty-state h3,
@@ -1956,6 +1988,8 @@ body.accessibility-dark-mode .auth-divider-text,
 body.accessibility-dark-mode .profile-subtitle,
 body.accessibility-dark-mode .profile-label,
 body.accessibility-dark-mode .profile-route-header p,
+body.accessibility-dark-mode .profile-review-header p,
+body.accessibility-dark-mode .profile-review-comment,
 body.accessibility-dark-mode .profile-route-meta,
 body.accessibility-dark-mode .profile-loading,
 body.accessibility-dark-mode .profile-empty,
@@ -2116,6 +2150,7 @@ body.accessibility-high-contrast .search-results-toolbar,
 body.accessibility-high-contrast .search-result-item,
 body.accessibility-high-contrast .profile-card,
 body.accessibility-high-contrast .profile-route-card,
+body.accessibility-high-contrast .profile-review-card,
 body.accessibility-high-contrast .chat-sidebar,
 body.accessibility-high-contrast .chat-main,
 body.accessibility-high-contrast .chat-room-item,

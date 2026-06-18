@@ -1,49 +1,39 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { getStoredUser, isAuthenticated } from '../../../services/authService';
-import { reviewService } from '../../../services/reviewService';
-import type { Review, ReviewRating } from '../../../types/review';
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { getStoredUser, isAuthenticated } from "../../../services/authService";
+import { reviewService } from "../../../services/reviewService";
+import type { Review } from "../../../types/review";
 
 interface RouteReviewsSectionProps {
   routeId: string;
+  ratingAverage?: number;
 }
 
-const ratingLabels = ['scenery', 'signage', 'accessibility', 'safety'];
+const ratingLabels = ["scenery", "signage", "accessibility", "safety"];
 
-const getAverageScore = (ratings: ReviewRating[]): number => {
-  if (ratings.length === 0) {
-    return 0;
-  }
-
-  const total = ratings.reduce((sum, rating) => sum + rating.score, 0);
-  return total / ratings.length;
-};
-
-function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
+function RouteReviewsSection({
+  routeId,
+  ratingAverage,
+}: RouteReviewsSectionProps) {
   const currentUserId = getStoredUser()?._id;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isReviewFormOpen, setIsReviewFormOpen] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
-  const [title, setTitle] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
+  const [error, setError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
+  const [comment, setComment] = useState<string>("");
   const [ratings, setRatings] = useState<Record<string, number>>({
     scenery: 5,
     signage: 5,
     accessibility: 5,
-    safety: 5
+    safety: 5,
   });
 
-  const averageRouteRating = useMemo(() => {
-    const allRatings = reviews.flatMap((review) => review.ratings);
-
-    if (allRatings.length === 0) {
-      return 0;
-    }
-
-    return getAverageScore(allRatings);
-  }, [reviews]);
+  const routeRatingLabel =
+    typeof ratingAverage === "number" && Number.isFinite(ratingAverage)
+      ? ratingAverage.toFixed(1)
+      : "0.0";
 
   const currentUserReview = useMemo(() => {
     if (!currentUserId) {
@@ -64,14 +54,18 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
 
         if (mounted) {
           setReviews(result);
-          setError('');
+          setError("");
         }
       } catch (loadError) {
         if (!mounted) {
           return;
         }
 
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load reviews.');
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load reviews.",
+        );
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -89,21 +83,23 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
   const handleRatingChange = (label: string, value: string): void => {
     setRatings((current) => ({
       ...current,
-      [label]: Number(value)
+      [label]: Number(value),
     }));
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
 
     if (!title.trim()) {
-      setError('Please add a review title.');
+      setError("Please add a review title.");
       return;
     }
 
     setIsSubmitting(true);
-    setError('');
-    setSuccessMessage('');
+    setError("");
+    setSuccessMessage("");
 
     try {
       const createdReview = await reviewService.createReview({
@@ -112,43 +108,50 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
         comment: comment.trim() || undefined,
         ratings: ratingLabels.map((label) => ({
           label,
-          score: ratings[label]
-        }))
+          score: ratings[label],
+        })),
       });
 
       setReviews((current) => [createdReview, ...current]);
-      setTitle('');
-      setComment('');
+      setTitle("");
+      setComment("");
       setRatings({
         scenery: 5,
         signage: 5,
         accessibility: 5,
-        safety: 5
+        safety: 5,
       });
       setIsReviewFormOpen(false);
-      setSuccessMessage('Review published successfully.');
+      setSuccessMessage("Review published successfully.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to publish review.');
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to publish review.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <section className="route-panel route-reviews-section" aria-label="Route reviews">
+    <section
+      className="route-panel route-reviews-section"
+      aria-label="Route reviews"
+    >
       <div className="route-reviews-header">
         <div>
           <h2>Reviews</h2>
           <p>
             {reviews.length === 0
-              ? 'No reviews yet.'
-              : `${reviews.length} review${reviews.length === 1 ? '' : 's'}`}
+              ? "No reviews yet."
+              : `${reviews.length} review${reviews.length === 1 ? "" : "s"}`}
           </p>
         </div>
 
         {reviews.length > 0 ? (
           <div className="route-reviews-average" aria-label="Average rating">
-            <strong>{averageRouteRating.toFixed(1)}</strong>
+            <strong>{routeRatingLabel}</strong>
             <span>/ 5</span>
           </div>
         ) : null}
@@ -160,7 +163,8 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
         <div className="route-review-own-notice">
           <strong>Your review</strong>
           <span>
-            You reviewed this route as “{currentUserReview.title}”. You can only publish one review per route.
+            You reviewed this route as “{currentUserReview.title}”. You can only
+            publish one review per route.
           </span>
         </div>
       ) : null}
@@ -172,15 +176,18 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
           aria-expanded={isReviewFormOpen}
           onClick={() => {
             setIsReviewFormOpen((current) => !current);
-            setError('');
-            setSuccessMessage('');
+            setError("");
+            setSuccessMessage("");
           }}
         >
-          {isReviewFormOpen ? 'Cancel review' : 'Add review'}
+          {isReviewFormOpen ? "Cancel review" : "Add review"}
         </button>
       ) : null}
 
-      {!isLoading && isAuthenticated() && !currentUserReview && isReviewFormOpen ? (
+      {!isLoading &&
+      isAuthenticated() &&
+      !currentUserReview &&
+      isReviewFormOpen ? (
         <form className="route-review-form" onSubmit={handleSubmit}>
           <h3>Add your review</h3>
 
@@ -209,7 +216,12 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
             {ratingLabels.map((label) => (
               <label key={label}>
                 {label}
-                <select value={ratings[label]} onChange={(event) => handleRatingChange(label, event.target.value)}>
+                <select
+                  value={ratings[label]}
+                  onChange={(event) =>
+                    handleRatingChange(label, event.target.value)
+                  }
+                >
                   <option value={0}>0</option>
                   <option value={1}>1</option>
                   <option value={2}>2</option>
@@ -222,15 +234,19 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
           </div>
 
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Publishing...' : 'Publish review'}
+            {isSubmitting ? "Publishing..." : "Publish review"}
           </button>
 
-          {successMessage ? <p className="route-review-success">{successMessage}</p> : null}
+          {successMessage ? (
+            <p className="route-review-success">{successMessage}</p>
+          ) : null}
         </form>
       ) : null}
 
       {!isLoading && !isAuthenticated() ? (
-        <p className="route-review-login-message">Log in to publish a review.</p>
+        <p className="route-review-login-message">
+          Log in to publish a review.
+        </p>
       ) : null}
 
       {error ? <p className="status-message error">{error}</p> : null}
@@ -240,14 +256,16 @@ function RouteReviewsSection({ routeId }: RouteReviewsSectionProps) {
           {reviews.map((review) => (
             <article
               key={review._id}
-              className={`route-review-card${review.userId === currentUserId ? ' route-review-card--mine' : ''}`}
+              className={`route-review-card${review.userId === currentUserId ? " route-review-card--mine" : ""}`}
             >
               <div className="route-review-card-header">
                 <div>
-                  {review.userId === currentUserId ? <span className="route-review-mine-label">Your review</span> : null}
+                  {review.userId === currentUserId ? (
+                    <span className="route-review-mine-label">Your review</span>
+                  ) : null}
                   <h3>{review.title}</h3>
                 </div>
-                <span>{getAverageScore(review.ratings).toFixed(1)} / 5</span>
+                <span>{review.averageRating.toFixed(1)} / 5</span>
               </div>
 
               {review.comment ? <p>{review.comment}</p> : null}
