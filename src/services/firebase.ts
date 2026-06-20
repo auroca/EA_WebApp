@@ -49,7 +49,9 @@ export const getFirebaseMessagingServiceWorker = async (): Promise<ServiceWorker
   }
 
   if (!serviceWorkerRegistrationPromise) {
-    serviceWorkerRegistrationPromise = navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    serviceWorkerRegistrationPromise = navigator.serviceWorker
+      .register("/firebase-messaging-sw.js")
+      .then(() => navigator.serviceWorker.ready);
   }
 
   return serviceWorkerRegistrationPromise;
