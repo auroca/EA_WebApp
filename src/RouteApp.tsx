@@ -19,6 +19,7 @@ import {
   getSearchTextFromSearch,
 } from "./utils/routeNavigation";
 import RouteReviewsSection from "./components/pages/routes/RouteReviewsSection";
+import LoadingScreen from "./components/shared/LoadingScreen";
 
 const getCurrentPath = (): string => {
   const path = window.location.pathname.trim();
@@ -328,6 +329,15 @@ function RouteApp() {
     );
   }
 
+  const isRouteLoading =
+    (isRouteListMode && isListLoading) ||
+    (hasActiveSearch && isFullRoutesLoading) ||
+    (routeId.length > 0 && isRouteDetailLoading);
+
+  if (isRouteLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <>
       <main className="route-page">
@@ -386,12 +396,6 @@ function RouteApp() {
               }
               onPageSizeChange={(value) => setSearchPageSize(value)}
             />
-          ) : null}
-
-          {(isRouteListMode && isListLoading) ||
-          (hasActiveSearch && isFullRoutesLoading) ||
-          (routeId.length > 0 && isRouteDetailLoading) ? (
-            <p className="status-message">Loading route information...</p>
           ) : null}
 
           {!isFullRoutesLoading && !isRouteDetailLoading && error ? (

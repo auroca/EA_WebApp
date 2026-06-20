@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/resources/logos/logo.png" />
+    <link rel="stylesheet" href="/loading.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trip2Guide | Route</title>
     <script src="/env.js"></script>
@@ -57,7 +58,19 @@
       })();
     </script>
 
-    <div id="root"></div>
+    <div id="root">
+      <div class="app-loading-screen" role="status" aria-live="polite">
+        <div class="app-loading-content">
+          <img
+            class="app-loading-logo"
+            src="/resources/logos/logo_horizontal.png"
+            alt="Trip2Guide"
+          />
+          <span class="app-loading-spinner" aria-hidden="true"></span>
+          <p class="app-loading-text">We are preparing amazing routes just for you</p>
+        </div>
+      </div>
+    </div>
     <div id="global-footer-mount"></div>
 
     <script>

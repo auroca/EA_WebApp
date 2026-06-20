@@ -17,6 +17,7 @@ import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
 import AppOverlays from './components/shared/AppOverlays';
+import LoadingScreen from './components/shared/LoadingScreen';
 import { getStoredSession, isAuthenticated } from './services/authService';
 import { registerPushNotificationsForUser } from './services/notificationService';
 
@@ -396,6 +397,10 @@ function App() {
     );
   }
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
@@ -430,10 +435,9 @@ function App() {
           />
         ) : null}
 
-        {isLoading ? <p className="status-message">Loading home content...</p> : null}
-        {!isLoading && error ? <p className="status-message error">{error}</p> : null}
+        {error ? <p className="status-message error">{error}</p> : null}
 
-        {!isLoading && !error && !hasActiveSearch ? (
+        {!error && !hasActiveSearch ? (
           <>
             <FeaturedRoutesSection routes={newestRoutes} />
             <VisitedCitiesSection nearbyLocations={nearbyLocations} />

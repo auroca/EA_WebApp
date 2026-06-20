@@ -7,6 +7,7 @@ import { getApiBaseUrl } from './services/config';
 import type { Route } from './types/route';
 import { buildRouteDetailUrl, getRouteIdFromSearch } from './utils/routeNavigation';
 import './myway.css';
+import LoadingScreen from './components/shared/LoadingScreen';
 
 function MyWayApp() {
   const [route, setRoute] = useState<Route | null>(null);
@@ -68,6 +69,10 @@ function MyWayApp() {
     };
   }, [routeId]);
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <>
       <main className="myway-page">
@@ -94,10 +99,9 @@ function MyWayApp() {
             ) : null}
           </article>
 
-          {isLoading ? <p className="status-message">Loading route navigation...</p> : null}
-          {!isLoading && error ? <p className="status-message error">{error}</p> : null}
+          {error ? <p className="status-message error">{error}</p> : null}
 
-          {!isLoading && !error && route ? <MyWayNavigator route={route} /> : null}
+          {!error && route ? <MyWayNavigator route={route} /> : null}
         </section>
       </main>
     </>
