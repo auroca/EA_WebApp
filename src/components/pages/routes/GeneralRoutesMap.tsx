@@ -145,8 +145,17 @@ zonesToRender.forEach((zone) => {
 
       const firstPoint = points[0];
 
-      const marker = L.marker([firstPoint.latitude, firstPoint.longitude]).addTo(layerGroup.current as L.LayerGroup);
+const markerIcon = L.icon({
+  iconUrl: '/resources/icons/marker/marker.png',
+  iconRetinaUrl: '/resources/icons/marker/marker.png',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
+});
 
+const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
+  icon: markerIcon,
+}).addTo(layerGroup.current as L.LayerGroup);
       marker.bindPopup(`
         <div class="general-route-popup">
           <h3>${route.name}</h3>

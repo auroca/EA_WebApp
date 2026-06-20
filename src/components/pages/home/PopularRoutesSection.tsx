@@ -12,13 +12,14 @@ interface PopularRoutesSectionProps {
 
 function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
   const storedUser = getStoredUser();
+  const canUseFavorites = isAuthenticated() && Boolean(storedUser?._id);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(storedUser?.favoriteRoutes ?? []);
 
   const handleToggleFavorite = async (event: React.MouseEvent<HTMLButtonElement>, routeId: string) => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!isAuthenticated() || !storedUser?._id) {
+    if (!canUseFavorites || !storedUser?._id) {
       return;
     }
 
@@ -29,7 +30,7 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
       setFavoriteIds(updatedFavoriteIds);
       saveStoredSessionUser({
         ...storedUser,
-        favoriteRoutes: updatedFavoriteIds
+        favoriteRoutes: updatedFavoriteIds,
       });
     } catch (error) {
       console.error(error);
@@ -49,13 +50,16 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
           return (
             <article className="popular-card" key={route._id}>
               <a className="route-card-link" href={buildRouteDetailUrl(route._id)}>
-                <button
-                  type="button"
-                  onClick={(event) => handleToggleFavorite(event, route._id)}
-                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  {isFavorite ? <FaHeart /> : <FaRegHeart />}
-                </button>
+                {canUseFavorites ? (
+                  <button
+                    type="button"
+                    className="popular-card-favorite-button"
+                    onClick={(event) => handleToggleFavorite(event, route._id)}
+                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {isFavorite ? <FaHeart /> : <FaRegHeart />}
+                  </button>
+                ) : null}
 
                 <img src={getRouteImage(route)} alt={route.name} loading="lazy" />
                 <h3>{route.name}</h3>
