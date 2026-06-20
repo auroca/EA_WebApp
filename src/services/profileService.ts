@@ -159,6 +159,17 @@ export const updateUserById = async (
   return normalizeUserFromApi(await response.json());
 };
 
+export const deleteUserById = async (userId: string): Promise<void> => {
+  const response = await authenticatedFetch(`/users/${userId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response, 'Unable to delete the account.'));
+  }
+};
+
 export const getRoutesByUserId = async (userId: string): Promise<Route[]> => {
   const searchParams = new URLSearchParams();
   searchParams.append('filter[userId]', userId);

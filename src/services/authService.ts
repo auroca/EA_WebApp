@@ -253,6 +253,10 @@ export const logoutUser = async (): Promise<void> => {
   }
 };
 
+export const clearStoredSession = (): void => {
+  localStorage.removeItem(SESSION_KEY);
+};
+
 export const getStoredSession = (): StoredSession | null => {
   const rawSession = localStorage.getItem(SESSION_KEY);
 

@@ -2426,17 +2426,29 @@ body.accessibility-high-contrast .top-nav-user-logout:hover {
 .create-route-secondary-button,
 .create-route-danger-button {
   min-height: 40px;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 0 16px;
-  font-weight: 900;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .create-route-primary-button {
-  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  background: #0f1219;
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(18, 28, 43, 0.12);
+  border-color: #0f1219;
+}
+
+.create-route-primary-button:hover:not(:disabled) {
+  background: #1f2937;
+  border-color: #1f2937;
 }
 
 .create-route-primary-button:disabled {
@@ -2446,14 +2458,24 @@ body.accessibility-high-contrast .top-nav-user-logout:hover {
 
 .create-route-secondary-button {
   background: #ffffff;
-  color: #13213a;
-  border-color: #c8d5e3;
+  color: #0f1219;
+  border-color: #0f1219;
+}
+
+.create-route-secondary-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #0f1219;
 }
 
 .create-route-danger-button {
   background: #fff2f2;
   color: #9f1d1d;
   border-color: #f3c2c2;
+}
+
+.create-route-danger-button:hover:not(:disabled) {
+  background: #ffe4e4;
+  border-color: #ef9a9a;
 }
 
 body.accessibility-dark-mode .create-route-header,
@@ -2477,11 +2499,32 @@ body.accessibility-dark-mode .create-route-card label {
 
 body.accessibility-dark-mode .create-route-card input,
 body.accessibility-dark-mode .create-route-card textarea,
-body.accessibility-dark-mode .create-route-card select,
-body.accessibility-dark-mode .create-route-secondary-button {
+body.accessibility-dark-mode .create-route-card select {
   background: #1e293b;
   color: #f8fafc;
   border-color: #334155;
+}
+
+body.accessibility-dark-mode .create-route-primary-button {
+  background: #f8fafc;
+  color: #0b1220;
+  border-color: #f8fafc;
+}
+
+body.accessibility-dark-mode .create-route-primary-button:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #e5e7eb;
+}
+
+body.accessibility-dark-mode .create-route-secondary-button {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #f8fafc;
+}
+
+body.accessibility-dark-mode .create-route-secondary-button:hover:not(:disabled) {
+  background: #263449;
+  border-color: #f8fafc;
 }
 
 .routes-page-title-row {
@@ -2631,54 +2674,52 @@ body.accessibility-high-contrast .profile-route-image-placeholder {
   }
 }
 
-.routes-page-title-actions .create-route-primary-button {
-  min-height: 40px;
-  border-radius: 10px;
-  padding: 0 16px;
-  border: 1px solid #0f1219;
-  background: #0f1219;
-  color: #ffffff;
-  box-shadow: none;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.routes-page-title-actions .create-route-primary-button:hover {
-  background: #1f2937;
-  border-color: #1f2937;
-}
-
-.routes-page-title-actions .create-route-primary-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .route-review-form button,
-.route-review-toggle-button,
+.route-review-toggle,
 .route-review-cancel-button,
 .route-review-submit-button {
   min-height: 40px;
   border-radius: 10px;
   padding: 0 16px;
-  border: 1px solid #0f1219;
-  background: #0f1219;
-  color: #ffffff;
   box-shadow: none;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.route-review-form button:hover,
-.route-review-toggle-button:hover,
-.route-review-cancel-button:hover,
-.route-review-submit-button:hover {
+.route-review-form button,
+.route-review-submit-button {
+  border: 1px solid #0f1219;
+  background: #0f1219;
+  color: #ffffff;
+}
+
+.route-review-toggle,
+.route-review-cancel-button {
+  border: 1px solid #0f1219;
+  background: #ffffff;
+  color: #0f1219;
+}
+
+.route-review-form button:hover:not(:disabled),
+.route-review-submit-button:hover:not(:disabled) {
   background: #1f2937;
   border-color: #1f2937;
 }
 
+.route-review-toggle:hover:not(:disabled),
+.route-review-cancel-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #0f1219;
+}
+
 .route-review-form button:disabled,
-.route-review-toggle-button:disabled,
+.route-review-toggle:disabled,
 .route-review-cancel-button:disabled,
 .route-review-submit-button:disabled {
   opacity: 0.55;
@@ -2686,16 +2727,33 @@ body.accessibility-high-contrast .profile-route-image-placeholder {
 }
 
 body.accessibility-dark-mode .route-review-form button,
-body.accessibility-dark-mode .route-review-toggle-button,
-body.accessibility-dark-mode .route-review-cancel-button,
 body.accessibility-dark-mode .route-review-submit-button {
   background: #f8fafc;
   color: #0b1220;
   border-color: #f8fafc;
 }
 
+body.accessibility-dark-mode .route-review-form button:hover:not(:disabled),
+body.accessibility-dark-mode .route-review-submit-button:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #e5e7eb;
+}
+
+body.accessibility-dark-mode .route-review-toggle,
+body.accessibility-dark-mode .route-review-cancel-button {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #f8fafc;
+}
+
+body.accessibility-dark-mode .route-review-toggle:hover:not(:disabled),
+body.accessibility-dark-mode .route-review-cancel-button:hover:not(:disabled) {
+  background: #263449;
+  border-color: #f8fafc;
+}
+
 body.accessibility-high-contrast .route-review-form button,
-body.accessibility-high-contrast .route-review-toggle-button,
+body.accessibility-high-contrast .route-review-toggle,
 body.accessibility-high-contrast .route-review-cancel-button,
 body.accessibility-high-contrast .route-review-submit-button {
   background: #111111 !important;
@@ -2707,6 +2765,7 @@ body.accessibility-high-contrast .route-review-submit-button {
   background: #0f1219;
   color: #ffffff;
   box-shadow: none;
+  border-radius: 10px;
 }
 
 .route-reviews-average strong,
@@ -2759,4 +2818,35 @@ body.accessibility-high-contrast .popular-card-favorite-button {
   background: #ffffff !important;
   color: #000000 !important;
   border: 0 !important;
+}
+
+.profile-btn-danger {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.profile-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.profile-btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+body.accessibility-dark-mode .profile-btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+body.accessibility-high-contrast .profile-btn-danger {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
 }

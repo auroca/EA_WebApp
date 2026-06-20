@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  clearStoredSession,
   getCreatorStats,
   getStoredUser,
   isAuthenticated,
   saveStoredSessionUser,
 } from "../../../services/authService";
 import {
+  deleteUserById,
   getRoutesByUserId,
   getUserById,
   updateRouteById,
@@ -159,6 +161,8 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [editingUser, setEditingUser] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [userMessage, setUserMessage] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [accountDeleteMessage, setAccountDeleteMessage] = useState("");
 
   const [editingRouteId, setEditingRouteId] = useState("");
   const [routeForm, setRouteForm] = useState<RouteFormState | null>(null);
@@ -337,6 +341,42 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       );
     } finally {
       setSavingUser(false);
+    }
+  };
+
+  const handleDeleteAccount = async (): Promise<void> => {
+    if (!user?._id) {
+      setAccountDeleteMessage("User session not found.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Delete your account? This action cannot be undone.",
+    );
+
+    if (!confirmed) return;
+
+    const confirmedAgain = window.confirm(
+      "This will permanently delete your account. Do you want to continue?",
+    );
+
+    if (!confirmedAgain) return;
+
+    setDeletingAccount(true);
+    setAccountDeleteMessage("");
+
+    try {
+      await deleteUserById(user._id);
+      clearStoredSession();
+      onNavigate("/");
+    } catch (error) {
+      setAccountDeleteMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to delete the account.",
+      );
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -752,6 +792,31 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
               </div>
             )}
+          </section>
+
+          <section className="profile-card">
+            <div className="profile-card-header">
+              <div>
+                <h2>Delete account</h2>
+                <p className="profile-subtitle">
+                  Permanently delete your account and end your current session.
+                </p>
+              </div>
+
+              <button
+                className="profile-btn-danger"
+                onClick={() => {
+                  void handleDeleteAccount();
+                }}
+                disabled={deletingAccount}
+              >
+                {deletingAccount ? "Deleting..." : "Delete account"}
+              </button>
+            </div>
+
+            {accountDeleteMessage ? (
+              <p className="profile-error">{accountDeleteMessage}</p>
+            ) : null}
           </section>
 
           <section className="profile-card">
