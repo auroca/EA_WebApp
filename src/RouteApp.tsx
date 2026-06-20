@@ -9,7 +9,7 @@ import RouteQuickFacts from "./components/pages/routes/RouteQuickFacts";
 import SearchArea from "./components/shared/SearchArea";
 import SearchResults from "./components/shared/SearchResults";
 import TopNav from "./components/shared/TopNav";
-import AccessibilityPanel from "./components/shared/AccessibilityPanel";
+import AppOverlays from "./components/shared/AppOverlays";
 import { isAuthenticated } from "./services/authService";
 import { emptyHomeData, routeDataProvider } from "./services/routeService";
 import type { HomeRoutesData, Route, RoutePageData } from "./types/route";
@@ -323,7 +323,7 @@ function RouteApp() {
     return (
       <>
         <ProfilePage onNavigate={(path) => navigateTo(path)} />
-        <AccessibilityPanel />
+        <AppOverlays />
       </>
     );
   }
@@ -332,7 +332,7 @@ function RouteApp() {
     <>
       <main className="route-page">
         <TopNav activeTopNav="routes" />
-        <AccessibilityPanel />
+        <AppOverlays />
 
         <section className="route-shell">
           <SearchArea

@@ -16,7 +16,7 @@ import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
 import type { HomeRoutesData, Route } from './types/route';
 import { getRouteImage, sortRoutes, type SortOption, type TopNavKey } from './utils/homeView';
-import AccessibilityPanel from './components/shared/AccessibilityPanel';
+import AppOverlays from './components/shared/AppOverlays';
 import { getStoredSession, isAuthenticated } from './services/authService';
 import { registerPushNotificationsForUser } from './services/notificationService';
 
@@ -324,18 +324,28 @@ function App() {
   }, [searchPage, totalPages]);
 
   if (currentPath === '/login') {
-    return <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />;
+    return (
+      <>
+        <AuthPage mode={'login' as AuthMode} onNavigate={navigateTo} />
+        <AppOverlays />
+      </>
+    );
   }
 
   if (currentPath === '/register') {
-    return <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />;
+    return (
+      <>
+        <AuthPage mode={'register' as AuthMode} onNavigate={navigateTo} />
+        <AppOverlays />
+      </>
+    );
   }
 
   if (currentPath === '/profile') {
     return (
       <>
         <ProfilePage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
         {renderWebPushToast()}
       </>
     );
@@ -345,7 +355,7 @@ function App() {
     return (
       <>
         <FavoritesPage />
-        <AccessibilityPanel />
+        <AppOverlays />
         {renderWebPushToast()}
       </>
     );
@@ -355,7 +365,7 @@ function App() {
     return (
       <>
         <ChatPage />
-        <AccessibilityPanel />
+        <AppOverlays />
         {renderWebPushToast()}
       </>
     );
@@ -370,7 +380,7 @@ function App() {
     return (
       <>
         <CreateRoutePage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
         {renderWebPushToast()}
       </>
     );
@@ -380,7 +390,7 @@ function App() {
     return (
       <>
         <RoutesPage onNavigate={navigateTo} />
-        <AccessibilityPanel />
+        <AppOverlays />
         {renderWebPushToast()}
       </>
     );
@@ -389,7 +399,7 @@ function App() {
   return (
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
-      <AccessibilityPanel />
+      <AppOverlays />
       {renderWebPushToast()}
 
       <section className="home-content">
