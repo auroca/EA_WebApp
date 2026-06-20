@@ -2630,3 +2630,133 @@ body.accessibility-high-contrast .profile-route-image-placeholder {
     width: 100%;
   }
 }
+
+.routes-page-title-actions .create-route-primary-button {
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 0 16px;
+  border: 1px solid #0f1219;
+  background: #0f1219;
+  color: #ffffff;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.routes-page-title-actions .create-route-primary-button:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+.routes-page-title-actions .create-route-primary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.route-review-form button,
+.route-review-toggle-button,
+.route-review-cancel-button,
+.route-review-submit-button {
+  min-height: 40px;
+  border-radius: 10px;
+  padding: 0 16px;
+  border: 1px solid #0f1219;
+  background: #0f1219;
+  color: #ffffff;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-review-form button:hover,
+.route-review-toggle-button:hover,
+.route-review-cancel-button:hover,
+.route-review-submit-button:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+.route-review-form button:disabled,
+.route-review-toggle-button:disabled,
+.route-review-cancel-button:disabled,
+.route-review-submit-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+body.accessibility-dark-mode .route-review-form button,
+body.accessibility-dark-mode .route-review-toggle-button,
+body.accessibility-dark-mode .route-review-cancel-button,
+body.accessibility-dark-mode .route-review-submit-button {
+  background: #f8fafc;
+  color: #0b1220;
+  border-color: #f8fafc;
+}
+
+body.accessibility-high-contrast .route-review-form button,
+body.accessibility-high-contrast .route-review-toggle-button,
+body.accessibility-high-contrast .route-review-cancel-button,
+body.accessibility-high-contrast .route-review-submit-button {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border: 1px solid #555555 !important;
+}
+
+.route-reviews-average {
+  background: #0f1219;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.route-reviews-average strong,
+.route-reviews-average span {
+  color: #ffffff;
+}
+
+.popular-card {
+  position: relative;
+}
+
+.popular-card-favorite-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  outline: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.popular-card-favorite-button:hover {
+  background: #f3f4f6;
+}
+
+.popular-card-favorite-button:focus {
+  outline: none;
+}
+
+.popular-card-favorite-button svg {
+  font-size: 16px;
+}
+
+body.accessibility-dark-mode .popular-card-favorite-button {
+  background: #f8fafc;
+  color: #0b1220;
+}
+
+body.accessibility-high-contrast .popular-card-favorite-button {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 0 !important;
+}
