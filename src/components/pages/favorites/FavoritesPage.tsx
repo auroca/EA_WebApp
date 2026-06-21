@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import SearchArea from '../../shared/SearchArea';
+import type { AccessibilityFilter } from '../../shared/SearchArea';
 import SearchResults from '../../shared/SearchResults';
 import TopNav from '../../shared/TopNav';
 import { getStoredUser, isAuthenticated } from '../../../services/authService';
@@ -19,14 +20,22 @@ function FavoritesPage() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [accessibilityFilter, setAccessibilityFilter] = useState<AccessibilityFilter>('all');
 
   const user = getStoredUser();
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
-  const hasActiveFilter = sortOption !== null;
+  const hasActiveFilter = sortOption !== null || accessibilityFilter !== 'all';
 
-  const filteredFavoriteRoutes = normalizedSearchQuery
-    ? favoriteRoutes.filter((route) => {
+  const filteredFavoriteRoutes = favoriteRoutes.filter((route) => {
+    if (accessibilityFilter !== 'all' && route.wheelchairAccessible !== (accessibilityFilter === 'yes')) {
+      return false;
+    }
+
+    if (!normalizedSearchQuery) {
+      return true;
+    }
+
         const searchableTags = route.tags.join(' ').toLowerCase();
 
         return (
@@ -35,8 +44,7 @@ function FavoritesPage() {
           route.description.toLowerCase().includes(normalizedSearchQuery) ||
           searchableTags.includes(normalizedSearchQuery)
         );
-      })
-    : favoriteRoutes;
+      });
 
   const sortedFavoriteRoutes = sortRoutes(filteredFavoriteRoutes, sortOption);
   const totalResults = sortedFavoriteRoutes.length;
@@ -96,6 +104,7 @@ function FavoritesPage() {
   const clearSearch = (): void => {
     setSearchInput('');
     setSortOption(null);
+    setAccessibilityFilter('all');
     setIsFilterOpen(false);
     setCurrentPage(1);
     setPageSize(DEFAULT_PAGE_SIZE);
@@ -109,6 +118,11 @@ function FavoritesPage() {
 
   const handleSearchChange = (value: string): void => {
     setSearchInput(value);
+    setCurrentPage(1);
+  };
+
+  const handleAccessibilityFilterChange = (value: AccessibilityFilter): void => {
+    setAccessibilityFilter(value);
     setCurrentPage(1);
   };
 
@@ -138,12 +152,14 @@ function FavoritesPage() {
           hasActiveFilter={hasActiveFilter}
           isFilterOpen={isFilterOpen}
           sortOption={sortOption}
+          accessibilityFilter={accessibilityFilter}
           onSearchChange={handleSearchChange}
           onSearchFocus={() => setIsSearchFocused(true)}
           onSearchBlur={() => setIsSearchFocused(false)}
           onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
           onClearSearch={clearSearch}
           onSelectSortOption={handleSelectSortOption}
+          onAccessibilityFilterChange={handleAccessibilityFilterChange}
         />
 
         {isLoading ? <p className="status-message">Loading favorite routes...</p> : null}

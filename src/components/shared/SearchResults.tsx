@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaHeart, FaRegHeart, FaStar } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaStar, FaWheelchair } from 'react-icons/fa';
 import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../services/authService';
 import { toggleFavoriteRouteByUserId } from '../../services/profileService';
 import type { Route } from '../../types/route';
@@ -152,6 +152,12 @@ function SearchResults({
                         }}
                       />
                       <span>{toTitleCase(route.difficulty)}</span>
+                      {route.wheelchairAccessible ? (
+                        <span className="route-card-accessible" aria-label="Wheelchair accessible">
+                          <FaWheelchair aria-hidden="true" />
+                          Accessible
+                        </span>
+                      ) : null}
                       <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
                         <FaStar aria-hidden="true" />
                         {formattedRating}

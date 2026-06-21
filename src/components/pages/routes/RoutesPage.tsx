@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import SearchArea from '../../shared/SearchArea';
+import type { AccessibilityFilter } from '../../shared/SearchArea';
 import SearchResults from '../../shared/SearchResults';
 import TopNav from '../../shared/TopNav';
 import GeneralRoutesMap from './GeneralRoutesMap';
@@ -24,14 +25,22 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [accessibilityFilter, setAccessibilityFilter] = useState<AccessibilityFilter>('all');
   const [showGeneralMap, setShowGeneralMap] = useState<boolean>(false);
 
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
-  const hasActiveFilter = sortOption !== null;
+  const hasActiveFilter = sortOption !== null || accessibilityFilter !== 'all';
 
-  const filteredRoutes = normalizedSearchQuery
-    ? routes.filter((route) => {
+  const filteredRoutes = routes.filter((route) => {
+    if (accessibilityFilter !== 'all' && route.wheelchairAccessible !== (accessibilityFilter === 'yes')) {
+      return false;
+    }
+
+    if (!normalizedSearchQuery) {
+      return true;
+    }
+
         const searchableTags = route.tags.join(' ').toLowerCase();
 
         return (
@@ -40,8 +49,7 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
           route.description.toLowerCase().includes(normalizedSearchQuery) ||
           searchableTags.includes(normalizedSearchQuery)
         );
-      })
-    : routes;
+      });
 
   const sortedRoutes = sortRoutes(filteredRoutes, sortOption);
   const totalResults = sortedRoutes.length;
@@ -95,6 +103,7 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
   const clearSearch = (): void => {
     setSearchInput('');
     setSortOption(null);
+    setAccessibilityFilter('all');
     setIsFilterOpen(false);
     setCurrentPage(1);
     setPageSize(DEFAULT_PAGE_SIZE);
@@ -108,6 +117,11 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
 
   const handleSearchChange = (value: string): void => {
     setSearchInput(value);
+    setCurrentPage(1);
+  };
+
+  const handleAccessibilityFilterChange = (value: AccessibilityFilter): void => {
+    setAccessibilityFilter(value);
     setCurrentPage(1);
   };
 
@@ -139,12 +153,14 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
           hasActiveFilter={hasActiveFilter}
           isFilterOpen={isFilterOpen}
           sortOption={sortOption}
+          accessibilityFilter={accessibilityFilter}
           onSearchChange={handleSearchChange}
           onSearchFocus={() => setIsSearchFocused(true)}
           onSearchBlur={() => setIsSearchFocused(false)}
           onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
           onClearSearch={clearSearch}
           onSelectSortOption={handleSelectSortOption}
+          onAccessibilityFilterChange={handleAccessibilityFilterChange}
         />
 
         <div className="routes-page-title-row">

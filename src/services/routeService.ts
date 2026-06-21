@@ -17,6 +17,7 @@ export interface RouteDataProvider {
 export interface RoutePageOptions {
   page: number;
   limit: number;
+  wheelchairAccessible?: boolean | null;
 }
 
 interface GroupedItem {
@@ -170,6 +171,9 @@ function mapRoutesFromProperties(map: PropertyMap): Route[] {
     if (item.field === 'duration') {
       current.duration = parseOptionalNumber(item.value);
     }
+    if (item.field === 'wheelchairAccessible') {
+      current.wheelchairAccessible = item.value === 'true';
+    }
     if (item.field === 'tags') {
       current.tags = parseTags(item.value);
     }
@@ -274,6 +278,7 @@ function mapRoutesFromObjectLiteral(content: string): Route[] {
         country: readStringField(block, 'country'),
         distance: readNumberField(block, 'distance'),
         duration: readNumberField(block, 'duration'),
+        wheelchairAccessible: block.match(/wheelchairAccessible\s*:\s*true/) !== null,
         tags: readTagsField(block)
       };
 
@@ -351,6 +356,7 @@ function normalizeRouteItem(item: unknown): Route | null {
     country: typeof candidate.country === 'string' ? candidate.country : '',
     distance: typeof candidate.distance === 'number' ? candidate.distance : undefined,
     duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
+    wheelchairAccessible: candidate.wheelchairAccessible === true,
     ratingAverage:
       typeof candidate.ratingAverage === 'number' && Number.isFinite(candidate.ratingAverage)
         ? candidate.ratingAverage
@@ -489,6 +495,10 @@ export class ApiRouteDataProvider implements RouteDataProvider {
       limit: String(options.limit),
       page: String(options.page)
     });
+
+    if (typeof options.wheelchairAccessible === 'boolean') {
+      searchParams.append('filter[wheelchairAccessible]', String(options.wheelchairAccessible));
+    }
 
     const response = await authenticatedFetch(`/routes?${searchParams.toString()}`);
 

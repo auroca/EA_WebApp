@@ -1,5 +1,5 @@
 import type { Route } from '../../../types/route';
-import { FaStar } from 'react-icons/fa';
+import { FaStar, FaWheelchair } from 'react-icons/fa';
 import {
   getDifficultyBadgePath,
   getFeaturedOverlayText,
@@ -51,6 +51,12 @@ function FeaturedRoutesSection({ routes }: FeaturedRoutesSectionProps) {
                     }}
                   />
                   <span>{toTitleCase(route.difficulty)}</span>
+                  {route.wheelchairAccessible ? (
+                    <span className="route-card-accessible" aria-label="Wheelchair accessible">
+                      <FaWheelchair aria-hidden="true" />
+                      Accessible
+                    </span>
+                  ) : null}
                   <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
                     <FaStar aria-hidden="true" />
                     {formattedRating}
