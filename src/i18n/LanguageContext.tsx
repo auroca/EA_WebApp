@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { type Locale, type TranslationKey, translate } from './translations';
 
@@ -13,7 +14,13 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 function getInitialLocale(): Locale {
-  const storedLocale = localStorage.getItem(STORAGE_KEY);
+  let storedLocale: string | null;
+
+  try {
+    storedLocale = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    storedLocale = null;
+  }
 
   if (SUPPORTED_LOCALES.includes(storedLocale as Locale)) {
     return storedLocale as Locale;
@@ -32,7 +39,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, locale);
+    try {
+      localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+      // Storage can be unavailable in tests or privacy-restricted browsers.
+    }
     document.documentElement.lang = locale;
   }, [locale]);
 
