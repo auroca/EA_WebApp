@@ -97,6 +97,8 @@
 }
 
 .achievement-pill {
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -104,6 +106,7 @@
   border-radius: 999px;
   padding: 10px 16px;
   background: #ffffff;
+  color: inherit;
   font: inherit;
   font-weight: 700;
   cursor: pointer;
