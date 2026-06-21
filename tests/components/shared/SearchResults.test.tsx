@@ -1,8 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRoute } from '../../test/routeFactory';
 import SearchResults from '../../../src/components/shared/SearchResults';
+import { LanguageProvider } from '../../../src/i18n/LanguageContext';
+
+const renderWithLanguage = (ui: ReactElement) => {
+  return render(<LanguageProvider>{ui}</LanguageProvider>);
+};
 
 const mocks = vi.hoisted(() => ({
   toggleFavoriteRouteByUserId: vi.fn(),
@@ -42,7 +48,7 @@ describe('SearchResults', () => {
       createRoute({ _id: 'route-2', name: 'Beach Morning Route', difficulty: 'medium' })
     ];
 
-    render(
+    renderWithLanguage(
       <SearchResults
         routes={routes}
         totalResults={12}
@@ -75,7 +81,7 @@ describe('SearchResults', () => {
       createRoute({ _id: 'route-2', name: 'Beach Morning Route' })
     ]);
 
-    render(
+    renderWithLanguage(
       <SearchResults
         routes={[createRoute({ _id: 'route-1' })]}
         totalResults={1}
@@ -99,7 +105,7 @@ describe('SearchResults', () => {
   });
 
   it('shows an empty state when there are no routes', () => {
-    render(
+    renderWithLanguage(
       <SearchResults
         routes={[]}
         totalResults={0}

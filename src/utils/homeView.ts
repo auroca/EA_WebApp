@@ -74,6 +74,17 @@ export function getFeaturedOverlayKey(index: number): 'home.featuredDay' | 'home
   return 'home.featuredRoute';
 }
 
+export function getFeaturedOverlayText(index: number): string {
+  const labels: Record<ReturnType<typeof getFeaturedOverlayKey>, string> = {
+    'home.featuredDay': 'Featured route of the day',
+    'home.featuredWeek': 'Featured route of the week',
+    'home.featuredMonth': 'Featured route of the month',
+    'home.featuredRoute': 'Featured route'
+  };
+
+  return labels[getFeaturedOverlayKey(index)];
+}
+
 function compareDifficulty(a: Route['difficulty'], b: Route['difficulty'], asc: boolean): number {
   const rank: Record<Route['difficulty'], number> = {
     easy: 1,

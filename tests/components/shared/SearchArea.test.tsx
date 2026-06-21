@@ -1,7 +1,13 @@
 import { render, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import SearchArea from '../../../src/components/shared/SearchArea';
+import { LanguageProvider } from '../../../src/i18n/LanguageContext';
+
+const renderWithLanguage = (ui: ReactElement) => {
+  return render(<LanguageProvider>{ui}</LanguageProvider>);
+};
 
 const defaultProps = {
   searchInput: '',
@@ -29,7 +35,7 @@ describe('SearchArea', () => {
       onClearSearch: vi.fn()
     };
 
-    render(<SearchArea {...props} />);
+    renderWithLanguage(<SearchArea {...props} />);
 
     const input = screen.getByPlaceholderText('Where do you want to explore today?');
     await user.click(input);
@@ -50,7 +56,7 @@ describe('SearchArea', () => {
       onSelectSortOption: vi.fn()
     };
 
-    render(<SearchArea {...props} />);
+    renderWithLanguage(<SearchArea {...props} />);
 
     expect(screen.getByRole('menu', { name: /sort options/i })).toBeInTheDocument();
     expect(screen.getByText('☑')).toBeInTheDocument();
