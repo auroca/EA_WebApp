@@ -24,27 +24,27 @@ const ROUTE_ZONES: RouteZone[] = [
     ]
   },
   {
-    id: 'montjuic',
-    name: 'Montjuïc',
-    description: 'Zona de Montjuïc',
+    id: 'madrid-centre',
+    name: 'Madrid centre',
+    description: 'Zona central de Madrid',
     coordinates: [
-      [2.1375, 41.3501],
-      [2.1818, 41.3501],
-      [2.1818, 41.3748],
-      [2.1375, 41.3748],
-      [2.1375, 41.3501]
+      [-3.7250, 40.4000],
+      [-3.6750, 40.4000],
+      [-3.6750, 40.4300],
+      [-3.7250, 40.4300],
+      [-3.7250, 40.4000]
     ]
   },
   {
-    id: 'collserola',
-    name: 'Collserola',
-    description: 'Zona de montaña de Collserola',
+    id: 'sevilla-centre',
+    name: 'Sevilla centre',
+    description: 'Zona central de Sevilla',
     coordinates: [
-      [2.0707, 41.4021],
-      [2.1591, 41.4021],
-      [2.1591, 41.4684],
-      [2.0707, 41.4684],
-      [2.0707, 41.4021]
+      [-6.0100, 37.3700],
+      [-5.9700, 37.3700],
+      [-5.9700, 37.4000],
+      [-6.0100, 37.4000],
+      [-6.0100, 37.3700]
     ]
   }
 ];
@@ -72,8 +72,8 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
     }
 
     map.current = L.map(mapContainer.current, {
-      center: [41.3874, 2.1686],
-      zoom: 12,
+      center: [40.15, -3.7],
+      zoom: 6,
       scrollWheelZoom: true
     });
 
@@ -97,30 +97,31 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
 
     zoneLayerGroup.current.clearLayers();
 
-    const zonesToRender = selectedZone ? [selectedZone] : ROUTE_ZONES;
+    if (!selectedZone) {
+      map.current.setView([40.15, -3.7], 6);
+      return;
+    }
 
-zonesToRender.forEach((zone) => {
-  const polygonLatLngs = zone.coordinates.map(([longitude, latitude]) => [latitude, longitude] as [number, number]);
+    const polygonLatLngs = selectedZone.coordinates.map(
+      ([longitude, latitude]) => [latitude, longitude] as [number, number]
+    );
 
-  const polygon = L.polygon(polygonLatLngs, {
-    weight: 4,
-    fillOpacity: selectedZone ? 0.28 : 0.12
-  });
+    const polygon = L.polygon(polygonLatLngs, {
+      weight: 4,
+      fillOpacity: 0.28
+    });
 
-  polygon.bindPopup(`
-    <div class="general-zone-popup">
-      <h3>${zone.name}</h3>
-      <p>${zone.description}</p>
-      <p>Click to view routes inside this area.</p>
-    </div>
-  `);
+    polygon.bindPopup(`
+      <div class="general-zone-popup">
+        <h3>${selectedZone.name}</h3>
+        <p>${selectedZone.description}</p>
+        <p>Routes inside this selected area.</p>
+      </div>
+    `);
 
-  polygon.on('click', () => {
-    setSelectedZone(zone);
-  });
+    polygon.addTo(zoneLayerGroup.current as L.LayerGroup);
 
-  polygon.addTo(zoneLayerGroup.current as L.LayerGroup);
-});
+    map.current.fitBounds(L.latLngBounds(polygonLatLngs), { padding: [40, 40] });
   }, [selectedZone]);
 
   useEffect(() => {
@@ -145,17 +146,18 @@ zonesToRender.forEach((zone) => {
 
       const firstPoint = points[0];
 
-const markerIcon = L.icon({
-  iconUrl: '/resources/icons/marker/marker.png',
-  iconRetinaUrl: '/resources/icons/marker/marker.png',
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-  popupAnchor: [0, -40],
-});
+      const markerIcon = L.icon({
+        iconUrl: '/resources/icons/marker/marker.png',
+        iconRetinaUrl: '/resources/icons/marker/marker.png',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+      });
 
-const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
-  icon: markerIcon,
-}).addTo(layerGroup.current as L.LayerGroup);
+      const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
+        icon: markerIcon
+      }).addTo(layerGroup.current as L.LayerGroup);
+
       marker.bindPopup(`
         <div class="general-route-popup">
           <h3>${route.name}</h3>
@@ -168,7 +170,9 @@ const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
       `);
 
       marker.on('popupopen', () => {
-        const button = document.querySelector<HTMLButtonElement>(`.general-route-popup-button[data-route-id="${route._id}"]`);
+        const button = document.querySelector<HTMLButtonElement>(
+          `.general-route-popup-button[data-route-id="${route._id}"]`
+        );
 
         if (button) {
           button.onclick = () => onSelectRoute(route._id);
@@ -176,10 +180,10 @@ const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
       });
     });
 
-    if (boundsPoints.length > 0) {
+    if (boundsPoints.length > 0 && selectedZone) {
       map.current.fitBounds(L.latLngBounds(boundsPoints), { padding: [40, 40] });
     }
-  }, [routesToRender, onSelectRoute]);
+  }, [routesToRender, selectedZone, onSelectRoute]);
 
   useEffect(() => {
     if (!selectedZone) {
@@ -263,7 +267,10 @@ const marker = L.marker([firstPoint.latitude, firstPoint.longitude], {
             </div>
           ) : null}
 
-          {selectedZone && isLoadingZone ? <p className="general-map-status">Searching for routes inside the polygon...</p> : null}
+          {selectedZone && isLoadingZone ? (
+            <p className="general-map-status">Searching for routes inside the polygon...</p>
+          ) : null}
+
           {selectedZone && error ? <p className="general-map-status error">{error}</p> : null}
 
           {selectedZone && !isLoadingZone && !error ? (

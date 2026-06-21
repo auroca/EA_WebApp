@@ -115,13 +115,15 @@ a {
 }
 
 .top-nav-auth-link-primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-text-inverse);
+  background: #0f1219;
+  border-color: #0f1219;
+  color: #ffffff;
 }
 
 .top-nav-auth-link-primary:hover {
-  background: var(--color-accent-hover);
+  background: #1f2937;
+  border-color: #1f2937;
+  color: #ffffff;
   box-shadow: var(--shadow-soft);
 }
 
@@ -214,12 +216,17 @@ a {
 
 .top-nav-user-logout {
   height: 40px;
-  border: 0;
+  border: 1px solid #0f1219;
   border-radius: 10px;
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
+  background: #0f1219;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 700;
+}
+
+.top-nav-user-logout:hover:not(:disabled) {
+  background: #1f2937;
+  border-color: #1f2937;
 }
 
 .nav-item {
@@ -316,15 +323,20 @@ a {
 }
 
 .search-submit-button {
-  border: 0;
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
+  border: 1px solid #0f1219;
+  background: #0f1219;
+  color: #ffffff;
   border-radius: 10px;
   height: 34px;
   padding: 0 14px;
   font-size: 13px;
   font-weight: 600;
   flex-shrink: 0;
+}
+
+.search-submit-button:hover:not(:disabled) {
+  background: #1f2937;
+  border-color: #1f2937;
 }
 
 .filter-button {
@@ -3309,29 +3321,21 @@ body.accessibility-high-contrast .profile-route-image-placeholder {
 }
 
 .route-review-form button,
-.route-review-submit-button {
+.route-review-submit-button,
+.route-review-toggle,
+.route-review-cancel-button {
   border: 1px solid #0f1219;
   background: #0f1219;
   color: #ffffff;
 }
 
-.route-review-toggle,
-.route-review-cancel-button {
-  border: 1px solid #0f1219;
-  background: #ffffff;
-  color: #0f1219;
-}
-
 .route-review-form button:hover:not(:disabled),
-.route-review-submit-button:hover:not(:disabled) {
-  background: #1f2937;
-  border-color: #1f2937;
-}
-
+.route-review-submit-button:hover:not(:disabled),
 .route-review-toggle:hover:not(:disabled),
 .route-review-cancel-button:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #0f1219;
+  background: #1f2937;
+  border-color: #1f2937;
+  color: #ffffff;
 }
 
 .route-review-form button:disabled,
@@ -3357,15 +3361,16 @@ body.accessibility-dark-mode .route-review-submit-button:hover:not(:disabled) {
 
 body.accessibility-dark-mode .route-review-toggle,
 body.accessibility-dark-mode .route-review-cancel-button {
-  background: #1e293b;
-  color: #f8fafc;
+  background: #f8fafc;
+  color: #0b1220;
   border-color: #f8fafc;
 }
 
 body.accessibility-dark-mode .route-review-toggle:hover:not(:disabled),
 body.accessibility-dark-mode .route-review-cancel-button:hover:not(:disabled) {
-  background: #263449;
-  border-color: #f8fafc;
+  background: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #0b1220;
 }
 
 body.accessibility-high-contrast .route-review-form button,
