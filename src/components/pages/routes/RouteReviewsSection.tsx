@@ -30,10 +30,20 @@ function RouteReviewsSection({
     safety: 5,
   });
 
-  const routeRatingLabel =
-    typeof ratingAverage === "number" && Number.isFinite(ratingAverage)
-      ? ratingAverage.toFixed(1)
-      : "0.0";
+  const liveRatingAverage = useMemo(() => {
+    if (reviews.length === 0) {
+      return typeof ratingAverage === "number" && Number.isFinite(ratingAverage)
+        ? ratingAverage
+        : 0;
+    }
+
+    return (
+      reviews.reduce((sum, review) => sum + review.averageRating, 0) /
+      reviews.length
+    );
+  }, [reviews, ratingAverage]);
+
+  const routeRatingLabel = liveRatingAverage.toFixed(1);
 
   const currentUserReview = useMemo(() => {
     if (!currentUserId) {
