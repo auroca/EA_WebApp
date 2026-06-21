@@ -14,7 +14,7 @@ const ROUTE_ZONES: RouteZone[] = [
   {
     id: 'barcelona-centre',
     name: 'Barcelona centre',
-    description: 'Zona central de Barcelona',
+    description: 'Central area of Barcelona',
     coordinates: [
       [2.1402, 41.3661],
       [2.2064, 41.3661],
@@ -26,7 +26,7 @@ const ROUTE_ZONES: RouteZone[] = [
   {
     id: 'madrid-centre',
     name: 'Madrid centre',
-    description: 'Zona central de Madrid',
+    description: 'Central area of Madrid',
     coordinates: [
       [-3.7250, 40.4000],
       [-3.6750, 40.4000],
@@ -37,8 +37,8 @@ const ROUTE_ZONES: RouteZone[] = [
   },
   {
     id: 'sevilla-centre',
-    name: 'Sevilla centre',
-    description: 'Zona central de Sevilla',
+    name: 'Seville centre',
+    description: 'Central area of Seville',
     coordinates: [
       [-6.0100, 37.3700],
       [-5.9700, 37.3700],
@@ -211,7 +211,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load routes inside selected zone.');
+          setError('Unable to load routes inside the selected zone.');
         }
       } finally {
         if (mounted) {
@@ -232,7 +232,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
       <div className="general-routes-map-header">
         <div>
           <h2>General route map with zones</h2>
-          <p>Select a polygon to search for routes inside that zone.</p>
+          <p>Select a zone to search for routes inside that area.</p>
         </div>
 
         {selectedZone ? (
@@ -268,7 +268,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
           ) : null}
 
           {selectedZone && isLoadingZone ? (
-            <p className="general-map-status">Searching for routes inside the polygon...</p>
+            <p className="general-map-status">Searching for routes inside the selected zone...</p>
           ) : null}
 
           {selectedZone && error ? <p className="general-map-status error">{error}</p> : null}
@@ -276,7 +276,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
           {selectedZone && !isLoadingZone && !error ? (
             <div className="general-zone-results">
               <p>
-                {zoneRoutes.length} route{zoneRoutes.length === 1 ? '' : 's'} found inside the polygon.
+                {zoneRoutes.length} route{zoneRoutes.length === 1 ? '' : 's'} found inside the selected zone.
               </p>
 
               {zoneRoutes.map((route) => (
