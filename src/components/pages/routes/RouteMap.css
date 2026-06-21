@@ -155,9 +155,9 @@
 .route-reviews-average {
   min-width: 82px;
   padding: 10px 14px;
-  border-radius: 16px;
+  border-radius: 10px;
   text-align: center;
-  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  background: var(--color-accent);
   color: #ffffff;
 }
 
@@ -175,39 +175,40 @@
   width: fit-content;
   min-height: 44px;
   padding: 0 20px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
   color: #ffffff;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(18, 28, 43, 0.12);
+  box-shadow: none;
 }
 
 .route-review-toggle:hover {
-  filter: brightness(1.04);
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 .route-review-form {
   display: grid;
   gap: 12px;
   padding: 16px;
-  border-radius: 16px;
-  border: 1px solid #d5e6e0;
-  background: #ffffff;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .route-review-form h3 {
   margin: 0;
-  color: #13213a;
+  color: var(--color-text-strong);
 }
 
 .route-review-form label {
   display: grid;
   gap: 6px;
   font-size: 13px;
-  font-weight: 800;
-  color: #39465f;
+  font-weight: 700;
+  color: var(--color-text-secondary);
   text-transform: capitalize;
 }
 
@@ -215,12 +216,12 @@
 .route-review-form textarea,
 .route-review-form select {
   width: 100%;
-  border: 1px solid #c8d5e3;
-  border-radius: 12px;
+  border: 1px solid var(--color-border-alt);
+  border-radius: var(--radius-md);
   padding: 10px 12px;
   font: inherit;
-  color: #13213a;
-  background: #ffffff;
+  color: var(--color-text-strong);
+  background: var(--color-surface);
 }
 
 .route-review-form textarea {
@@ -238,11 +239,11 @@
   width: fit-content;
   min-height: 42px;
   padding: 0 18px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(145deg, #0d3f65 0%, #1f8c77 100%);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
   color: #ffffff;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -253,17 +254,17 @@
 
 .route-review-success {
   margin: 0;
-  color: #1f8c77;
-  font-weight: 800;
+  color: #166534;
+  font-weight: 700;
 }
 
 .route-review-login-message {
   margin: 0;
   padding: 14px 16px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #d5e6e0;
-  color: #39465f;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   font-weight: 700;
 }
 
@@ -273,10 +274,10 @@
   width: fit-content;
   max-width: 100%;
   padding: 12px 14px;
-  border-radius: 14px;
-  background: #eef7f4;
-  border: 1px solid #c7e4dc;
-  color: #1f6f63;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-strong);
 }
 
 .route-review-own-notice strong {
@@ -284,9 +285,9 @@
 }
 
 .route-review-own-notice span {
-  color: #39465f;
+  color: var(--color-text-muted);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .route-review-list {
@@ -296,14 +297,14 @@
 
 .route-review-card {
   padding: 16px;
-  border-radius: 16px;
-  border: 1px solid #d5e6e0;
-  background: #ffffff;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .route-review-card--mine {
-  border-color: #1f8c77;
-  box-shadow: 0 10px 20px rgba(31, 140, 119, 0.1);
+  border-color: var(--color-text-strong);
+  box-shadow: var(--shadow-medium);
 }
 
 .route-review-card-header {
@@ -315,28 +316,28 @@
 
 .route-review-card h3 {
   margin: 0;
-  color: #13213a;
+  color: var(--color-text-strong);
 }
 
 .route-review-mine-label {
   display: inline-flex;
   margin-bottom: 6px;
   padding: 4px 8px;
-  border-radius: 999px;
-  background: #eef7f4;
-  color: #1f6f63;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .route-review-card-header span {
   flex: 0 0 auto;
   padding: 6px 10px;
-  border-radius: 999px;
-  background: #eef7f4;
-  color: #1f6f63;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .route-review-ratings {
@@ -348,11 +349,11 @@
 
 .route-review-ratings span {
   padding: 6px 10px;
-  border-radius: 999px;
-  background: #eef4f8;
-  color: #20304a;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: capitalize;
 }
 
