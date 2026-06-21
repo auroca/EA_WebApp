@@ -208,6 +208,33 @@ function ChatPage() {
           }
 
           setSelectedChatId(requestedChatId);
+        } else if (requestedChatId) {
+          const requestedChat = availableChats.find((chat) => chat._id === requestedChatId);
+
+          if (requestedChat?.hasPassword) {
+            setJoinPasswordOpenFor(requestedChat);
+            setJoinPasswordValue('');
+          } else if (requestedChat) {
+            const joinedChat = await joinChatById(requestedChat._id, '');
+
+            if (!mounted) {
+              return;
+            }
+
+            setParticipantChatIds((current) => {
+              if (current.includes(joinedChat._id)) {
+                return current;
+              }
+
+              return [...current, joinedChat._id];
+            });
+            setSelectedChatId(joinedChat._id);
+            setUnreadMarker(joinedChat._id, 0);
+            setUnreadCounts((current) => ({ ...current, [joinedChat._id]: 0 }));
+            setSelectedChat(joinedChat);
+            setMessages(joinedChat.chatHistory ?? []);
+            setOnlineParticipants(joinedChat.participants.map((participant) => participant.username));
+          }
         } else {
           const unreadChat = availableChats
             .filter((chat) => myChatIds.includes(chat._id) && (chat.unreadCount ?? 0) > 0)
@@ -513,6 +540,7 @@ function ChatPage() {
 
           {isLoading ? <p className="status-message">Loading chats...</p> : null}
           {!isLoading && loadError ? <p className="status-message error">{loadError}</p> : null}
+          {!isLoading && joinError && !joinPasswordOpenFor ? <p className="status-message error">{joinError}</p> : null}
 
           {!isLoading && !loadError ? (
             <ul className="chat-room-list">
