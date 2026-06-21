@@ -33,7 +33,7 @@
   left: 86px;
   bottom: 16px;
   width: 260px;
-  padding: 12px 14px;
+  padding: 24px 36px 12px 14px;
   border: 2px solid #111111;
   border-radius: 16px;
   background: #ffffff;
@@ -42,6 +42,33 @@
   font-weight: 700;
   line-height: 1.35;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.pedro-assistant-bubble-close {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pedro-assistant-bubble-close:hover {
+  background: #e5e7eb;
+}
+
+.pedro-assistant-bubble-close svg {
+  width: 14px;
+  height: 14px;
 }
 
 .pedro-assistant-bubble::before {
@@ -310,6 +337,14 @@ body.accessibility-dark-mode .pedro-assistant-bubble::before {
 
 body.accessibility-dark-mode .pedro-assistant-title span {
   color: #cbd5e1;
+}
+
+body.accessibility-dark-mode .pedro-assistant-bubble-close {
+  color: #f9fafb;
+}
+
+body.accessibility-dark-mode .pedro-assistant-bubble-close:hover {
+  background: #334155;
 }
 
 body.accessibility-dark-mode .pedro-assistant-answer a {

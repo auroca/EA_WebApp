@@ -157,6 +157,7 @@ function PedroAnswer({ response }: { response: PedroRouteResponse }) {
 
 function PedroAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isGreetingVisible, setIsGreetingVisible] = useState(true);
   const [messages, setMessages] = useState<PedroMessage[]>(initialMessages);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -257,9 +258,17 @@ function PedroAssistant() {
         </section>
       )}
 
-      {!isOpen && (
-        <div className="pedro-assistant-bubble" aria-hidden="true">
-          Hiiii, I am Pedro, and I am here to help you find routes!!!
+      {!isOpen && isGreetingVisible && (
+        <div className="pedro-assistant-bubble">
+          <button
+            type="button"
+            className="pedro-assistant-bubble-close"
+            onClick={() => setIsGreetingVisible(false)}
+            aria-label="Hide Pedro greeting"
+          >
+            <FaXmark />
+          </button>
+          <span>Hiiii, I am Pedro, and I am here to help you find routes!!!</span>
         </div>
       )}
 

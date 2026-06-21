@@ -148,6 +148,28 @@ a {
   background: var(--color-surface-subtle);
 }
 
+.top-nav-user-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.new-achievement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: #dc2626;
+  color: #ffffff !important;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 .top-nav-user-menu {
   position: absolute;
   top: calc(100% + 10px);
@@ -1338,6 +1360,18 @@ a {
 .user-dropdown-button {
   background: #111827;
   color: #ffffff;
+}
+
+.user-dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.achievement-pill .new-achievement-badge {
+  margin-left: 2px;
 }
 
 .user-dropdown-button:disabled {

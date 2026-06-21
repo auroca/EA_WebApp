@@ -258,28 +258,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
           >
             <img className="nav-icon" src={getTopNavIconPath('user', menuOpen)} alt="" aria-hidden="true" />
 
-            <span
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}
-            >
+            <span className="top-nav-user-name">
               {user?.username ?? 'User'}
 
               {hasNewAchievements ? (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-12px',
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '999px',
-                    backgroundColor: 'red',
-                    zIndex: 9999
-                  }}
-                />
+                <span className="new-achievement-badge">New achievement</span>
               ) : null}
             </span>
           </button>
@@ -297,7 +280,8 @@ function TopNav({ activeTopNav }: TopNavProps) {
               </div>
 
               <button type="button" className="user-dropdown-button" onClick={() => navigateFull('/profile')}>
-                View profile
+                <span>View profile</span>
+                {hasNewAchievements ? <span className="new-achievement-badge">New achievement</span> : null}
               </button>
 
               <button

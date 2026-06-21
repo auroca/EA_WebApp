@@ -23,6 +23,7 @@ const saveSeenAchievementCodes = (codes: string[]): void => {
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [seenCodes, setSeenCodes] = useState<string[]>(getSeenAchievementCodes);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -53,10 +54,10 @@ export default function Achievements() {
       return;
     }
 
-    const seenCodes = getSeenAchievementCodes();
-
     if (!seenCodes.includes(achievement.code)) {
-      saveSeenAchievementCodes([...seenCodes, achievement.code]);
+      const nextSeenCodes = [...seenCodes, achievement.code];
+      setSeenCodes(nextSeenCodes);
+      saveSeenAchievementCodes(nextSeenCodes);
     }
   };
 
@@ -103,6 +104,9 @@ export default function Achievements() {
                 {achievement.unlocked ? achievement.icon : '🔒'}
               </span>
               <span>{achievement.title}</span>
+              {achievement.unlocked && !seenCodes.includes(achievement.code) ? (
+                <span className="new-achievement-badge">New achievement</span>
+              ) : null}
             </button>
           ))}
         </div>
