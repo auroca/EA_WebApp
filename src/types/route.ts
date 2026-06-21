@@ -24,6 +24,7 @@ export interface Route {
   country: string;
   distance?: number;
   duration?: number;
+  wheelchairAccessible: boolean;
   ratingAverage?: number;
   reviewsCount?: number;
   tags: string[];
@@ -48,6 +49,7 @@ export interface RouteCreateInput {
   distance: number;
   duration: number;
   difficulty: 'easy' | 'medium' | 'hard';
+  wheelchairAccessible: boolean;
   tags: string[];
   points: RoutePointCreateInput[];
 }

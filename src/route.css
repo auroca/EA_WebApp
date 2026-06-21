@@ -82,7 +82,16 @@
   gap: 8px;
 }
 
-.route-difficulty-row {
+.route-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+}
+
+.route-difficulty-row,
+.route-accessible-row {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -96,6 +105,16 @@
   color: #0f1e30;
   font-size: 14px;
   font-weight: 700;
+}
+
+.route-accessible-row {
+  color: #0f5f4a;
+}
+
+.route-accessible-row svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
 }
 
 .route-facts {
@@ -418,6 +437,7 @@ body.accessibility-dark-mode .route-description {
 }
 
 body.accessibility-dark-mode .route-difficulty-row,
+body.accessibility-dark-mode .route-accessible-row,
 body.accessibility-dark-mode .route-tag {
   background: #1e293b;
   color: #f8fafc;
@@ -445,6 +465,7 @@ body.accessibility-dark-mode .route-shell {
 }
 
 body.accessibility-dark-mode .route-difficulty-row,
+body.accessibility-dark-mode .route-accessible-row,
 body.accessibility-dark-mode .route-fact-card,
 body.accessibility-dark-mode .route-panel,
 body.accessibility-dark-mode .route-highlights,
@@ -539,6 +560,7 @@ body.accessibility-high-contrast .route-shell {
 }
 
 body.accessibility-high-contrast .route-difficulty-row,
+body.accessibility-high-contrast .route-accessible-row,
 body.accessibility-high-contrast .route-fact-card,
 body.accessibility-high-contrast .route-panel,
 body.accessibility-high-contrast .route-highlights,

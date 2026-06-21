@@ -1,18 +1,22 @@
 import { getTopNavIconPath, type SortOption } from '../../utils/homeView';
 import SearchClearButton from './SearchClearButton';
 
+export type AccessibilityFilter = 'all' | 'yes' | 'no';
+
 interface SearchAreaProps {
   searchInput: string;
   isSearchActive: boolean;
   hasActiveFilter: boolean;
   isFilterOpen: boolean;
   sortOption: SortOption | null;
+  accessibilityFilter: AccessibilityFilter;
   onSearchChange: (value: string) => void;
   onSearchFocus: () => void;
   onSearchBlur: () => void;
   onToggleFilter: () => void;
   onClearSearch: () => void;
   onSelectSortOption: (option: SortOption) => void;
+  onAccessibilityFilterChange: (value: AccessibilityFilter) => void;
 }
 
 function SearchArea({
@@ -21,12 +25,14 @@ function SearchArea({
   hasActiveFilter,
   isFilterOpen,
   sortOption,
+  accessibilityFilter,
   onSearchChange,
   onSearchFocus,
   onSearchBlur,
   onToggleFilter,
   onClearSearch,
-  onSelectSortOption
+  onSelectSortOption,
+  onAccessibilityFilterChange
 }: SearchAreaProps) {
   const isSortSelected = (option: SortOption): boolean => sortOption === option;
 
@@ -70,6 +76,20 @@ function SearchArea({
 
       {isFilterOpen ? (
         <div className="filter-panel" role="menu" aria-label="Sort options">
+          <div className="filter-group">
+            <label className="filter-select-label">
+              Accessible
+              <select
+                value={accessibilityFilter}
+                onChange={(event) => onAccessibilityFilterChange(event.target.value as AccessibilityFilter)}
+              >
+                <option value="all">All</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+
           <div className="filter-group">
             <button type="button" onClick={() => onSelectSortOption('difficulty-asc')}>
               <span className={isSortSelected('difficulty-asc') ? 'filter-check active' : 'filter-check'}>

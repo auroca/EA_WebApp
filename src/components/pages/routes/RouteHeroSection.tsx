@@ -1,5 +1,6 @@
 import { getDifficultyBadgePath, toTitleCase } from '../../../utils/homeView';
 import type { Route } from '../../../types/route';
+import { FaWheelchair } from 'react-icons/fa';
 
 interface RouteHeroSectionProps {
   name: string;
@@ -7,6 +8,7 @@ interface RouteHeroSectionProps {
   city: string;
   country: string;
   difficulty: Route['difficulty'];
+  wheelchairAccessible: boolean;
   distance?: number;
   duration?: number;
   tags: string[];
@@ -18,6 +20,7 @@ function RouteHeroSection({
   city,
   country,
   difficulty,
+  wheelchairAccessible,
   distance,
   duration,
   tags
@@ -51,17 +54,26 @@ function RouteHeroSection({
         ) : null}
       </header>
 
-      <div className="route-difficulty-row" aria-label="Route difficulty">
-        <img
-          className="difficulty-badge"
-          src={getDifficultyBadgePath(difficulty)}
-          alt=""
-          aria-hidden="true"
-          onError={(event) => {
-            event.currentTarget.style.display = 'none';
-          }}
-        />
-        <span>{toTitleCase(difficulty)}</span>
+      <div className="route-badge-row">
+        <div className="route-difficulty-row" aria-label="Route difficulty">
+          <img
+            className="difficulty-badge"
+            src={getDifficultyBadgePath(difficulty)}
+            alt=""
+            aria-hidden="true"
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+          <span>{toTitleCase(difficulty)}</span>
+        </div>
+
+        {wheelchairAccessible ? (
+          <div className="route-accessible-row" aria-label="Wheelchair accessible">
+            <FaWheelchair aria-hidden="true" />
+            <span>Accessible</span>
+          </div>
+        ) : null}
       </div>
     </section>
   );

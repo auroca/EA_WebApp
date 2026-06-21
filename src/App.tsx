@@ -11,6 +11,7 @@ import CreateRoutePage from './components/pages/routes/CreateRoutePage';
 import SearchArea from './components/shared/SearchArea';
 import SearchResults from './components/shared/SearchResults';
 import TopNav from './components/shared/TopNav';
+import type { AccessibilityFilter } from './components/shared/SearchArea';
 import VisitedCitiesSection from './components/pages/home/VisitedCitiesSection';
 import { emptyHomeData, routeDataProvider } from './services/routeService';
 import type { AuthMode } from './types/auth';
@@ -83,6 +84,7 @@ function App() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [accessibilityFilter, setAccessibilityFilter] = useState<AccessibilityFilter>('all');
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
   const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
@@ -123,10 +125,25 @@ function App() {
 
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const hasActiveSearch = normalizedSearchQuery.length > 0;
-  const hasActiveFilter = sortOption !== null;
+  const hasActiveFilter = sortOption !== null || accessibilityFilter !== 'all';
+  const matchesAccessibilityFilter = (route: Route): boolean => {
+    if (accessibilityFilter === 'all') {
+      return true;
+    }
 
-  const searchResults = normalizedSearchQuery
+    return route.wheelchairAccessible === (accessibilityFilter === 'yes');
+  };
+
+  const searchResults = hasActiveSearch || accessibilityFilter !== 'all'
     ? homeData.routes.filter((route) => {
+        if (!matchesAccessibilityFilter(route)) {
+          return false;
+        }
+
+        if (!normalizedSearchQuery) {
+          return true;
+        }
+
         const searchableTags = route.tags.join(' ').toLowerCase();
 
         return (
@@ -149,6 +166,7 @@ function App() {
   const clearSearch = (): void => {
     setSearchInput('');
     setSortOption(null);
+    setAccessibilityFilter('all');
     setIsFilterOpen(false);
     setSearchPage(1);
     setSearchPageSize(DEFAULT_SEARCH_PAGE_SIZE);
@@ -157,6 +175,11 @@ function App() {
   const handleSelectSortOption = (option: SortOption): void => {
     setSortOption(option);
     setIsFilterOpen(false);
+    setSearchPage(1);
+  };
+
+  const handleAccessibilityFilterChange = (value: AccessibilityFilter): void => {
+    setAccessibilityFilter(value);
     setSearchPage(1);
   };
 
@@ -316,7 +339,7 @@ function App() {
 
   useEffect(() => {
     setSearchPage(1);
-  }, [normalizedSearchQuery]);
+  }, [normalizedSearchQuery, accessibilityFilter]);
 
   useEffect(() => {
     if (searchPage > totalPages) {
@@ -414,15 +437,17 @@ function App() {
           hasActiveFilter={hasActiveFilter}
           isFilterOpen={isFilterOpen}
           sortOption={sortOption}
+          accessibilityFilter={accessibilityFilter}
           onSearchChange={handleSearchChange}
           onSearchFocus={() => setIsSearchFocused(true)}
           onSearchBlur={() => setIsSearchFocused(false)}
           onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
           onClearSearch={clearSearch}
           onSelectSortOption={handleSelectSortOption}
+          onAccessibilityFilterChange={handleAccessibilityFilterChange}
         />
 
-        {hasActiveSearch ? (
+        {hasActiveSearch || accessibilityFilter !== 'all' ? (
           <SearchResults
             routes={visibleSearchResults}
             totalResults={totalResults}

@@ -22,6 +22,7 @@ export interface UpdateRoutePayload {
   country: string;
   distance?: number;
   duration?: number;
+  wheelchairAccessible?: boolean;
   tags: string[];
 }
 
@@ -107,6 +108,7 @@ const normalizeRouteFromApi = (payload: unknown): Route | null => {
     country: String(candidate.country ?? ''),
     distance: typeof candidate.distance === 'number' ? candidate.distance : undefined,
     duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
+    wheelchairAccessible: candidate.wheelchairAccessible === true,
     tags
   };
 };

@@ -7,6 +7,7 @@ import RouteHighlights from "./components/pages/routes/RouteHighlights";
 import RouteMap from "./components/pages/routes/RouteMap";
 import RouteQuickFacts from "./components/pages/routes/RouteQuickFacts";
 import SearchArea from "./components/shared/SearchArea";
+import type { AccessibilityFilter } from "./components/shared/SearchArea";
 import SearchResults from "./components/shared/SearchResults";
 import TopNav from "./components/shared/TopNav";
 import AppOverlays from "./components/shared/AppOverlays";
@@ -70,6 +71,8 @@ function RouteApp() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption | null>(null);
+  const [accessibilityFilter, setAccessibilityFilter] =
+    useState<AccessibilityFilter>("all");
   const [listPage, setListPage] = useState<number>(1);
   const [listPageSize, setListPageSize] = useState<number>(10);
   const [searchPage, setSearchPage] = useState<number>(1);
@@ -90,11 +93,25 @@ function RouteApp() {
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const normalizedSearchQuery = searchInput.trim().toLowerCase();
   const hasActiveSearch = normalizedSearchQuery.length > 0;
-  const hasActiveFilter = sortOption !== null;
+  const hasActiveAccessibilityFilter = accessibilityFilter !== "all";
+  const hasActiveFilter = sortOption !== null || hasActiveAccessibilityFilter;
   const isRouteListMode = !routeId && !hasActiveSearch;
+  const accessibilityFilterValue =
+    accessibilityFilter === "all" ? null : accessibilityFilter === "yes";
+  const matchesAccessibilityFilter = (route: Route): boolean => {
+    if (accessibilityFilterValue === null) {
+      return true;
+    }
 
-  const searchResults = normalizedSearchQuery
+    return route.wheelchairAccessible === accessibilityFilterValue;
+  };
+
+  const searchResults = hasActiveSearch
     ? fullRouteData.routes.filter((route) => {
+        if (!matchesAccessibilityFilter(route)) {
+          return false;
+        }
+
         const searchableTags = route.tags.join(" ").toLowerCase();
 
         return (
@@ -159,7 +176,13 @@ function RouteApp() {
   useEffect(() => {
     setListPage(1);
     setSearchPage(1);
-  }, [normalizedSearchQuery, sortOption, listPageSize, searchPageSize]);
+  }, [
+    normalizedSearchQuery,
+    sortOption,
+    accessibilityFilter,
+    listPageSize,
+    searchPageSize,
+  ]);
 
   useEffect(() => {
     if (searchPage > totalSearchPages) {
@@ -181,6 +204,7 @@ function RouteApp() {
         const result = await routeDataProvider.getRoutePage({
           page: listPage,
           limit: listPageSize,
+          wheelchairAccessible: accessibilityFilterValue,
         });
 
         if (mounted) {
@@ -209,7 +233,7 @@ function RouteApp() {
     return () => {
       mounted = false;
     };
-  }, [isRouteListMode, listPage, listPageSize]);
+  }, [accessibilityFilterValue, isRouteListMode, listPage, listPageSize]);
 
   useEffect(() => {
     if (!hasActiveSearch) {
@@ -254,7 +278,10 @@ function RouteApp() {
     return () => {
       mounted = false;
     };
-  }, [fullRouteData.routes.length, hasActiveSearch]);
+  }, [
+    fullRouteData.routes.length,
+    hasActiveSearch,
+  ]);
 
   useEffect(() => {
     if (!routeId) {
@@ -312,12 +339,21 @@ function RouteApp() {
   const clearSearch = (): void => {
     setSearchInput("");
     setSortOption(null);
+    setAccessibilityFilter("all");
     setIsFilterOpen(false);
   };
 
   const handleSelectSortOption = (option: SortOption): void => {
     setSortOption(option);
     setIsFilterOpen(false);
+  };
+
+  const handleAccessibilityFilterChange = (
+    value: AccessibilityFilter,
+  ): void => {
+    setAccessibilityFilter(value);
+    setSearchPage(1);
+    setListPage(1);
   };
 
   if (currentPath === "/profile") {
@@ -351,12 +387,14 @@ function RouteApp() {
             hasActiveFilter={hasActiveFilter}
             isFilterOpen={isFilterOpen}
             sortOption={sortOption}
+            accessibilityFilter={accessibilityFilter}
             onSearchChange={setSearchInput}
             onSearchFocus={() => setIsSearchFocused(true)}
             onSearchBlur={() => setIsSearchFocused(false)}
             onToggleFilter={() => setIsFilterOpen((prev) => !prev)}
             onClearSearch={clearSearch}
             onSelectSortOption={handleSelectSortOption}
+            onAccessibilityFilterChange={handleAccessibilityFilterChange}
           />
 
           {!error && isRouteListMode && !isListLoading ? (
@@ -414,6 +452,7 @@ function RouteApp() {
                 city={selectedRoute.city}
                 country={selectedRoute.country}
                 difficulty={selectedRoute.difficulty}
+                wheelchairAccessible={selectedRoute.wheelchairAccessible}
                 distance={selectedRoute.distance}
                 duration={selectedRoute.duration}
                 tags={selectedRoute.tags}

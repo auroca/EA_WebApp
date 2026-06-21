@@ -384,6 +384,25 @@ a {
   padding-top: 8px;
 }
 
+.filter-select-label {
+  display: grid;
+  gap: 6px;
+  padding: 6px 10px;
+  color: #283042;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filter-select-label select {
+  width: 100%;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #283042;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
 .filter-panel button {
   border: 0;
   background: transparent;
@@ -783,16 +802,25 @@ a {
   color: #f2b205;
 }
 
-.route-card-rating {
+.route-card-rating,
+.route-card-accessible {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: #f2b205;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.route-card-rating svg {
+.route-card-rating {
+  color: #f2b205;
+}
+
+.route-card-accessible {
+  color: #0f5f4a;
+}
+
+.route-card-rating svg,
+.route-card-accessible svg {
   width: 0.9em;
   height: 0.9em;
   flex-shrink: 0;
@@ -1933,6 +1961,10 @@ body.accessibility-dark-mode .top-nav {
 
 body.accessibility-dark-mode .filter-group + .filter-group {
   border-top-color: #334155;
+}
+
+body.accessibility-dark-mode .filter-select-label {
+  color: #f8fafc;
 }
 
 body.accessibility-dark-mode .chat-header,

@@ -36,6 +36,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
   const [distance, setDistance] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
   const [difficulty, setDifficulty] = useState<RouteCreateInput['difficulty']>('medium');
+  const [wheelchairAccessible, setWheelchairAccessible] = useState<boolean>(false);
   const [tags, setTags] = useState<string>('');
   const [points, setPoints] = useState<PointForm[]>([emptyPoint()]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -81,6 +82,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
       distance: Number(distance),
       duration: Number(duration),
       difficulty,
+      wheelchairAccessible,
       tags: tags
         .split(',')
         .map((tag) => tag.trim())
@@ -212,6 +214,17 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
                   <option value="easy">easy</option>
                   <option value="medium">medium</option>
                   <option value="hard">hard</option>
+                </select>
+              </label>
+
+              <label>
+                Wheelchair accessible
+                <select
+                  value={wheelchairAccessible ? 'yes' : 'no'}
+                  onChange={(event) => setWheelchairAccessible(event.target.value === 'yes')}
+                >
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
                 </select>
               </label>
 
