@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import SearchClearButton from '../../shared/SearchClearButton';
 
 interface ImageUrlPickerProps {
   id: string;
@@ -263,10 +264,9 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
               />
 
               {searchText ? (
-                <button
-                  type="button"
-                  className="search-clear-button image-picker-search-clear"
-                  aria-label="Clear image search"
+                <SearchClearButton
+                  className="image-picker-search-clear"
+                  ariaLabel="Clear image search"
                   onClick={() => {
                     searchControllerRef.current?.abort();
                     setSearchText('');
@@ -274,9 +274,7 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
                     setError('');
                     setIsSearching(false);
                   }}
-                >
-                  &times;
-                </button>
+                />
               ) : null}
             </div>
 

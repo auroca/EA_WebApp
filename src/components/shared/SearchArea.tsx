@@ -1,4 +1,5 @@
 import { getTopNavIconPath, type SortOption } from '../../utils/homeView';
+import SearchClearButton from './SearchClearButton';
 
 interface SearchAreaProps {
   searchInput: string;
@@ -61,16 +62,7 @@ function SearchArea({
             }}
           />
         </button>
-        {searchInput || hasActiveFilter ? (
-          <button
-            type="button"
-            className="search-clear-button"
-            onClick={onClearSearch}
-            aria-label="Clear search"
-          >
-            ×
-          </button>
-        ) : null}
+        {searchInput || hasActiveFilter ? <SearchClearButton onClick={onClearSearch} /> : null}
         <button type="button" className="search-submit-button" aria-label="Search">
           Search
         </button>

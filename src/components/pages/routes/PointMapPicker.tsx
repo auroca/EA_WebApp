@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import SearchClearButton from '../../shared/SearchClearButton';
 
 interface PointMapPickerProps {
   latitude: string;
@@ -296,10 +297,8 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
                 autoComplete="off"
               />
               {searchText ? (
-                <button
-                  type="button"
-                  className="search-clear-button point-map-search-clear"
-                  aria-label="Clear search"
+                <SearchClearButton
+                  className="point-map-search-clear"
                   onClick={() => {
                     searchControllerRef.current?.abort();
                     shouldSearchRef.current = false;
@@ -308,9 +307,7 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
                     setSearchError('');
                     setIsSearching(false);
                   }}
-                >
-                  &times;
-                </button>
+                />
               ) : null}
 
               {isSearching ? <p className="point-map-search-status neutral">Searching places...</p> : null}
