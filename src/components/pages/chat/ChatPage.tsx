@@ -4,7 +4,8 @@ import TopNav from '../../shared/TopNav';
 import AccessibilityPanel from '../../shared/AccessibilityPanel';
 import { getStoredToken, getStoredUser, isAuthenticated } from '../../../services/authService';
 import { getOrCreateChatSocket } from '../../../services/chatSocket';
-import { getAllChats, getChatById, getChatsByUser, joinChatById, createChat } from '../../../services/chatService';
+import { getAllChats, getChatById, getChatsByUser, joinChatById, createChat, markChatAsRead } from '../../../services/chatService';
+import { notifyChatUnreadUpdated } from '../../../services/chatUnreadService';
 import type {
   ChatDetail,
   ChatHistoryMessage,
@@ -14,6 +15,13 @@ import type {
 } from '../../../types/chat';
 
 const resolveMessageAuthor = (entry: ChatHistoryMessage): { id: string; username: string } => {
+  if (!entry.userId) {
+    return {
+      id: '',
+      username: 'Unknown'
+    };
+  }
+
   if (typeof entry.userId === 'string') {
     return {
       id: entry.userId,
@@ -25,6 +33,35 @@ const resolveMessageAuthor = (entry: ChatHistoryMessage): { id: string; username
     id: entry.userId._id,
     username: entry.userId.username || entry.userId.name || 'Unknown'
   };
+};
+
+const isMessageFromCurrentUser = (entry: ChatHistoryMessage, currentUser: { _id: string; username?: string }): boolean => {
+  const author = resolveMessageAuthor(entry);
+  return author.id === currentUser._id || author.username === currentUser.username;
+};
+
+const getUnreadSeparatorIndex = (
+  entries: ChatHistoryMessage[],
+  unreadCount: number,
+  currentUser: { _id: string; username?: string }
+): number => {
+  if (unreadCount <= 0) {
+    return -1;
+  }
+
+  let remainingUnreadMessages = unreadCount;
+
+  for (let index = entries.length - 1; index >= 0; index -= 1) {
+    if (!isMessageFromCurrentUser(entries[index], currentUser)) {
+      remainingUnreadMessages -= 1;
+    }
+
+    if (remainingUnreadMessages === 0) {
+      return index;
+    }
+  }
+
+  return entries.length > 0 ? 0 : -1;
 };
 
 const formatMessageTime = (value: string): string => {
@@ -40,10 +77,42 @@ const formatMessageTime = (value: string): string => {
   });
 };
 
+const getDateKey = (value: string): string => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+const formatMessageDate = (value: string): string => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toLocaleDateString([], {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+};
+
 function ChatPage() {
   const user = getStoredUser();
   const token = getStoredToken();
   const socketRef = useRef<Socket | null>(null);
+  const unreadCountsRef = useRef<Record<string, number>>({});
+  const unreadMarkersRef = useRef<Record<string, number>>({});
+  const unreadSeparatorRef = useRef<HTMLDivElement | null>(null);
   const requestedChatId = useMemo(() => {
     return (new URLSearchParams(window.location.search).get('chatId') ?? '').trim();
   }, []);
@@ -52,6 +121,8 @@ function ChatPage() {
   const [loadError, setLoadError] = useState<string>('');
   const [allChats, setAllChats] = useState<ChatSummary[]>([]);
   const [participantChatIds, setParticipantChatIds] = useState<string[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [unreadMarkers, setUnreadMarkers] = useState<Record<string, number>>({});
   const [selectedChat, setSelectedChat] = useState<ChatDetail | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string>('');
   const [messages, setMessages] = useState<ChatHistoryMessage[]>([]);
@@ -68,6 +139,39 @@ function ChatPage() {
   const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
   const participantSet = useMemo(() => new Set(participantChatIds), [participantChatIds]);
+
+  const setUnreadMarker = (chatId: string, unreadCount: number): void => {
+    unreadMarkersRef.current = {
+      ...unreadMarkersRef.current,
+      [chatId]: unreadCount
+    };
+    setUnreadMarkers((current) => ({ ...current, [chatId]: unreadCount }));
+  };
+
+  useEffect(() => {
+    unreadCountsRef.current = unreadCounts;
+  }, [unreadCounts]);
+
+  useEffect(() => {
+    unreadMarkersRef.current = unreadMarkers;
+  }, [unreadMarkers]);
+
+  useEffect(() => {
+    if (!selectedChat || !unreadSeparatorRef.current) {
+      return;
+    }
+
+    unreadSeparatorRef.current.scrollIntoView({ block: 'center', behavior: 'auto' });
+  }, [selectedChat, messages, unreadMarkers]);
+
+  useEffect(() => {
+    const totalUnread = allChats.reduce((total, chat) => {
+      const unreadCount = unreadCounts[chat._id] ?? chat.unreadCount ?? 0;
+      return total + unreadCount;
+    }, 0);
+
+    notifyChatUnreadUpdated(totalUnread);
+  }, [allChats, unreadCounts]);
 
   useEffect(() => {
     if (!isAuthenticated() || !user?._id) {
@@ -91,15 +195,28 @@ function ChatPage() {
         const myChatIds = myChats.map((chat) => chat._id);
 
         setAllChats(availableChats);
+        setUnreadCounts(Object.fromEntries(availableChats.map((chat) => [chat._id, chat.unreadCount ?? 0])));
         setParticipantChatIds(myChatIds);
         setLoadError('');
 
-        const initialChat = requestedChatId && myChatIds.includes(requestedChatId)
-          ? requestedChatId
-          : myChats[0]?._id;
+        if (requestedChatId && myChatIds.includes(requestedChatId)) {
+          const requestedChat = availableChats.find((chat) => chat._id === requestedChatId);
+          const requestedUnreadCount = requestedChat?.unreadCount ?? 0;
 
-        if (initialChat) {
-          setSelectedChatId(initialChat);
+          if (requestedUnreadCount > 0) {
+            setUnreadMarker(requestedChatId, requestedUnreadCount);
+          }
+
+          setSelectedChatId(requestedChatId);
+        } else {
+          const unreadChat = availableChats
+            .filter((chat) => myChatIds.includes(chat._id) && (chat.unreadCount ?? 0) > 0)
+            .sort((first, second) => (second.unreadCount ?? 0) - (first.unreadCount ?? 0))[0];
+
+          if (unreadChat) {
+            setUnreadMarker(unreadChat._id, unreadChat.unreadCount ?? 0);
+            setSelectedChatId(unreadChat._id);
+          }
         }
       } catch (error) {
         if (!mounted) {
@@ -134,7 +251,15 @@ function ChatPage() {
     socketRef.current = socket;
 
     const handleIncomingMessage = (event: ChatMessageEvent): void => {
+      const isMine = event.user_id === user?._id || event.username === user?.username;
+
       if (event.chat_id !== selectedChatId) {
+        if (!isMine) {
+          setUnreadCounts((current) => ({
+            ...current,
+            [event.chat_id]: (current[event.chat_id] ?? 0) + 1
+          }));
+        }
         return;
       }
 
@@ -146,6 +271,12 @@ function ChatPage() {
           timestamp: event.timestamp
         }
       ]);
+
+      if (!isMine) {
+        setUnreadMarker(event.chat_id, 0);
+        setUnreadCounts((current) => ({ ...current, [event.chat_id]: 0 }));
+        void markChatAsRead(event.chat_id).catch(() => undefined);
+      }
     };
 
     const handleParticipantsUpdate = (event: ChatParticipantsEvent): void => {
@@ -170,6 +301,7 @@ function ChatPage() {
 
         const myChatIds = myChats.map((chat) => chat._id);
         setAllChats(availableChats);
+        setUnreadCounts(Object.fromEntries(availableChats.map((chat) => [chat._id, chat.unreadCount ?? 0])));
         setParticipantChatIds(myChatIds);
       } catch (error) {
         console.error('Error reloading chats:', error);
@@ -199,6 +331,7 @@ function ChatPage() {
 
     const loadSelectedChat = async (): Promise<void> => {
       try {
+        const unreadAtOpen = unreadMarkersRef.current[selectedChatId] ?? unreadCountsRef.current[selectedChatId] ?? 0;
         const chat = await getChatById(selectedChatId);
 
         if (!mounted) {
@@ -208,6 +341,9 @@ function ChatPage() {
         setSelectedChat(chat);
         setMessages(chat.chatHistory ?? []);
         setOnlineParticipants(chat.participants.map((participant) => participant.username));
+        setUnreadMarker(selectedChatId, unreadAtOpen);
+        setUnreadCounts((current) => ({ ...current, [selectedChatId]: 0 }));
+        void markChatAsRead(selectedChatId).catch(() => undefined);
       } catch (error) {
         if (!mounted) {
           return;
@@ -236,7 +372,10 @@ function ChatPage() {
     setJoinError('');
 
     if (participantSet.has(chat._id)) {
+      const unreadAtOpen = unreadCountsRef.current[chat._id] ?? chat.unreadCount ?? 0;
+      setUnreadMarker(chat._id, unreadAtOpen);
       setSelectedChatId(chat._id);
+      setUnreadCounts((current) => ({ ...current, [chat._id]: 0 }));
       window.history.replaceState({}, '', `/chats?chatId=${encodeURIComponent(chat._id)}`);
       return;
     }
@@ -266,6 +405,8 @@ function ChatPage() {
       });
 
       setSelectedChatId(chat._id);
+      setUnreadMarker(chat._id, 0);
+      setUnreadCounts((current) => ({ ...current, [chat._id]: 0 }));
       window.history.replaceState({}, '', `/chats?chatId=${encodeURIComponent(chat._id)}`);
       setSelectedChat(joinedChat);
       setMessages(joinedChat.chatHistory ?? []);
@@ -329,6 +470,7 @@ function ChatPage() {
       ]);
 
       setSelectedChatId(newChat._id);
+      setUnreadMarker(newChat._id, 0);
       setSelectedChat(newChat);
       setMessages(newChat.chatHistory ?? []);
       setOnlineParticipants(newChat.participants.map((participant) => participant.username));
@@ -378,6 +520,7 @@ function ChatPage() {
                 const isSelected = selectedChatId === chat._id;
                 const isParticipant = participantSet.has(chat._id);
                 const requiresPassword = !isParticipant && chat.hasPassword;
+                const unreadCount = unreadCounts[chat._id] ?? chat.unreadCount ?? 0;
 
                 return (
                   <li key={chat._id}>
@@ -394,7 +537,13 @@ function ChatPage() {
                         </span>
                       </span>
 
-                      {requiresPassword ? <span className="chat-room-lock">Locked</span> : null}
+                      {unreadCount > 0 && isParticipant ? (
+                        <span className="chat-unread-badge" aria-label={`${unreadCount} unread messages`}>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      ) : requiresPassword ? (
+                        <span className="chat-room-lock">Locked</span>
+                      ) : null}
                     </button>
                   </li>
                 );
@@ -441,22 +590,38 @@ function ChatPage() {
               <div className="chat-messages">
                 {messages.map((entry, index) => {
                   const author = resolveMessageAuthor(entry);
-                  const isMine = author.id === user._id || author.username === user.username;
+                  const isMine = isMessageFromCurrentUser(entry, user);
+                  const previousMessage = messages[index - 1];
+                  const showDate = index === 0 || getDateKey(previousMessage.timestamp) !== getDateKey(entry.timestamp);
+                  const unreadMarkerCount = unreadMarkers[selectedChatId] ?? 0;
+                  const unreadSeparatorIndex = getUnreadSeparatorIndex(messages, unreadMarkerCount, user);
+                  const showUnreadSeparator = unreadSeparatorIndex === index && unreadMarkerCount > 0;
                   const bubbleClassName = isMine
                     ? 'chat-message-bubble chat-message-bubble-mine'
                     : 'chat-message-bubble';
 
                   return (
-                    <article
-                      key={`${entry.timestamp}-${index}-${entry.message}`}
-                      className={isMine ? 'chat-message-row chat-message-row-mine' : 'chat-message-row'}
-                    >
-                      <div className={bubbleClassName}>
-                        <p className="chat-message-author">{isMine ? 'You' : author.username}</p>
-                        <p className="chat-message-text">{entry.message}</p>
-                        <time className="chat-message-time">{formatMessageTime(entry.timestamp)}</time>
-                      </div>
-                    </article>
+                    <div key={`${entry.timestamp}-${index}-${entry.message}`} className="chat-message-group">
+                      {showDate ? (
+                        <div className="chat-date-separator">
+                          <time>{formatMessageDate(entry.timestamp)}</time>
+                        </div>
+                      ) : null}
+                      {showUnreadSeparator ? (
+                        <div className="chat-unread-separator" ref={unreadSeparatorRef}>
+                          <span>
+                            {unreadMarkerCount === 1 ? '1 unread message' : `${unreadMarkerCount} unread messages`}
+                          </span>
+                        </div>
+                      ) : null}
+                      <article className={isMine ? 'chat-message-row chat-message-row-mine' : 'chat-message-row'}>
+                        <div className={bubbleClassName}>
+                          <p className="chat-message-author">{isMine ? 'You' : author.username}</p>
+                          <p className="chat-message-text">{entry.message}</p>
+                          <time className="chat-message-time">{formatMessageTime(entry.timestamp)}</time>
+                        </div>
+                      </article>
+                    </div>
                   );
                 })}
               </div>
