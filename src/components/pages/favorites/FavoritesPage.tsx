@@ -7,10 +7,12 @@ import { getStoredUser, isAuthenticated } from '../../../services/authService';
 import { getFavoriteRoutesByUserId } from '../../../services/profileService';
 import type { Route } from '../../../types/route';
 import { sortRoutes, type SortOption } from '../../../utils/homeView';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 const DEFAULT_PAGE_SIZE = 10;
 
 function FavoritesPage() {
+  const { t } = useLanguage();
   const [favoriteRoutes, setFavoriteRoutes] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -79,7 +81,7 @@ function FavoritesPage() {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load favorite routes.');
+          setError(t('favorites.loadError'));
         }
       } finally {
         if (mounted) {
@@ -162,12 +164,12 @@ function FavoritesPage() {
           onAccessibilityFilterChange={handleAccessibilityFilterChange}
         />
 
-        {isLoading ? <p className="status-message">Loading favorite routes...</p> : null}
+        {isLoading ? <p className="status-message">{t('favorites.loading')}</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
         {!isLoading && !error ? (
           <SearchResults
-            title="Favorite routes"
+            title={t('favorites.title')}
             routes={visibleFavoriteRoutes}
             totalResults={totalResults}
             currentPage={safeCurrentPage}

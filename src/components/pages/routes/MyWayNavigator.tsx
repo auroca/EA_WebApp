@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Route, Point } from '../../../types/route';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import type { TranslationKey } from '../../../i18n/translations';
 import './RouteMap.css';
 
 type TransportMode = 'walking' | 'driving' | 'cycling' | 'transit';
@@ -25,11 +27,11 @@ interface OsrmRouteResponse {
   }>;
 }
 
-const TRANSPORT_LABELS: Record<TransportMode, string> = {
-  walking: 'Walking',
-  driving: 'Car',
-  cycling: 'Bicycle',
-  transit: 'Public Transport'
+const TRANSPORT_LABEL_KEYS: Record<TransportMode, TranslationKey> = {
+  walking: 'myway.mode.walking',
+  driving: 'myway.mode.driving',
+  cycling: 'myway.mode.cycling',
+  transit: 'myway.mode.transit'
 };
 
 const TRANSPORT_SPEED_KMH: Record<TransportMode, number> = {
@@ -85,22 +87,22 @@ function signedDeltaAngle(from: number, to: number): number {
   return ((to - from + 540) % 360) - 180;
 }
 
-function getTurnAction(delta: number): string {
+function getTurnAction(delta: number, t: (key: TranslationKey) => string): string {
   const abs = Math.abs(delta);
 
   if (abs < 20) {
-    return 'Sigue recto';
+    return t('myway.turn.straight');
   }
 
   if (abs < 45) {
-    return delta > 0 ? 'Gira ligeramente a la derecha' : 'Gira ligeramente a la izquierda';
+    return delta > 0 ? t('myway.turn.slightRight') : t('myway.turn.slightLeft');
   }
 
   if (abs < 120) {
-    return delta > 0 ? 'Gira a la derecha' : 'Gira a la izquierda';
+    return delta > 0 ? t('myway.turn.right') : t('myway.turn.left');
   }
 
-  return delta > 0 ? 'Haz un giro pronunciado a la derecha' : 'Haz un giro pronunciado a la izquierda';
+  return delta > 0 ? t('myway.turn.sharpRight') : t('myway.turn.sharpLeft');
 }
 
 function getNearestPathIndex(path: [number, number][], current: [number, number]): number {
@@ -195,6 +197,7 @@ async function fetchStreetGeometry(points: Point[], mode: TransportMode): Promis
 }
 
 function MyWayNavigator({ route }: MyWayNavigatorProps) {
+  const { t } = useLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
@@ -277,10 +280,10 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
     L.control
       .layers(
         {
-          Standard: standardLayer,
-          Satellite: satelliteLayer,
-          Traffic: trafficLayer,
-          Pedestrian: pedestrianLayer
+          [t('myway.layer.standard')]: standardLayer,
+          [t('myway.layer.satellite')]: satelliteLayer,
+          [t('myway.layer.traffic')]: trafficLayer,
+          [t('myway.layer.pedestrian')]: pedestrianLayer
         },
         undefined,
         { position: 'topright', collapsed: false }
@@ -302,7 +305,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
 
       marker
         .bindPopup(
-          `<div class="point-popup-content"><h3>${point.name}</h3><p class="point-popup-index">Point ${pointOrder}</p></div>`
+          `<div class="point-popup-content"><h3>${point.name}</h3><p class="point-popup-index">${t('myway.point', { number: pointOrder })}</p></div>`
         )
         .addTo(map);
     });
@@ -331,7 +334,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
       accuracyRef.current = null;
       recenterDoneRef.current = false;
     };
-  }, [points]);
+  }, [points, t]);
 
   useEffect(() => {
     if (!polylineRef.current) {
@@ -371,7 +374,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
 
   useEffect(() => {
     if (!('geolocation' in navigator)) {
-      setGeoError('Geolocation is not available on this device/browser.');
+      setGeoError(t('myway.geo.unsupported'));
       return;
     }
 
@@ -386,13 +389,13 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
-          setGeoError('Location permission denied. Enable GPS permission to get live guidance.');
+          setGeoError(t('myway.geo.denied'));
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          setGeoError('Location data is unavailable right now.');
+          setGeoError(t('myway.geo.unavailable'));
         } else if (error.code === error.TIMEOUT) {
-          setGeoError('Location request timed out.');
+          setGeoError(t('myway.geo.timeout'));
         } else {
-          setGeoError('Unable to read current location.');
+          setGeoError(t('myway.geo.unknown'));
         }
       },
       {
@@ -407,7 +410,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!mapRef.current || !userPosition) {
@@ -424,7 +427,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
         fillColor: '#1f6dff',
         fillOpacity: 1
       })
-        .bindPopup('Your current position')
+        .bindPopup(t('myway.currentPosition'))
         .addTo(mapRef.current);
     } else {
       userMarkerRef.current.setLatLng(latLng);
@@ -470,15 +473,15 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
   const guidance = useMemo(() => {
     if (points.length === 0) {
       return {
-        title: 'No route points',
-        message: 'This route does not include valid points to navigate.'
+        title: t('myway.noRoutePoints.title'),
+        message: t('myway.noRoutePoints.message')
       };
     }
 
     if (!userPosition) {
       return {
-        title: 'Waiting for GPS',
-        message: 'Allow location access to receive live directions and your blue position marker.'
+        title: t('myway.waitingGps.title'),
+        message: t('myway.waitingGps.message')
       };
     }
 
@@ -487,8 +490,8 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
 
     if (remainingPoints.length === 0) {
       return {
-        title: 'Route completed',
-        message: 'You have reached all points of this route.'
+        title: t('myway.completed.title'),
+        message: t('myway.completed.message')
       };
     }
 
@@ -507,12 +510,16 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
     const etaMinutes = (remainingMeters / 1000 / speed) * 60;
 
     return {
-      title: `Next point: ${nextPoint.name}`,
-      message: `Head ${nextDirection} for ${formatDistance(toNext)}. Remaining route: ${formatDistance(remainingMeters)} (~${formatDuration(
-        etaMinutes
-      )} by ${TRANSPORT_LABELS[mode].toLowerCase()}).`
+      title: t('myway.nextPoint', { name: nextPoint.name }),
+      message: t('myway.remainingRoute', {
+        direction: nextDirection,
+        distance: formatDistance(toNext),
+        remaining: formatDistance(remainingMeters),
+        eta: formatDuration(etaMinutes),
+        mode: t(TRANSPORT_LABEL_KEYS[mode]).toLowerCase()
+      })
     };
-  }, [mode, points, userPosition, visitedPointIds]);
+  }, [mode, points, t, userPosition, visitedPointIds]);
 
   const nextPointSummary = useMemo(() => {
     if (!userPosition) {
@@ -541,14 +548,14 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
 
   const turnInstruction = useMemo(() => {
     if (!userPosition) {
-      return 'Activa la ubicación para recibir indicaciones giro a giro.';
+      return t('myway.enableLocation');
     }
 
     const current: [number, number] = [userPosition.latitude, userPosition.longitude];
     const path = streetPath.length > 1 ? streetPath : points.map((point) => [point.latitude, point.longitude] as [number, number]);
 
     if (path.length < 2) {
-      return 'No hay suficiente trazado para calcular la siguiente maniobra.';
+      return t('myway.insufficientPath');
     }
 
     const nearestIndex = getNearestPathIndex(path, current);
@@ -557,22 +564,22 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
     const firstBearing = bearing(path[i1], path[i1 + 1]);
 
     if (i1 + 2 >= path.length) {
-      return `Sigue recto hacia ${bearingToDirection(firstBearing)}.`;
+      return t('myway.straightTowards', { direction: bearingToDirection(firstBearing) });
     }
 
     const secondBearing = bearing(path[i1 + 1], path[i1 + 2]);
     const delta = signedDeltaAngle(firstBearing, secondBearing);
-    const action = getTurnAction(delta);
+    const action = getTurnAction(delta, t);
 
-    return `${action}. Continúa hacia ${bearingToDirection(firstBearing)}.`;
-  }, [points, streetPath, userPosition]);
+    return `${action}. ${t('myway.continueTowards', { direction: bearingToDirection(firstBearing) })}`;
+  }, [points, streetPath, t, userPosition]);
 
   return (
     <section className="route-panel">
       {!isNavigating ? (
         <>
           <div className="myway-toolbar">
-            <div className="myway-mode-group" role="group" aria-label="Transport mode">
+            <div className="myway-mode-group" role="group" aria-label={t('myway.transportMode')}>
               {modeButtons.map((value) => {
                 const active = value === mode;
                 return (
@@ -582,14 +589,14 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
                     className={`myway-mode-button${active ? ' myway-mode-button-active' : ''}`}
                     onClick={() => setMode(value)}
                   >
-                    {TRANSPORT_LABELS[value]}
+                    {t(TRANSPORT_LABEL_KEYS[value])}
                   </button>
                 );
               })}
             </div>
 
             <button type="button" className="myway-start-button" onClick={() => setIsNavigating(true)}>
-              Start
+              {t('myway.startButton')}
             </button>
           </div>
 
@@ -607,7 +614,7 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
           <div className="myway-nav-overlay" aria-live="polite">
             <p>{turnInstruction}</p>
             <button type="button" className="myway-cancel-button" onClick={() => setIsNavigating(false)}>
-              Cancelar navegación
+              {t('myway.cancelNavigation')}
             </button>
           </div>
         ) : null}
@@ -617,7 +624,10 @@ function MyWayNavigator({ route }: MyWayNavigatorProps) {
 
       {isNavigating ? (
         <p className="myway-next-point-summary">
-          Distancia hasta el próximo punto: {nextPointSummary?.distanceText ?? '--'}. ~ {nextPointSummary?.etaText ?? '--'}.
+          {t('myway.nextPointDistance', {
+            distance: nextPointSummary?.distanceText ?? '--',
+            eta: nextPointSummary?.etaText ?? '--'
+          })}
         </p>
       ) : null}
     </section>

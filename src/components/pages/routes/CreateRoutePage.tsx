@@ -6,6 +6,7 @@ import PointMapPicker from './PointMapPicker';
 import CountryCombobox from './CountryCombobox';
 import { isCountryName } from './countries';
 import ImageUrlPicker from './ImageUrlPicker';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface CreateRoutePageProps {
   onNavigate: (path: string) => void;
@@ -28,6 +29,7 @@ const emptyPoint = (): PointForm => ({
 });
 
 function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [coverImage, setCoverImage] = useState<string>('');
@@ -93,32 +95,32 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
 
   const validateForm = (): string => {
     if (!name.trim() || !description.trim() || !coverImage.trim() || !city.trim() || !country.trim()) {
-      return 'Complete the route information.';
+      return t('createRoute.validation.info');
     }
 
     if (!isCountryName(country)) {
-      return 'Select a country from the list.';
+      return t('createRoute.validation.country');
     }
 
     if (!Number.isFinite(Number(distance)) || Number(distance) <= 0) {
-      return 'Distance must be a valid number.';
+      return t('createRoute.validation.distance');
     }
 
     if (!Number.isFinite(Number(duration)) || Number(duration) <= 0) {
-      return 'Duration must be a valid number.';
+      return t('createRoute.validation.duration');
     }
 
     if (points.length === 0) {
-      return 'Add at least one point.';
+      return t('createRoute.validation.points');
     }
 
     for (const point of points) {
       if (!point.name.trim()) {
-        return 'Every point needs a name.';
+        return t('createRoute.validation.pointName');
       }
 
       if (!Number.isFinite(Number(point.latitude)) || !Number.isFinite(Number(point.longitude))) {
-        return 'Every point needs valid coordinates.';
+        return t('createRoute.validation.coordinates');
       }
     }
 
@@ -145,7 +147,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
       if (saveError instanceof Error) {
         setError(saveError.message);
       } else {
-        setError('Unable to create route.');
+        setError(t('createRoute.validation.unable'));
       }
     } finally {
       setIsSaving(false);
@@ -159,32 +161,32 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
       <section className="route-shell">
         <div className="create-route-header">
           <div>
-            <p className="create-route-eyebrow">Routes</p>
-            <h1>Create your own route</h1>
+            <p className="create-route-eyebrow">{t('routes.title')}</p>
+            <h1>{t('createRoute.title')}</h1>
           </div>
 
           <button type="button" className="create-route-secondary-button" onClick={() => onNavigate('/routes')}>
-            Back to routes
+            {t('createRoute.backToRoutes')}
           </button>
         </div>
 
         <form className="create-route-form" onSubmit={handleSubmit}>
           <div className="create-route-card">
-            <h2>Route information</h2>
+            <h2>{t('createRoute.info')}</h2>
 
             <label>
-              Name
+              {t('common.name')}
               <input value={name} onChange={(event) => setName(event.target.value)} />
             </label>
 
             <label>
-              Description
+              {t('common.description')}
               <textarea value={description} onChange={(event) => setDescription(event.target.value)} />
             </label>
 
             <ImageUrlPicker
               id="create-route-cover-image"
-              label="Cover image URL"
+              label={t('profile.coverImageUrl')}
               value={coverImage}
               onChange={setCoverImage}
               initialSearch={[name, city, country].filter(Boolean).join(' ')}
@@ -192,54 +194,54 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
 
             <div className="create-route-grid">
               <label>
-                City
+                {t('common.city')}
                 <input value={city} onChange={(event) => setCity(event.target.value)} />
               </label>
 
               <CountryCombobox value={country} onChange={setCountry} />
 
               <label>
-                Distance km
+                {t('common.distance')} km
                 <input value={distance} onChange={(event) => setDistance(event.target.value)} />
               </label>
 
               <label>
-                Duration min
+                {t('common.duration')} min
                 <input value={duration} onChange={(event) => setDuration(event.target.value)} />
               </label>
 
               <label>
-                Difficulty
+                {t('common.difficulty.label')}
                 <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as RouteCreateInput['difficulty'])}>
-                  <option value="easy">easy</option>
-                  <option value="medium">medium</option>
-                  <option value="hard">hard</option>
+                  <option value="easy">{t('common.difficulty.easy')}</option>
+                  <option value="medium">{t('common.difficulty.medium')}</option>
+                  <option value="hard">{t('common.difficulty.hard')}</option>
                 </select>
               </label>
 
               <label>
-                Wheelchair accessible
+                {t('common.accessible')}
                 <select
                   value={wheelchairAccessible ? 'yes' : 'no'}
                   onChange={(event) => setWheelchairAccessible(event.target.value === 'yes')}
                 >
-                  <option value="no">No</option>
-                  <option value="yes">Yes</option>
+                  <option value="no">{t('common.no')}</option>
+                  <option value="yes">{t('common.yes')}</option>
                 </select>
               </label>
 
               <label>
                 Tags
-                <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="nature, beach, city" />
+                <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder={t('createRoute.tagsPlaceholder')} />
               </label>
             </div>
           </div>
 
           <div className="create-route-card">
             <div className="create-route-points-title">
-              <h2>Route points</h2>
+              <h2>{t('createRoute.points')}</h2>
               <button type="button" className="create-route-secondary-button" onClick={addPoint}>
-                Add point
+                {t('createRoute.addPoint')}
               </button>
             </div>
 
@@ -247,33 +249,33 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
               {points.map((point, index) => (
                 <div className="create-route-point-card" key={`point-${index}`}>
                   <div className="create-route-point-card-header">
-                    <h3>Point {index + 1}</h3>
+                    <h3>{t('createRoute.point', { number: index + 1 })}</h3>
 
                     {points.length > 1 ? (
                       <button type="button" className="create-route-danger-button" onClick={() => removePoint(index)}>
-                        Remove
+                        {t('createRoute.remove')}
                       </button>
                     ) : null}
                   </div>
 
                   <label>
-                    Name
+                    {t('common.name')}
                     <input value={point.name} onChange={(event) => updatePoint(index, 'name', event.target.value)} />
                   </label>
 
                   <label>
-                    Description
+                    {t('common.description')}
                     <textarea value={point.description} onChange={(event) => updatePoint(index, 'description', event.target.value)} />
                   </label>
 
                   <div className="create-route-coordinate-row">
                     <label>
-                      Latitude
+                      {t('map.latitude')}
                       <input value={point.latitude} onChange={(event) => updatePoint(index, 'latitude', event.target.value)} />
                     </label>
 
                     <label>
-                      Longitude
+                      {t('map.longitude')}
                       <input value={point.longitude} onChange={(event) => updatePoint(index, 'longitude', event.target.value)} />
                     </label>
 
@@ -290,7 +292,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
 
                   <ImageUrlPicker
                     id={`create-route-point-image-${index}`}
-                    label="Image URL"
+                    label={t('createRoute.imageUrl')}
                     value={point.image}
                     onChange={(selectedImage) => updatePoint(index, 'image', selectedImage)}
                     initialSearch={[point.name, city, country].filter(Boolean).join(' ')}
@@ -304,11 +306,11 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
 
           <div className="create-route-actions">
             <button type="button" className="create-route-secondary-button" onClick={() => onNavigate('/routes')}>
-              Cancel
+              {t('createRoute.cancel')}
             </button>
 
             <button type="submit" className="create-route-primary-button" disabled={isSaving}>
-              {isSaving ? 'Creating route...' : 'Create route'}
+              {isSaving ? t('createRoute.creating') : t('createRoute.create')}
             </button>
           </div>
         </form>

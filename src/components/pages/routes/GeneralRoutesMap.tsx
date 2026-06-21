@@ -3,6 +3,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Route, RouteZone } from '../../../types/route';
 import { routeDataProvider } from '../../../services/routeService';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import type { TranslationKey } from '../../../i18n/translations';
 import './GeneralRoutesMap.css';
 
 interface GeneralRoutesMapProps {
@@ -53,7 +55,23 @@ const getRoutePoints = (route: Route) => {
   return route.points?.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude)) ?? [];
 };
 
+const zoneTranslationKeys: Record<string, { name: TranslationKey; description: TranslationKey }> = {
+  'barcelona-centre': {
+    name: 'routes.zone.barcelona.name',
+    description: 'routes.zone.barcelona.description'
+  },
+  'madrid-centre': {
+    name: 'routes.zone.madrid.name',
+    description: 'routes.zone.madrid.description'
+  },
+  'sevilla-centre': {
+    name: 'routes.zone.sevilla.name',
+    description: 'routes.zone.sevilla.description'
+  }
+};
+
 const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRoute }) => {
+  const { t } = useLanguage();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layerGroup = useRef<L.LayerGroup | null>(null);
@@ -111,18 +129,22 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
       fillOpacity: 0.28
     });
 
+    const zoneKeys = zoneTranslationKeys[selectedZone.id];
+    const zoneName = zoneKeys ? t(zoneKeys.name) : selectedZone.name;
+    const zoneDescription = zoneKeys ? t(zoneKeys.description) : selectedZone.description;
+
     polygon.bindPopup(`
       <div class="general-zone-popup">
-        <h3>${selectedZone.name}</h3>
-        <p>${selectedZone.description}</p>
-        <p>Routes inside this selected area.</p>
+        <h3>${zoneName}</h3>
+        <p>${zoneDescription}</p>
+        <p>${t('routes.zonePopupHelp')}</p>
       </div>
     `);
 
     polygon.addTo(zoneLayerGroup.current as L.LayerGroup);
 
     map.current.fitBounds(L.latLngBounds(polygonLatLngs), { padding: [40, 40] });
-  }, [selectedZone]);
+  }, [selectedZone, t]);
 
   useEffect(() => {
     if (!map.current || !layerGroup.current) {
@@ -164,7 +186,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
           <p>${route.city}, ${route.country}</p>
           <p>${route.description}</p>
           <button class="general-route-popup-button" data-route-id="${route._id}">
-            View route
+            ${t('routes.viewRoute')}
           </button>
         </div>
       `);
@@ -183,7 +205,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
     if (boundsPoints.length > 0 && selectedZone) {
       map.current.fitBounds(L.latLngBounds(boundsPoints), { padding: [40, 40] });
     }
-  }, [routesToRender, selectedZone, onSelectRoute]);
+  }, [routesToRender, selectedZone, onSelectRoute, t]);
 
   useEffect(() => {
     if (!selectedZone) {
@@ -211,7 +233,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load routes inside the selected zone.');
+          setError(t('routes.zoneLoadError'));
         }
       } finally {
         if (mounted) {
@@ -225,14 +247,14 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
     return () => {
       mounted = false;
     };
-  }, [selectedZone]);
+  }, [selectedZone, t]);
 
   return (
     <section className="general-routes-map-section">
       <div className="general-routes-map-header">
         <div>
-          <h2>General route map with zones</h2>
-          <p>Select a zone to search for routes inside that area.</p>
+          <h2>{t('routes.generalMap')}</h2>
+          <p>{t('routes.mapHelp')}</p>
         </div>
 
         {selectedZone ? (
@@ -245,7 +267,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
               setError('');
             }}
           >
-            See all zones
+            {t('routes.seeAllZones')}
           </button>
         ) : null}
       </div>
@@ -254,21 +276,25 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
         <div className="general-routes-map-wrapper" ref={mapContainer} />
 
         <aside className="general-routes-map-panel">
-          <h3>{selectedZone ? selectedZone.name : 'Available Zones'}</h3>
+          <h3>
+            {selectedZone
+              ? t(zoneTranslationKeys[selectedZone.id]?.name ?? 'routes.availableZones')
+              : t('routes.availableZones')}
+          </h3>
 
           {!selectedZone ? (
             <div className="general-zone-list">
               {ROUTE_ZONES.map((zone) => (
                 <button key={zone.id} type="button" onClick={() => setSelectedZone(zone)}>
-                  <strong>{zone.name}</strong>
-                  <span>{zone.description}</span>
+                  <strong>{t(zoneTranslationKeys[zone.id]?.name ?? 'routes.availableZones')}</strong>
+                  <span>{t(zoneTranslationKeys[zone.id]?.description ?? 'routes.mapHelp')}</span>
                 </button>
               ))}
             </div>
           ) : null}
 
           {selectedZone && isLoadingZone ? (
-            <p className="general-map-status">Searching for routes inside the selected zone...</p>
+            <p className="general-map-status">{t('routes.searchingZone')}</p>
           ) : null}
 
           {selectedZone && error ? <p className="general-map-status error">{error}</p> : null}
@@ -276,7 +302,7 @@ const GeneralRoutesMap: React.FC<GeneralRoutesMapProps> = ({ routes, onSelectRou
           {selectedZone && !isLoadingZone && !error ? (
             <div className="general-zone-results">
               <p>
-                {zoneRoutes.length} route{zoneRoutes.length === 1 ? '' : 's'} found inside the selected zone.
+                {t('routes.zoneResults', { count: zoneRoutes.length })}
               </p>
 
               {zoneRoutes.map((route) => (

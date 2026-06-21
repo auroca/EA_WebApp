@@ -1,5 +1,6 @@
 import { getTopNavIconPath, type SortOption } from '../../utils/homeView';
 import SearchClearButton from './SearchClearButton';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export type AccessibilityFilter = 'all' | 'yes' | 'no';
 
@@ -34,6 +35,7 @@ function SearchArea({
   onSelectSortOption,
   onAccessibilityFilterChange
 }: SearchAreaProps) {
+  const { t } = useLanguage();
   const isSortSelected = (option: SortOption): boolean => sortOption === option;
 
   return (
@@ -47,7 +49,7 @@ function SearchArea({
         />
         <input
           type="text"
-          placeholder="Where do you want to explore today?"
+          placeholder={t('search.placeholder')}
           value={searchInput}
           onChange={(event) => onSearchChange(event.target.value)}
           onFocus={onSearchFocus}
@@ -56,7 +58,7 @@ function SearchArea({
         <button
           type="button"
           className="filter-button"
-          aria-label="Filter results"
+          aria-label={t('search.filterResults')}
           onClick={onToggleFilter}
         >
           <img
@@ -68,24 +70,24 @@ function SearchArea({
             }}
           />
         </button>
-        {searchInput || hasActiveFilter ? <SearchClearButton onClick={onClearSearch} /> : null}
-        <button type="button" className="search-submit-button" aria-label="Search">
-          Search
+        {searchInput || hasActiveFilter ? <SearchClearButton ariaLabel={t('search.clear')} onClick={onClearSearch} /> : null}
+        <button type="button" className="search-submit-button" aria-label={t('search.search')}>
+          {t('search.search')}
         </button>
       </div>
 
       {isFilterOpen ? (
-        <div className="filter-panel" role="menu" aria-label="Sort options">
+        <div className="filter-panel" role="menu" aria-label={t('search.sortOptions')}>
           <div className="filter-group">
             <label className="filter-select-label">
-              Accessible
+              {t('search.accessible')}
               <select
                 value={accessibilityFilter}
                 onChange={(event) => onAccessibilityFilterChange(event.target.value as AccessibilityFilter)}
               >
-                <option value="all">All</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="yes">{t('common.yes')}</option>
+                <option value="no">{t('common.no')}</option>
               </select>
             </label>
           </div>
@@ -95,13 +97,13 @@ function SearchArea({
               <span className={isSortSelected('difficulty-asc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('difficulty-asc') ? '☑' : '☐'}
               </span>
-              Difficulty ↑
+              {t('search.difficultyAsc')}
             </button>
             <button type="button" onClick={() => onSelectSortOption('difficulty-desc')}>
               <span className={isSortSelected('difficulty-desc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('difficulty-desc') ? '☑' : '☐'}
               </span>
-              Difficulty ↓
+              {t('search.difficultyDesc')}
             </button>
           </div>
 
@@ -110,13 +112,13 @@ function SearchArea({
               <span className={isSortSelected('duration-asc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('duration-asc') ? '☑' : '☐'}
               </span>
-              Duration ↑
+              {t('search.durationAsc')}
             </button>
             <button type="button" onClick={() => onSelectSortOption('duration-desc')}>
               <span className={isSortSelected('duration-desc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('duration-desc') ? '☑' : '☐'}
               </span>
-              Duration ↓
+              {t('search.durationDesc')}
             </button>
           </div>
 
@@ -125,13 +127,13 @@ function SearchArea({
               <span className={isSortSelected('distance-asc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('distance-asc') ? '☑' : '☐'}
               </span>
-              Distance ↑
+              {t('search.distanceAsc')}
             </button>
             <button type="button" onClick={() => onSelectSortOption('distance-desc')}>
               <span className={isSortSelected('distance-desc') ? 'filter-check active' : 'filter-check'}>
                 {isSortSelected('distance-desc') ? '☑' : '☐'}
               </span>
-              Distance ↓
+              {t('search.distanceDesc')}
             </button>
           </div>
         </div>

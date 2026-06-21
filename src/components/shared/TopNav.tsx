@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { getStoredSession, getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
-import { registerPushNotificationsForUser } from '../../services/notificationService';
 import { getMyAchievements } from '../../services/achievementService';
 import { getAllChats } from '../../services/chatService';
 import { getOrCreateChatSocket } from '../../services/chatSocket';
 import { CHAT_UNREAD_UPDATED_EVENT } from '../../services/chatUnreadService';
 import type { ChatMessageEvent } from '../../types/chat';
 import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
+import { useLanguage } from '../../i18n/LanguageContext';
+import LanguageSelector from './LanguageSelector';
+import type { TranslationKey } from '../../i18n/translations';
 
 interface TopNavProps {
   activeTopNav: TopNavKey;
@@ -25,13 +27,18 @@ const getSeenAchievementCodes = (): string[] => {
   }
 };
 
+const navLabelKeys: Record<TopNavKey, TranslationKey> = {
+  home: 'nav.home',
+  routes: 'nav.routes',
+  chats: 'nav.chats',
+  favorites: 'nav.favorites',
+  user: 'nav.user'
+};
+
 function TopNav({ activeTopNav }: TopNavProps) {
+  const { t } = useLanguage();
   const [loggedIn, setLoggedIn] = useState<boolean>(isAuthenticated());
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [notificationStatus, setNotificationStatus] = useState<
-    'idle' | 'saving' | 'enabled' | 'blocked' | 'error'
-  >('idle');
-  const [notificationMessage, setNotificationMessage] = useState<string>('');
   const [hasNewAchievements, setHasNewAchievements] = useState(false);
   const [chatUnreadCount, setChatUnreadCount] = useState<number>(0);
 
@@ -162,23 +169,6 @@ function TopNav({ activeTopNav }: TopNavProps) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!('Notification' in window)) {
-      setNotificationStatus('blocked');
-      return;
-    }
-
-    if (Notification.permission === 'granted') {
-      setNotificationStatus('enabled');
-      setNotificationMessage('Click to sync this browser.');
-    }
-
-    if (Notification.permission === 'denied') {
-      setNotificationStatus('blocked');
-      setNotificationMessage('Reset the permission in Chrome and try again.');
-    }
-  }, []);
-
   const navigateFull = (path: string): void => {
     setMenuOpen(false);
 
@@ -197,41 +187,12 @@ function TopNav({ activeTopNav }: TopNavProps) {
     window.location.href = '/';
   };
 
-  const handleEnableNotifications = async (): Promise<void> => {
-    const session = getStoredSession();
-
-    if (!session) {
-      return;
-    }
-
-    setNotificationStatus('saving');
-    setNotificationMessage('');
-
-    try {
-      await registerPushNotificationsForUser(session.user, session.token);
-      setNotificationStatus('enabled');
-      setNotificationMessage('Token saved for this browser.');
-    } catch (error) {
-      console.warn('[Web push registration failed]', error);
-      setNotificationStatus(Notification.permission === 'denied' ? 'blocked' : 'error');
-      setNotificationMessage(error instanceof Error ? error.message : 'Unable to enable notifications.');
-    }
-  };
-
-  const notificationButtonLabel = (() => {
-    if (notificationStatus === 'saving') return 'Enabling...';
-    if (notificationStatus === 'enabled') return 'Sync notifications';
-    if (notificationStatus === 'blocked') return 'Notifications blocked';
-    if (notificationStatus === 'error') return 'Try notifications again';
-    return 'Enable notifications';
-  })();
-
   return (
     <nav className="top-nav">
       <button
         type="button"
         className="top-nav-brand"
-        aria-label="Go to home"
+        aria-label={t('nav.home')}
         onClick={() => navigateFull('/')}
       >
         <img src="/resources/logos/logo_horizontal.png" alt="Trip2Guide" />
@@ -243,6 +204,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
           .map((item) => {
             const isSelected = item.key === activeTopNav;
             const className = isSelected ? 'nav-item nav-item-active' : 'nav-item';
+            const label = t(navLabelKeys[item.key]);
 
             if (item.key === 'home') {
               return (
@@ -250,11 +212,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   key={item.key}
                   type="button"
                   className={className}
-                  aria-label={item.label}
+                  aria-label={label}
                   onClick={() => navigateFull('/')}
                 >
                   <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-label">{label}</span>
                 </button>
               );
             }
@@ -265,11 +227,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   key={item.key}
                   type="button"
                   className={className}
-                  aria-label={item.label}
+                  aria-label={label}
                   onClick={() => navigateFull('/routes')}
                 >
                   <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-label">{label}</span>
                 </button>
               );
             }
@@ -280,11 +242,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   key={item.key}
                   type="button"
                   className={className}
-                  aria-label={item.label}
+                  aria-label={label}
                   onClick={() => navigateFull('/favorites')}
                 >
                   <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-label">{label}</span>
                 </button>
               );
             }
@@ -295,11 +257,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   key={item.key}
                   type="button"
                   className={className}
-                  aria-label={item.label}
+                  aria-label={label}
                   onClick={() => navigateFull('/chats')}
                 >
                   <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-label">{label}</span>
                   {chatUnreadCount > 0 ? (
                     <span className="nav-unread-badge" aria-label={`${chatUnreadCount} unread chat messages`}>
                       {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
@@ -310,9 +272,9 @@ function TopNav({ activeTopNav }: TopNavProps) {
             }
 
             return (
-              <button key={item.key} type="button" className={className} aria-label={item.label}>
+              <button key={item.key} type="button" className={className} aria-label={label}>
                 <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
-                <span className="nav-label">{item.label}</span>
+                <span className="nav-label">{label}</span>
               </button>
             );
           })}
@@ -320,20 +282,22 @@ function TopNav({ activeTopNav }: TopNavProps) {
 
       {!loggedIn ? (
         <div className="top-nav-auth">
+          <LanguageSelector />
           <a className="top-nav-auth-link" href="/login">
-            Login
+            {t('nav.login')}
           </a>
           <a className="top-nav-auth-link top-nav-auth-link-primary" href="/register">
-            Register
+            {t('nav.register')}
           </a>
         </div>
       ) : (
         <div className="top-nav-user" ref={dropdownRef}>
+          <LanguageSelector />
           <button
             type="button"
             className={menuOpen ? 'top-nav-user-button top-nav-user-button-active' : 'top-nav-user-button'}
             onClick={() => setMenuOpen((prev) => !prev)}
-            aria-label="Open user menu"
+            aria-label={t('nav.openUserMenu')}
           >
             <img className="nav-icon" src={getTopNavIconPath('user', menuOpen)} alt="" aria-hidden="true" />
 
@@ -341,7 +305,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
               {user?.username ?? 'User'}
 
               {hasNewAchievements ? (
-                <span className="new-achievement-badge">New achievement</span>
+                <span className="new-achievement-badge">{t('nav.newAchievement')}</span>
               ) : null}
             </span>
           </button>
@@ -349,34 +313,19 @@ function TopNav({ activeTopNav }: TopNavProps) {
           {menuOpen ? (
             <div className="top-nav-user-menu">
               <div className="top-nav-user-menu-row">
-                <span className="top-nav-user-menu-label">Email</span>
+                <span className="top-nav-user-menu-label">{t('common.email')}</span>
                 <span className="top-nav-user-menu-value">{user?.email ?? '-'}</span>
               </div>
 
               <div className="top-nav-user-menu-row">
-                <span className="top-nav-user-menu-label">Username</span>
+                <span className="top-nav-user-menu-label">{t('common.username')}</span>
                 <span className="top-nav-user-menu-value">{user?.username ?? '-'}</span>
               </div>
 
               <button type="button" className="user-dropdown-button" onClick={() => navigateFull('/profile')}>
-                <span>View profile</span>
-                {hasNewAchievements ? <span className="new-achievement-badge">New achievement</span> : null}
+                <span>{t('nav.profile')}</span>
+                {hasNewAchievements ? <span className="new-achievement-badge">{t('nav.newAchievement')}</span> : null}
               </button>
-
-              <button
-                type="button"
-                className="user-dropdown-button"
-                onClick={() => {
-                  void handleEnableNotifications();
-                }}
-                disabled={notificationStatus === 'saving'}
-              >
-                {notificationButtonLabel}
-              </button>
-
-              {notificationMessage ? (
-                <p className="top-nav-user-menu-hint">{notificationMessage}</p>
-              ) : null}
 
               <button
                 type="button"
@@ -385,7 +334,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
                   void handleLogout();
                 }}
               >
-                Logout
+                {t('nav.logout')}
               </button>
             </div>
           ) : null}

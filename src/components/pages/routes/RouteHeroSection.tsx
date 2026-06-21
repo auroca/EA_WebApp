@@ -1,6 +1,8 @@
-import { getDifficultyBadgePath, toTitleCase } from '../../../utils/homeView';
+import { getDifficultyBadgePath } from '../../../utils/homeView';
 import type { Route } from '../../../types/route';
 import { FaWheelchair } from 'react-icons/fa';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import type { TranslationKey } from '../../../i18n/translations';
 
 interface RouteHeroSectionProps {
   name: string;
@@ -14,6 +16,12 @@ interface RouteHeroSectionProps {
   tags: string[];
 }
 
+const difficultyLabelKeys: Record<Route['difficulty'], TranslationKey> = {
+  easy: 'common.difficulty.easy',
+  medium: 'common.difficulty.medium',
+  hard: 'common.difficulty.hard'
+};
+
 function RouteHeroSection({
   name,
   coverImage,
@@ -25,6 +33,8 @@ function RouteHeroSection({
   duration,
   tags
 }: RouteHeroSectionProps) {
+  const { t } = useLanguage();
+
   return (
     <section className="route-hero-block">
       <header
@@ -39,14 +49,14 @@ function RouteHeroSection({
             {city}, {country}
           </p>
 
-          <div className="route-hero-meta" role="list" aria-label="Route metadata">
+          <div className="route-hero-meta" role="list" aria-label={t('routeDetail.quickFacts')}>
             {typeof distance === 'number' ? <span role="listitem">{distance} km</span> : null}
             {typeof duration === 'number' ? <span role="listitem">{duration} min</span> : null}
           </div>
         </div>
 
         {tags.length > 0 ? (
-          <div className="route-tag-cloud" aria-label="Route tags">
+          <div className="route-tag-cloud" aria-label={t('routeDetail.tags')}>
             {tags.map((tag) => (
               <span key={tag}>{tag}</span>
             ))}
@@ -55,7 +65,7 @@ function RouteHeroSection({
       </header>
 
       <div className="route-badge-row">
-        <div className="route-difficulty-row" aria-label="Route difficulty">
+        <div className="route-difficulty-row" aria-label={t('common.difficulty.label')}>
           <img
             className="difficulty-badge"
             src={getDifficultyBadgePath(difficulty)}
@@ -65,13 +75,13 @@ function RouteHeroSection({
               event.currentTarget.style.display = 'none';
             }}
           />
-          <span>{toTitleCase(difficulty)}</span>
+          <span>{t(difficultyLabelKeys[difficulty])}</span>
         </div>
 
         {wheelchairAccessible ? (
-          <div className="route-accessible-row" aria-label="Wheelchair accessible">
+          <div className="route-accessible-row" aria-label={t('common.accessible')}>
             <FaWheelchair aria-hidden="true" />
-            <span>Accessible</span>
+            <span>{t('common.accessible')}</span>
           </div>
         ) : null}
       </div>

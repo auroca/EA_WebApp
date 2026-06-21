@@ -14,6 +14,7 @@ import {
   FaTextHeight,
   FaUniversalAccess
 } from 'react-icons/fa6';
+import { useLanguage } from '../../i18n/LanguageContext';
 import './AccessibilityPanel.css';
 
 type ColorMode =
@@ -50,6 +51,7 @@ const DEFAULT_SETTINGS: AccessibilitySettings = {
 const STORAGE_KEY = 'accessibility-settings';
 
 function AccessibilityPanel() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
   const [settings, setSettings] = useState<AccessibilitySettings>(() => {
@@ -170,7 +172,7 @@ function AccessibilityPanel() {
         type="button"
         className="accessibility-button"
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label="Open accessibility"
+        aria-label={t('accessibility.open')}
       >
         <FaUniversalAccess />
       </button>
@@ -178,20 +180,20 @@ function AccessibilityPanel() {
       {isOpen && (
         <section className="accessibility-panel">
           <div className="accessibility-panel-header">
-            <h2>Accessibility</h2>
+            <h2>{t('accessibility.title')}</h2>
 
             <button
               type="button"
               className="accessibility-close-button"
               onClick={() => setIsOpen(false)}
-              aria-label="Close accessibility"
+              aria-label={t('accessibility.close')}
             >
               ×
             </button>
           </div>
 
           <div className="accessibility-section">
-            <h3>Color adjustment</h3>
+            <h3>{t('accessibility.colorAdjustment')}</h3>
 
             <div className="accessibility-grid accessibility-color-grid">
               <button
@@ -202,7 +204,7 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('monochrome')}
               >
                 <FaEye />
-                <span>Monochrome</span>
+                <span>{t('accessibility.monochrome')}</span>
               </button>
 
               <button
@@ -213,7 +215,7 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('dark')}
               >
                 <FaMoon />
-                <span>Dark contrast</span>
+                <span>{t('accessibility.darkContrast')}</span>
               </button>
 
               <button
@@ -224,7 +226,7 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('light')}
               >
                 <FaSun />
-                <span>Light contrast</span>
+                <span>{t('accessibility.lightContrast')}</span>
               </button>
 
               <button
@@ -235,7 +237,7 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('lowSaturation')}
               >
                 <FaDroplet />
-                <span>Low saturation</span>
+                <span>{t('accessibility.lowSaturation')}</span>
               </button>
 
               <button
@@ -246,7 +248,7 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('highSaturation')}
               >
                 <FaPalette />
-                <span>High saturation</span>
+                <span>{t('accessibility.highSaturation')}</span>
               </button>
 
               <button
@@ -257,21 +259,21 @@ function AccessibilityPanel() {
                 onClick={() => setColorMode('highContrast')}
               >
                 <FaCircleHalfStroke />
-                <span>High contrast</span>
+                <span>{t('accessibility.highContrast')}</span>
               </button>
             </div>
           </div>
 
           <div className="accessibility-section">
-            <h3>Content adjustment</h3>
+            <h3>{t('accessibility.contentAdjustment')}</h3>
 
             <div className="accessibility-content-box">
               <div className="accessibility-content-title">
                 <FaTextHeight />
 
                 <div>
-                  <strong>Font settings</strong>
-                  <span>Increase or modify text readability</span>
+                  <strong>{t('accessibility.fontSettings')}</strong>
+                  <span>{t('accessibility.fontSettingsHelp')}</span>
                 </div>
               </div>
 
@@ -279,19 +281,19 @@ function AccessibilityPanel() {
                 <button
                   type="button"
                   onClick={decreaseFont}
-                  aria-label="Decrease font size"
+                  aria-label={t('accessibility.decreaseFont')}
                 >
                   <FaMinus />
                 </button>
 
                 <span className="accessibility-font-level">
-                  Level {settings.fontLevel}
+                  {t('accessibility.level', { level: settings.fontLevel })}
                 </span>
 
                 <button
                   type="button"
                   onClick={increaseFont}
-                  aria-label="Increase font size"
+                  aria-label={t('accessibility.increaseFont')}
                 >
                   <FaPlus />
                 </button>
@@ -307,7 +309,7 @@ function AccessibilityPanel() {
                   }
                   onClick={() => toggleSetting('lineSpacing')}
                 >
-                  Line spacing
+                  {t('accessibility.lineSpacing')}
                 </button>
 
                 <button
@@ -319,7 +321,7 @@ function AccessibilityPanel() {
                   }
                   onClick={() => toggleSetting('wordSpacing')}
                 >
-                  Word spacing
+                  {t('accessibility.wordSpacing')}
                 </button>
 
                 <button
@@ -331,7 +333,7 @@ function AccessibilityPanel() {
                   }
                   onClick={() => toggleSetting('letterSpacing')}
                 >
-                  Letter spacing
+                  {t('accessibility.letterSpacing')}
                 </button>
               </div>
             </div>
@@ -341,8 +343,8 @@ function AccessibilityPanel() {
                 <FaArrowPointer />
 
                 <div>
-                  <strong>Cursor</strong>
-                  <span>Increase cursor size and change its color</span>
+                  <strong>{t('accessibility.cursor')}</strong>
+                  <span>{t('accessibility.cursorHelp')}</span>
                 </div>
               </div>
 
@@ -356,7 +358,7 @@ function AccessibilityPanel() {
                   }
                   onClick={() => setCursorMode('white')}
                 >
-                  White
+                  {t('accessibility.white')}
                 </button>
 
                 <button
@@ -368,7 +370,7 @@ function AccessibilityPanel() {
                   }
                   onClick={() => setCursorMode('black')}
                 >
-                  Black
+                  {t('accessibility.black')}
                 </button>
               </div>
             </div>
@@ -382,7 +384,7 @@ function AccessibilityPanel() {
                 onClick={() => toggleSetting('visibleFocus')}
               >
                 <FaKeyboard />
-                <span>Visible focus</span>
+                <span>{t('accessibility.visibleFocus')}</span>
               </button>
 
               <button
@@ -391,7 +393,7 @@ function AccessibilityPanel() {
                 onClick={resetSettings}
               >
                 <FaArrowRotateLeft />
-                <span>Reset settings</span>
+                <span>{t('accessibility.reset')}</span>
               </button>
             </div>
           </div>

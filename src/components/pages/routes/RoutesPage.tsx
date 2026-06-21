@@ -8,6 +8,7 @@ import { routeDataProvider } from '../../../services/routeService';
 import type { Route } from '../../../types/route';
 import { sortRoutes, type SortOption } from '../../../utils/homeView';
 import { isAuthenticated } from '../../../services/authService';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -16,6 +17,7 @@ interface RoutesPageProps {
 }
 
 function RoutesPage({ onNavigate }: RoutesPageProps) {
+  const { t } = useLanguage();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -78,7 +80,7 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load routes.');
+          setError(t('routes.loadError'));
         }
       } finally {
         if (mounted) {
@@ -164,22 +166,22 @@ function RoutesPage({ onNavigate }: RoutesPageProps) {
         />
 
         <div className="routes-page-title-row">
-          <h1>Routes</h1>
+          <h1>{t('routes.title')}</h1>
 
           <div className="routes-page-title-actions">
             <button className="routes-map-toggle-button" onClick={() => setShowGeneralMap((prev) => !prev)}>
-              {showGeneralMap ? 'Hide zone map' : 'General route map with zones'}
+              {showGeneralMap ? t('routes.hideZoneMap') : t('routes.generalMap')}
             </button>
 
             {canCreateRoute ? (
               <button className="create-route-primary-button" onClick={() => onNavigate('/routes/create')}>
-                Create your route
+                {t('routes.createRoute')}
               </button>
             ) : null}
           </div>
         </div>
 
-        {isLoading ? <p className="status-message">Loading routes...</p> : null}
+        {isLoading ? <p className="status-message">{t('routes.loading')}</p> : null}
         {!isLoading && error ? <p className="status-message error">{error}</p> : null}
 
         {!isLoading && !error && showGeneralMap ? (

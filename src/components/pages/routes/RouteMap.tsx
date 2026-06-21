@@ -5,6 +5,7 @@ import type { Route, Point } from '../../../types/route';
 import { routeDataProvider } from '../../../services/routeService';
 import { pointService } from '../../../services/pointService';
 import { buildMyWayUrl } from '../../../utils/routeNavigation';
+import { useLanguage } from '../../../i18n/LanguageContext';
 import './RouteMap.css';
 
 interface RouteMapProps {
@@ -17,6 +18,7 @@ interface MapMarker {
 }
 
 const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
+  const { t } = useLanguage();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, MapMarker>>(new Map());
@@ -40,13 +42,13 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
           setPoints(detailedRoute.points);
           setError('');
         } else {
-          setError('No route points available');
+          setError(t('routeDetail.noPoints'));
         }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
-          setError('Unable to load route details');
+          setError(t('routeDetail.loadDetailsError'));
         }
       } finally {
         setIsLoading(false);
@@ -54,7 +56,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
     };
 
     void loadRouteDetails();
-  }, [route]);
+  }, [route, t]);
 
   useEffect(() => {
     if (isLoading || !mapContainer.current || map.current) {
@@ -245,7 +247,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
   if (error) {
     return (
       <div className="route-map-section">
-        <h2>Map of the route</h2>
+        <h2>{t('routeDetail.map')}</h2>
         <div className="route-map-error">{error}</div>
       </div>
     );
@@ -254,7 +256,7 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
   return (
     <div className="route-map-section">
       <div className="route-map-header">
-        <h2>Map of the route</h2>
+        <h2>{t('routeDetail.map')}</h2>
         <button
           type="button"
           className="start-route-button"
@@ -262,11 +264,11 @@ const RouteMap: React.FC<RouteMapProps> = ({ route }) => {
             window.location.href = buildMyWayUrl(route._id);
           }}
         >
-          Start Route
+          {t('myway.start')}
         </button>
       </div>
       {isLoading ? (
-        <div className="route-map-loading">Loading map...</div>
+        <div className="route-map-loading">{t('routeDetail.loadingMap')}</div>
       ) : (
         <div className="route-map-container">
           <div className="map-wrapper" ref={mapContainer} />

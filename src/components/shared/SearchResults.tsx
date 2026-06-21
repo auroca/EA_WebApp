@@ -3,8 +3,10 @@ import { FaHeart, FaRegHeart, FaStar, FaWheelchair } from 'react-icons/fa';
 import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../services/authService';
 import { toggleFavoriteRouteByUserId } from '../../services/profileService';
 import type { Route } from '../../types/route';
-import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../../utils/homeView';
+import { getDifficultyBadgePath, getRouteImage } from '../../utils/homeView';
 import { buildRouteDetailUrl } from '../../utils/routeNavigation';
+import { useLanguage } from '../../i18n/LanguageContext';
+import type { TranslationKey } from '../../i18n/translations';
 
 interface SearchResultsProps {
   title?: string;
@@ -18,6 +20,12 @@ interface SearchResultsProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
+const difficultyKeys: Record<Route['difficulty'], TranslationKey> = {
+  easy: 'common.difficulty.easy',
+  medium: 'common.difficulty.medium',
+  hard: 'common.difficulty.hard'
+};
+
 function SearchResults({
   title = 'Search results',
   routes,
@@ -29,6 +37,7 @@ function SearchResults({
   onNextPage,
   onPageSizeChange
 }: SearchResultsProps) {
+  const { t } = useLanguage();
   const storedUser = getStoredUser();
   const [favoriteIds, setFavoriteIds] = useState<string[]>(storedUser?.favoriteRoutes ?? []);
   const startResult = totalResults === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -64,19 +73,19 @@ function SearchResults({
   };
 
   return (
-    <section className="search-results" aria-label="Search results">
+    <section className="search-results" aria-label={t('search.results')}>
       <header className="block-head">
-        <h2>{title}</h2>
+        <h2>{title === 'Search results' ? t('search.results') : title}</h2>
       </header>
 
       {totalResults > 0 ? (
         <div className="search-results-toolbar">
           <div className="search-results-summary">
-            Showing {startResult}-{endResult} of {totalResults}
+            {t('search.showing', { start: startResult, end: endResult, total: totalResults })}
           </div>
 
           <label className="search-results-size" htmlFor="search-results-page-size">
-            Show
+            {t('search.show')}
             <select
               id="search-results-page-size"
               value={pageSize}
@@ -86,20 +95,20 @@ function SearchResults({
               <option value={25}>25</option>
               <option value={50}>50</option>
             </select>
-            per page
+            {t('search.perPage')}
           </label>
 
-          <div className="search-results-pagination" aria-label="Search pagination">
+          <div className="search-results-pagination" aria-label={t('search.results')}>
             <button
               type="button"
               className="search-results-page-button"
               onClick={onPreviousPage}
               disabled={currentPage <= 1}
             >
-              Back
+              {t('common.back')}
             </button>
             <span className="search-results-page-indicator">
-              Page {currentPage} of {totalPages}
+              {t('search.page', { current: currentPage, total: totalPages })}
             </span>
             <button
               type="button"
@@ -107,14 +116,14 @@ function SearchResults({
               onClick={onNextPage}
               disabled={currentPage >= totalPages}
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         </div>
       ) : null}
 
       {routes.length === 0 ? (
-        <p className="status-message">No matching routes found.</p>
+        <p className="status-message">{t('search.noResults')}</p>
       ) : (
         <div className="search-results-list">
           {routes.map((route) => {
@@ -132,7 +141,7 @@ function SearchResults({
                   onClick={(event) => {
                     void handleToggleFavorite(event, route._id);
                   }}
-                  aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={isFavorite ? t('common.removeFavorite') : t('common.addFavorite')}
                 >
                   {isFavorite ? <FaHeart /> : <FaRegHeart />}
                 </button>
@@ -151,14 +160,14 @@ function SearchResults({
                           event.currentTarget.style.display = 'none';
                         }}
                       />
-                      <span>{toTitleCase(route.difficulty)}</span>
+                      <span>{t(difficultyKeys[route.difficulty])}</span>
                       {route.wheelchairAccessible ? (
-                        <span className="route-card-accessible" aria-label="Wheelchair accessible">
+                        <span className="route-card-accessible" aria-label={t('common.accessible')}>
                           <FaWheelchair aria-hidden="true" />
-                          Accessible
+                          {t('common.accessible')}
                         </span>
                       ) : null}
-                      <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                      <span className="route-card-rating" aria-label={t('common.averageRating', { rating: formattedRating })}>
                         <FaStar aria-hidden="true" />
                         {formattedRating}
                       </span>

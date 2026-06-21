@@ -2,6 +2,7 @@ import { FormEvent, useRef, useState } from 'react';
 import { FaPaperPlane, FaXmark } from 'react-icons/fa6';
 import { getApiBaseUrl } from '../../services/config';
 import { buildRouteDetailUrl } from '../../utils/routeNavigation';
+import { useLanguage } from '../../i18n/LanguageContext';
 import './PedroAssistant.css';
 
 type PedroRoute = {
@@ -34,14 +35,6 @@ type PedroMessage = {
 };
 
 const PEDRO_AVATAR_SRC = '/resources/icons/IA.gif';
-
-const initialMessages: PedroMessage[] = [
-  {
-    id: 1,
-    author: 'pedro',
-    text: 'Hiiii, I am Pedro, and I am here to help you find routes!!!'
-  }
-];
 
 async function sendPedroMessage(text: string): Promise<PedroRouteResponse> {
   const response = await fetch(`${getApiBaseUrl()}/ia/recommend`, {
@@ -105,6 +98,7 @@ function buildRouteAnswerParts(answer: string, routes: PedroRoute[]) {
 }
 
 function PedroAnswer({ response }: { response: PedroRouteResponse }) {
+  const { t } = useLanguage();
   const routes = response.routes ?? [];
   const selectedRoute = response.selectedRoute;
   const alternatives = selectedRoute
@@ -138,7 +132,7 @@ function PedroAnswer({ response }: { response: PedroRouteResponse }) {
       )}
 
       {alternatives.length > 0 && (
-        <div className="pedro-assistant-alternatives" aria-label="Alternative routes">
+        <div className="pedro-assistant-alternatives" aria-label={t('pedro.alternatives')}>
           {alternatives.map((route) => (
             <a
               key={route.route_id}
@@ -156,9 +150,16 @@ function PedroAnswer({ response }: { response: PedroRouteResponse }) {
 }
 
 function PedroAssistant() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isGreetingVisible, setIsGreetingVisible] = useState(true);
-  const [messages, setMessages] = useState<PedroMessage[]>(initialMessages);
+  const [messages, setMessages] = useState<PedroMessage[]>(() => [
+    {
+      id: 1,
+      author: 'pedro',
+      text: t('pedro.greeting')
+    }
+  ]);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const nextMessageId = useRef(2);
@@ -196,7 +197,7 @@ function PedroAssistant() {
       const response = await sendPedroMessage(cleanMessage);
       addMessage('pedro', response.answer, response);
     } catch {
-      addMessage('pedro', 'I could not send the message right now. Please try again in a moment.');
+      addMessage('pedro', t('pedro.error'));
     } finally {
       setIsSending(false);
     }
@@ -205,13 +206,13 @@ function PedroAssistant() {
   return (
     <div className="pedro-assistant-widget">
       {isOpen && (
-        <section className="pedro-assistant-panel" aria-label="Pedro assistant conversation">
+        <section className="pedro-assistant-panel" aria-label={t('pedro.open')}>
           <header className="pedro-assistant-header">
             <div className="pedro-assistant-title">
               <img src={PEDRO_AVATAR_SRC} alt="" aria-hidden="true" />
               <div>
                 <strong>Pedro</strong>
-                <span>Route assistant</span>
+                <span>{t('pedro.title')}</span>
               </div>
             </div>
 
@@ -219,7 +220,7 @@ function PedroAssistant() {
               type="button"
               className="pedro-assistant-close"
               onClick={() => setIsOpen(false)}
-              aria-label="Close Pedro conversation"
+              aria-label={t('pedro.close')}
             >
               <FaXmark />
             </button>
@@ -237,7 +238,7 @@ function PedroAssistant() {
 
             {isSending && (
               <div className="pedro-assistant-message pedro-assistant-message-pedro">
-                Pedro is thinking...
+                {t('pedro.thinking')}
               </div>
             )}
           </div>
@@ -247,11 +248,11 @@ function PedroAssistant() {
               type="text"
               value={messageText}
               onChange={(event) => setMessageText(event.target.value)}
-              placeholder="Write your message"
-              aria-label="Message for Pedro"
+              placeholder={t('pedro.placeholder')}
+              aria-label={t('pedro.input')}
             />
 
-            <button type="submit" disabled={!messageText.trim() || isSending} aria-label="Send message">
+            <button type="submit" disabled={!messageText.trim() || isSending} aria-label={t('pedro.send')}>
               <FaPaperPlane />
             </button>
           </form>
@@ -264,11 +265,11 @@ function PedroAssistant() {
             type="button"
             className="pedro-assistant-bubble-close"
             onClick={() => setIsGreetingVisible(false)}
-            aria-label="Hide Pedro greeting"
+            aria-label={t('pedro.hideGreeting')}
           >
             <FaXmark />
           </button>
-          <span>Hiiii, I am Pedro, and I am here to help you find routes!!!</span>
+          <span>{t('pedro.greeting')}</span>
         </div>
       )}
 
@@ -276,7 +277,7 @@ function PedroAssistant() {
         type="button"
         className="pedro-assistant-button"
         onClick={() => setIsOpen((currentValue) => !currentValue)}
-        aria-label={isOpen ? 'Close Pedro conversation' : 'Open Pedro conversation'}
+        aria-label={isOpen ? t('pedro.close') : t('pedro.open')}
       >
         <img src={PEDRO_AVATAR_SRC} alt="" aria-hidden="true" />
       </button>
