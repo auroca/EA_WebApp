@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { getStoredSession, getStoredUser, isAuthenticated, logoutUser } from '../../services/authService';
 import { registerPushNotificationsForUser } from '../../services/notificationService';
 import { getMyAchievements } from '../../services/achievementService';
+import { getAllChats } from '../../services/chatService';
+import { getOrCreateChatSocket } from '../../services/chatSocket';
+import { CHAT_UNREAD_UPDATED_EVENT } from '../../services/chatUnreadService';
+import type { ChatMessageEvent } from '../../types/chat';
 import { getTopNavIconPath, topNavItems, type TopNavKey } from '../../utils/homeView';
 
 interface TopNavProps {
@@ -29,6 +33,7 @@ function TopNav({ activeTopNav }: TopNavProps) {
   >('idle');
   const [notificationMessage, setNotificationMessage] = useState<string>('');
   const [hasNewAchievements, setHasNewAchievements] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState<number>(0);
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const user = getStoredUser();
@@ -69,6 +74,75 @@ function TopNav({ activeTopNav }: TopNavProps) {
       window.removeEventListener('achievements-seen-updated', checkNewAchievements);
     };
   }, []);
+
+  useEffect(() => {
+    if (!loggedIn) {
+      setChatUnreadCount(0);
+      return;
+    }
+
+    let mounted = true;
+    const session = getStoredSession();
+
+    const loadUnreadCount = async (): Promise<void> => {
+      try {
+        const chats = await getAllChats();
+        const total = chats.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0);
+
+        if (mounted) {
+          setChatUnreadCount(total);
+        }
+      } catch {
+        if (mounted) {
+          setChatUnreadCount(0);
+        }
+      }
+    };
+
+    const handleUnreadUpdated = (event: Event): void => {
+      const detail = (event as CustomEvent<{ total?: number }>).detail;
+
+      if (typeof detail?.total === 'number') {
+        setChatUnreadCount(Math.max(0, detail.total));
+        return;
+      }
+
+      void loadUnreadCount();
+    };
+
+    const handlePushNotification = (): void => {
+      void loadUnreadCount();
+    };
+
+    void loadUnreadCount();
+
+    window.addEventListener(CHAT_UNREAD_UPDATED_EVENT, handleUnreadUpdated);
+    window.addEventListener('trip2guide:push-notification', handlePushNotification);
+    window.addEventListener('focus', loadUnreadCount);
+
+    const socket = session?.token ? getOrCreateChatSocket(session.token) : null;
+    const handleSocketMessage = (event: ChatMessageEvent): void => {
+      const sentByCurrentUser = event.user_id === session?.user._id || event.username === session?.user.username;
+
+      if (!sentByCurrentUser) {
+        setChatUnreadCount((current) => current + 1);
+      }
+
+      window.setTimeout(() => {
+        void loadUnreadCount();
+      }, 600);
+    };
+
+    socket?.on('chat:message', handleSocketMessage);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener(CHAT_UNREAD_UPDATED_EVENT, handleUnreadUpdated);
+      window.removeEventListener('trip2guide:push-notification', handlePushNotification);
+      window.removeEventListener('focus', loadUnreadCount);
+      socket?.off('chat:message', handleSocketMessage);
+    };
+  }, [loggedIn]);
 
   useEffect(() => {
     const handleDocumentClick = (event: MouseEvent): void => {
@@ -226,6 +300,11 @@ function TopNav({ activeTopNav }: TopNavProps) {
                 >
                   <img className="nav-icon" src={getTopNavIconPath(item.icon, isSelected)} alt="" aria-hidden="true" />
                   <span className="nav-label">{item.label}</span>
+                  {chatUnreadCount > 0 ? (
+                    <span className="nav-unread-badge" aria-label={`${chatUnreadCount} unread chat messages`}>
+                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                    </span>
+                  ) : null}
                 </button>
               );
             }

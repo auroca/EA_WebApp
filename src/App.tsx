@@ -31,6 +31,7 @@ declare global {
 const DEFAULT_SEARCH_PAGE_SIZE = 10;
 
 interface WebPushToast {
+  id: string;
   title: string;
   body: string;
   data: Record<string, string>;
@@ -87,7 +88,7 @@ function App() {
   const [accessibilityFilter, setAccessibilityFilter] = useState<AccessibilityFilter>('all');
   const [searchPage, setSearchPage] = useState<number>(1);
   const [searchPageSize, setSearchPageSize] = useState<number>(DEFAULT_SEARCH_PAGE_SIZE);
-  const [webPushToast, setWebPushToast] = useState<WebPushToast | null>(null);
+  const [webPushToasts, setWebPushToasts] = useState<WebPushToast[]>([]);
   //
   const isSearchActive = isSearchFocused || searchInput.trim().length > 0;
   const newestRoutes = homeData.routes.slice(-3);
@@ -225,30 +226,39 @@ function App() {
     return '/';
   };
 
-  const renderWebPushToast = () => {
-    if (!webPushToast) {
+  const closeWebPushToast = (toastId: string): void => {
+    setWebPushToasts((current) => current.filter((toast) => toast.id !== toastId));
+  };
+
+  const renderWebPushToasts = () => {
+    if (webPushToasts.length === 0) {
       return null;
     }
 
     return (
-      <button
-        type="button"
-        className="web-push-toast"
-        onClick={() => {
-          const path = getNotificationPath(webPushToast.data);
+      <div className="web-push-toast-stack" aria-live="polite">
+        {webPushToasts.map((toast) => (
+          <button
+            key={toast.id}
+            type="button"
+            className="web-push-toast"
+            onClick={() => {
+              const path = getNotificationPath(toast.data);
 
-          if (path.startsWith('/route.html') || path.includes('?')) {
-            window.location.href = path;
-            return;
-          }
+              if (path.startsWith('/route.html') || path.includes('?')) {
+                window.location.href = path;
+                return;
+              }
 
-          navigateTo(path);
-          setWebPushToast(null);
-        }}
-      >
-        <span className="web-push-toast-title">{webPushToast.title}</span>
-        {webPushToast.body ? <span className="web-push-toast-body">{webPushToast.body}</span> : null}
-      </button>
+              navigateTo(path);
+              closeWebPushToast(toast.id);
+            }}
+          >
+            <span className="web-push-toast-title">{toast.title || 'Trip2Guide'}</span>
+            {toast.body ? <span className="web-push-toast-body">{toast.body}</span> : null}
+          </button>
+        ))}
+      </div>
     );
   };
 
@@ -286,8 +296,15 @@ function App() {
         return;
       }
 
-      setWebPushToast(detail);
-      window.setTimeout(() => setWebPushToast(null), 7000);
+      const toast: WebPushToast = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title: detail.title || 'Trip2Guide',
+        body: detail.body ?? '',
+        data: detail.data ?? {}
+      };
+
+      setWebPushToasts((current) => [...current.slice(-2), toast]);
+      window.setTimeout(() => closeWebPushToast(toast.id), 7000);
     };
 
     window.addEventListener('trip2guide:push-notification', handlePushNotification);
@@ -370,7 +387,7 @@ function App() {
       <>
         <ProfilePage onNavigate={navigateTo} />
         <AppOverlays />
-        {renderWebPushToast()}
+        {renderWebPushToasts()}
       </>
     );
   }
@@ -380,7 +397,7 @@ function App() {
       <>
         <FavoritesPage />
         <AppOverlays />
-        {renderWebPushToast()}
+        {renderWebPushToasts()}
       </>
     );
   }
@@ -390,7 +407,7 @@ function App() {
       <>
         <ChatPage />
         <AppOverlays />
-        {renderWebPushToast()}
+        {renderWebPushToasts()}
       </>
     );
   }
@@ -405,7 +422,7 @@ function App() {
       <>
         <CreateRoutePage onNavigate={navigateTo} />
         <AppOverlays />
-        {renderWebPushToast()}
+        {renderWebPushToasts()}
       </>
     );
   }
@@ -415,7 +432,7 @@ function App() {
       <>
         <RoutesPage onNavigate={navigateTo} />
         <AppOverlays />
-        {renderWebPushToast()}
+        {renderWebPushToasts()}
       </>
     );
   }
@@ -428,7 +445,7 @@ function App() {
     <main className="home-page">
       <TopNav activeTopNav={activeTopNav} />
       <AppOverlays />
-      {renderWebPushToast()}
+      {renderWebPushToasts()}
 
       <section className="home-content">
         <SearchArea

@@ -44,6 +44,16 @@ export const getChatById = async (chatId: string): Promise<ChatDetail> => {
   return (await response.json()) as ChatDetail;
 };
 
+export const markChatAsRead = async (chatId: string): Promise<void> => {
+  const response = await authenticatedFetch(`/chats/${chatId}/read`, {
+    method: 'POST'
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response, 'Unable to mark this chat as read.'));
+  }
+};
+
 export const joinChatById = async (chatId: string, password: string): Promise<ChatDetail> => {
   const response = await authenticatedFetch(`/chats/${chatId}/join`, {
     method: 'POST',

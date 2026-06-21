@@ -2,6 +2,7 @@ export interface ChatSummary {
   _id: string;
   name: string;
   hasPassword: boolean;
+  unreadCount?: number;
 }
 
 export interface ChatParticipant {
@@ -21,12 +22,14 @@ export interface ChatDetail {
   name: string;
   participants: ChatParticipant[];
   chatHistory: ChatHistoryMessage[];
+  unreadCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface ChatMessageEvent {
   chat_id: string;
+  user_id?: string;
   username: string;
   message: string;
   timestamp: string;
