@@ -2,6 +2,10 @@ import { FormEvent, useState } from 'react';
 import TopNav from '../../shared/TopNav';
 import { routeDataProvider } from '../../../services/routeService';
 import type { RouteCreateInput, RoutePointCreateInput } from '../../../types/route';
+import PointMapPicker from './PointMapPicker';
+import CountryCombobox from './CountryCombobox';
+import { isCountryName } from './countries';
+import ImageUrlPicker from './ImageUrlPicker';
 
 interface CreateRoutePageProps {
   onNavigate: (path: string) => void;
@@ -90,6 +94,10 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
       return 'Complete the route information.';
     }
 
+    if (!isCountryName(country)) {
+      return 'Select a country from the list.';
+    }
+
     if (!Number.isFinite(Number(distance)) || Number(distance) <= 0) {
       return 'Distance must be a valid number.';
     }
@@ -172,10 +180,13 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
               <textarea value={description} onChange={(event) => setDescription(event.target.value)} />
             </label>
 
-            <label>
-              Cover image URL
-              <input value={coverImage} onChange={(event) => setCoverImage(event.target.value)} />
-            </label>
+            <ImageUrlPicker
+              id="create-route-cover-image"
+              label="Cover image URL"
+              value={coverImage}
+              onChange={setCoverImage}
+              initialSearch={[name, city, country].filter(Boolean).join(' ')}
+            />
 
             <div className="create-route-grid">
               <label>
@@ -183,10 +194,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
                 <input value={city} onChange={(event) => setCity(event.target.value)} />
               </label>
 
-              <label>
-                Country
-                <input value={country} onChange={(event) => setCountry(event.target.value)} />
-              </label>
+              <CountryCombobox value={country} onChange={setCountry} />
 
               <label>
                 Distance km
@@ -245,7 +253,7 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
                     <textarea value={point.description} onChange={(event) => updatePoint(index, 'description', event.target.value)} />
                   </label>
 
-                  <div className="create-route-grid">
+                  <div className="create-route-coordinate-row">
                     <label>
                       Latitude
                       <input value={point.latitude} onChange={(event) => updatePoint(index, 'latitude', event.target.value)} />
@@ -255,12 +263,25 @@ function CreateRoutePage({ onNavigate }: CreateRoutePageProps) {
                       Longitude
                       <input value={point.longitude} onChange={(event) => updatePoint(index, 'longitude', event.target.value)} />
                     </label>
+
+                    <PointMapPicker
+                      latitude={point.latitude}
+                      longitude={point.longitude}
+                      pointNumber={index + 1}
+                      onSelect={(selectedLatitude, selectedLongitude) => {
+                        updatePoint(index, 'latitude', selectedLatitude);
+                        updatePoint(index, 'longitude', selectedLongitude);
+                      }}
+                    />
                   </div>
 
-                  <label>
-                    Image URL
-                    <input value={point.image} onChange={(event) => updatePoint(index, 'image', event.target.value)} />
-                  </label>
+                  <ImageUrlPicker
+                    id={`create-route-point-image-${index}`}
+                    label="Image URL"
+                    value={point.image}
+                    onChange={(selectedImage) => updatePoint(index, 'image', selectedImage)}
+                    initialSearch={[point.name, city, country].filter(Boolean).join(' ')}
+                  />
                 </div>
               ))}
             </div>
