@@ -21,6 +21,7 @@ import type { Review } from "../../../types/review";
 import type { Route } from "../../../types/route";
 import TopNav from "../../shared/TopNav";
 import Achievements from "./Achievements";
+import { useLanguage } from "../../../i18n/LanguageContext";
 
 interface ProfilePageProps {
   onNavigate: (path: string) => void;
@@ -128,6 +129,7 @@ const formatReviewDate = (value?: string): string => {
 };
 
 function ProfilePage({ onNavigate }: ProfilePageProps) {
+  const { t } = useLanguage();
   const sessionUser = useMemo(() => getStoredUser(), []);
 
   const [user, setUser] = useState<AuthUser | null>(sessionUser);
@@ -244,7 +246,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         setPageError(
           error instanceof Error
             ? error.message
-            : "Unable to load the profile.",
+            : t("profile.loadError"),
         );
       } finally {
         if (mounted) setLoading(false);
@@ -256,7 +258,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
     return () => {
       mounted = false;
     };
-  }, [onNavigate, sessionUser]);
+  }, [onNavigate, sessionUser, t]);
 
   const handleUserFieldChange = (
     field: keyof UserFormState,
@@ -284,17 +286,17 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
     if (wantsPasswordChange) {
       if (!userForm.newPassword.trim() || !userForm.confirmNewPassword.trim()) {
-        setUserMessage("To change the password, fill in both password fields.");
+        setUserMessage(t("profile.passwordBothFields"));
         return;
       }
 
       if (userForm.newPassword !== userForm.confirmNewPassword) {
-        setUserMessage("The new passwords do not match.");
+        setUserMessage(t("profile.passwordMismatch"));
         return;
       }
 
       if (userForm.newPassword.length < 6) {
-        setUserMessage("The new password must contain at least 6 characters.");
+        setUserMessage(t("profile.passwordMin"));
         return;
       }
     }
@@ -332,12 +334,12 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       setUserForm(createUserFormState(updatedUser));
       setUserMessage(
         wantsPasswordChange
-          ? "Profile and password updated successfully."
-          : "Profile updated successfully.",
+          ? t("profile.updatedPassword")
+          : t("profile.updated"),
       );
     } catch (error) {
       setUserMessage(
-        error instanceof Error ? error.message : "Unable to save the profile.",
+        error instanceof Error ? error.message : t("profile.saveError"),
       );
     } finally {
       setSavingUser(false);
@@ -346,18 +348,18 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   const handleDeleteAccount = async (): Promise<void> => {
     if (!user?._id) {
-      setAccountDeleteMessage("User session not found.");
+      setAccountDeleteMessage(t("profile.userNotFound"));
       return;
     }
 
     const confirmed = window.confirm(
-      "Delete your account? This action cannot be undone.",
+      t("profile.deleteConfirm"),
     );
 
     if (!confirmed) return;
 
     const confirmedAgain = window.confirm(
-      "This will permanently delete your account. Do you want to continue?",
+      t("profile.deleteConfirmFinal"),
     );
 
     if (!confirmedAgain) return;
@@ -373,7 +375,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       setAccountDeleteMessage(
         error instanceof Error
           ? error.message
-          : "Unable to delete the account.",
+          : t("profile.deleteError"),
       );
     } finally {
       setDeletingAccount(false);
@@ -449,10 +451,10 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
       setEditingRouteId("");
       setRouteForm(null);
-      setRouteMessage("Route updated successfully.");
+      setRouteMessage(t("profile.routeUpdated"));
     } catch (error) {
       setRouteMessage(
-        error instanceof Error ? error.message : "Unable to save the route.",
+        error instanceof Error ? error.message : t("profile.routeSaveError"),
       );
     } finally {
       setSavingRoute(false);
@@ -461,7 +463,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   const handleDeleteRoute = async (route: Route): Promise<void> => {
     const confirmed = window.confirm(
-      `Delete route "${route.name}"? This action cannot be undone.`,
+      t("profile.routeDeleteConfirm", { name: route.name }),
     );
 
     if (!confirmed) return;
@@ -476,7 +478,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         ...prev,
         routesCreated: Math.max(prev.routesCreated - 1, 0),
       }));
-      setRouteMessage("Route deleted successfully.");
+      setRouteMessage(t("profile.routeDeleted"));
 
       if (editingRouteId === route._id) {
         setEditingRouteId("");
@@ -484,7 +486,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       }
     } catch (error) {
       setRouteMessage(
-        error instanceof Error ? error.message : "Unable to delete the route.",
+        error instanceof Error ? error.message : t("profile.routeDeleteError"),
       );
     } finally {
       setDeletingRouteId("");
@@ -527,7 +529,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
     if (!reviewForm) return;
 
     if (!reviewForm.title.trim()) {
-      setReviewMessage("Review title is required.");
+      setReviewMessage(t("profile.reviewTitleRequired"));
       return;
     }
 
@@ -540,7 +542,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       ratings.length === 0 ||
       ratings.some((rating) => !Number.isFinite(rating.score))
     ) {
-      setReviewMessage("All review ratings must be valid numbers.");
+      setReviewMessage(t("profile.reviewRatingsInvalid"));
       return;
     }
 
@@ -561,10 +563,10 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       );
       setEditingReviewId("");
       setReviewForm(null);
-      setReviewMessage("Review updated successfully.");
+      setReviewMessage(t("profile.reviewUpdated"));
     } catch (error) {
       setReviewMessage(
-        error instanceof Error ? error.message : "Unable to save the review.",
+        error instanceof Error ? error.message : t("profile.reviewSaveError"),
       );
     } finally {
       setSavingReview(false);
@@ -573,7 +575,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   const handleDeleteReview = async (review: Review): Promise<void> => {
     const confirmed = window.confirm(
-      `Delete review "${review.title}"? This action cannot be undone.`,
+      t("profile.reviewDeleteConfirm", { name: review.title }),
     );
 
     if (!confirmed) return;
@@ -591,7 +593,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
           0,
         ),
       }));
-      setReviewMessage("Review deleted successfully.");
+      setReviewMessage(t("profile.reviewDeleted"));
 
       if (editingReviewId === review._id) {
         setEditingReviewId("");
@@ -599,7 +601,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
       }
     } catch (error) {
       setReviewMessage(
-        error instanceof Error ? error.message : "Unable to delete the review.",
+        error instanceof Error ? error.message : t("profile.reviewDeleteError"),
       );
     } finally {
       setDeletingReviewId("");
@@ -622,7 +624,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         <TopNav activeTopNav="home" />
         <main className="profile-page">
           <div className="profile-shell">
-            <p className="profile-loading">Loading profile...</p>
+            <p className="profile-loading">{t('profile.loading')}</p>
           </div>
         </main>
       </>
@@ -635,7 +637,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         <TopNav activeTopNav="home" />
         <main className="profile-page">
           <div className="profile-shell">
-            <p className="profile-error">User session not found.</p>
+            <p className="profile-error">{t('profile.userNotFound')}</p>
           </div>
         </main>
       </>
@@ -650,9 +652,9 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
         <div className="profile-shell">
           <div className="profile-header">
             <div>
-              <h1 className="profile-title">My profile</h1>
+              <h1 className="profile-title">{t('profile.myProfile')}</h1>
               <p className="profile-subtitle">
-                View and edit your account information and routes.
+                {t('profile.subtitle')}
               </p>
             </div>
           </div>
@@ -661,14 +663,14 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
           <section className="profile-card">
             <div className="profile-card-header">
-              <h2>Account information</h2>
+              <h2>{t('profile.accountInfo')}</h2>
 
               {!editingUser ? (
                 <button
                   className="profile-btn-primary"
                   onClick={() => setEditingUser(true)}
                 >
-                  Edit profile
+                  {t('profile.editProfile')}
                 </button>
               ) : (
                 <div className="profile-actions-inline">
@@ -680,7 +682,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                     }}
                     disabled={savingUser}
                   >
-                    Cancel
+                    {t('createRoute.cancel')}
                   </button>
 
                   <button
@@ -690,7 +692,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                     }}
                     disabled={savingUser}
                   >
-                    {savingUser ? "Saving..." : "Save changes"}
+                    {savingUser ? t('common.saving') : t('common.saveChanges')}
                   </button>
                 </div>
               )}
@@ -703,30 +705,30 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
             {!editingUser ? (
               <div className="profile-info-grid">
                 <div>
-                  <span className="profile-label">Name</span>
+                  <span className="profile-label">{t('common.name')}</span>
                   <strong>{user.name || "-"}</strong>
                 </div>
                 <div>
-                  <span className="profile-label">Surname</span>
+                  <span className="profile-label">{t('common.surname')}</span>
                   <strong>{user.surname || "-"}</strong>
                 </div>
                 <div>
-                  <span className="profile-label">Username</span>
+                  <span className="profile-label">{t('common.username')}</span>
                   <strong>{user.username || "-"}</strong>
                 </div>
                 <div>
-                  <span className="profile-label">Email</span>
+                  <span className="profile-label">{t('common.email')}</span>
                   <strong>{user.email || "-"}</strong>
                 </div>
                 <div>
-                  <span className="profile-label">Password</span>
+                  <span className="profile-label">{t('common.password')}</span>
                   <strong>••••••••</strong>
                 </div>
               </div>
             ) : (
               <div className="profile-form-grid">
                 <label className="profile-field">
-                  <span>Name</span>
+                  <span>{t('common.name')}</span>
                   <input
                     value={userForm.name}
                     onChange={(event) =>
@@ -736,7 +738,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
 
                 <label className="profile-field">
-                  <span>Surname</span>
+                  <span>{t('common.surname')}</span>
                   <input
                     value={userForm.surname}
                     onChange={(event) =>
@@ -746,7 +748,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
 
                 <label className="profile-field">
-                  <span>Username</span>
+                  <span>{t('common.username')}</span>
                   <input
                     value={userForm.username}
                     onChange={(event) =>
@@ -756,7 +758,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
 
                 <label className="profile-field">
-                  <span>Email</span>
+                  <span>{t('common.email')}</span>
                   <input
                     type="email"
                     value={userForm.email}
@@ -767,7 +769,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
 
                 <label className="profile-field">
-                  <span>New password</span>
+                  <span>{t('profile.newPassword')}</span>
                   <input
                     type="password"
                     value={userForm.newPassword}
@@ -778,7 +780,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </label>
 
                 <label className="profile-field">
-                  <span>Confirm new password</span>
+                  <span>{t('profile.confirmNewPassword')}</span>
                   <input
                     type="password"
                     value={userForm.confirmNewPassword}
@@ -797,9 +799,9 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
           <section className="profile-card">
             <div className="profile-card-header">
               <div>
-                <h2>Delete account</h2>
+                <h2>{t('profile.deleteAccount')}</h2>
                 <p className="profile-subtitle">
-                  Permanently delete your account and end your current session.
+                  {t('profile.deleteAccountHelp')}
                 </p>
               </div>
 
@@ -810,7 +812,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                 }}
                 disabled={deletingAccount}
               >
-                {deletingAccount ? "Deleting..." : "Delete account"}
+                {deletingAccount ? t('profile.deleting') : t('profile.deleteAccount')}
               </button>
             </div>
 
@@ -821,22 +823,22 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
           <section className="profile-card">
             <div className="profile-card-header">
-              <h2>Creator statistics</h2>
+              <h2>{t('profile.creatorStats')}</h2>
             </div>
 
             <div className="profile-info-grid">
               <div>
-                <span className="profile-label">Routes created</span>
+                <span className="profile-label">{t('profile.routesCreated')}</span>
                 <strong>{creatorStats.routesCreated}</strong>
               </div>
 
               <div>
-                <span className="profile-label">Points created</span>
+                <span className="profile-label">{t('profile.pointsCreated')}</span>
                 <strong>{creatorStats.pointsCreated}</strong>
               </div>
 
               <div>
-                <span className="profile-label">Reviews written</span>
+                <span className="profile-label">{t('profile.reviewsWritten')}</span>
                 <strong>{creatorStats.reviewsWritten ?? reviews.length}</strong>
               </div>
             </div>
@@ -848,7 +850,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
           <section className="profile-card">
             <div className="profile-card-header">
-              <h2>My reviews</h2>
+              <h2>{t('profile.myReviews')}</h2>
             </div>
 
             {reviewMessage ? (
@@ -857,7 +859,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
             {reviews.length === 0 ? (
               <p className="profile-empty">
-                You have not published any reviews yet.
+                {t('profile.noReviews')}
               </p>
             ) : (
               <div className="profile-reviews-list">
@@ -910,8 +912,8 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               disabled={deletingReviewId === review._id}
                             >
                               {deletingReviewId === review._id
-                                ? "Deleting..."
-                                : "Delete review"}
+                                ? t('profile.deleting')
+                                : t('profile.deleteReview')}
                             </button>
 
                             <button
@@ -927,7 +929,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                         <>
                           <div className="profile-review-header">
                             <div>
-                              <h3>Editing review</h3>
+                              <h3>{t('profile.editingReview')}</h3>
                               <p>
                                 {routeName
                                   ? `Route: ${routeName}`
@@ -941,7 +943,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                 onClick={cancelReviewEdit}
                                 disabled={savingReview}
                               >
-                                Cancel
+                                {t('createRoute.cancel')}
                               </button>
 
                               <button
@@ -951,14 +953,14 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                 }}
                                 disabled={savingReview}
                               >
-                                {savingReview ? "Saving..." : "Save review"}
+                                {savingReview ? t('common.saving') : t('profile.saveReview')}
                               </button>
                             </div>
                           </div>
 
                           <div className="profile-form-grid">
                             <label className="profile-field">
-                              <span>Title</span>
+                              <span>{t('common.title')}</span>
                               <input
                                 value={reviewForm.title}
                                 onChange={(event) =>
@@ -971,7 +973,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                             </label>
 
                             <label className="profile-field profile-field-full">
-                              <span>Description</span>
+                              <span>{t('common.description')}</span>
                               <textarea
                                 rows={3}
                                 value={reviewForm.comment}
@@ -1017,7 +1019,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
           <section className="profile-card">
             <div className="profile-card-header">
-              <h2>My published routes</h2>
+              <h2>{t('profile.myPublishedRoutes')}</h2>
             </div>
 
             {routeMessage ? (
@@ -1026,7 +1028,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
 
             {routes.length === 0 ? (
               <p className="profile-empty">
-                You have not published any routes yet.
+                {t('profile.noPublishedRoutes')}
               </p>
             ) : (
               <div className="profile-routes-list">
@@ -1067,8 +1069,8 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                   disabled={deletingRouteId === route._id}
                                 >
                                   {deletingRouteId === route._id
-                                    ? "Deleting..."
-                                    : "Delete route"}
+                                    ? t('profile.deleting')
+                                    : t('profile.deleteRoute')}
                                 </button>
 
                                 <button
@@ -1106,7 +1108,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                       ) : (
                         <>
                           <div className="profile-route-header">
-                            <h3>Editing route</h3>
+                            <h3>{t('profile.editingRoute')}</h3>
 
                             <div className="profile-actions-inline">
                               <button
@@ -1114,7 +1116,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                 onClick={cancelRouteEdit}
                                 disabled={savingRoute}
                               >
-                                Cancel
+                                {t('createRoute.cancel')}
                               </button>
 
                               <button
@@ -1124,7 +1126,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                 }}
                                 disabled={savingRoute}
                               >
-                                {savingRoute ? "Saving..." : "Save route"}
+                                {savingRoute ? t('common.saving') : t('profile.saveRoute')}
                               </button>
                             </div>
                           </div>
@@ -1134,18 +1136,18 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               {routeForm.cover_image.trim().length > 0 ? (
                                 <img
                                   src={routeForm.cover_image}
-                                  alt={routeForm.name || "Route cover"}
+                                  alt={routeForm.name || t("profile.routeCover")}
                                 />
                               ) : (
                                 <div className="profile-route-image-placeholder">
-                                  No cover image
+                                  {t('profile.noCoverImage')}
                                 </div>
                               )}
                             </div>
 
                             <div className="profile-form-grid">
                               <label className="profile-field">
-                                <span>Name</span>
+                                <span>{t('common.name')}</span>
                                 <input
                                   value={routeForm.name}
                                   onChange={(event) =>
@@ -1158,7 +1160,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field">
-                                <span>Difficulty</span>
+                                <span>{t('common.difficulty.label')}</span>
                                 <select
                                   value={routeForm.difficulty}
                                   onChange={(event) =>
@@ -1171,14 +1173,14 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                                     )
                                   }
                                 >
-                                  <option value="easy">easy</option>
-                                  <option value="medium">medium</option>
-                                  <option value="hard">hard</option>
+                                  <option value="easy">{t('common.difficulty.easy')}</option>
+                                  <option value="medium">{t('common.difficulty.medium')}</option>
+                                  <option value="hard">{t('common.difficulty.hard')}</option>
                                 </select>
                               </label>
 
                               <label className="profile-field">
-                                <span>City</span>
+                                <span>{t('common.city')}</span>
                                 <input
                                   value={routeForm.city}
                                   onChange={(event) =>
@@ -1191,7 +1193,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field">
-                                <span>Country</span>
+                                <span>{t('common.country')}</span>
                                 <input
                                   value={routeForm.country}
                                   onChange={(event) =>
@@ -1204,7 +1206,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field">
-                                <span>Distance</span>
+                                <span>{t('common.distance')}</span>
                                 <input
                                   type="number"
                                   value={routeForm.distance}
@@ -1218,7 +1220,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field">
-                                <span>Duration</span>
+                                <span>{t('common.duration')}</span>
                                 <input
                                   type="number"
                                   value={routeForm.duration}
@@ -1232,7 +1234,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field profile-field-full">
-                                <span>Description</span>
+                                <span>{t('common.description')}</span>
                                 <textarea
                                   rows={4}
                                   value={routeForm.description}
@@ -1246,7 +1248,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field profile-field-full">
-                                <span>Cover image URL</span>
+                                <span>{t('profile.coverImageUrl')}</span>
                                 <input
                                   value={routeForm.cover_image}
                                   onChange={(event) =>
@@ -1259,7 +1261,7 @@ function ProfilePage({ onNavigate }: ProfilePageProps) {
                               </label>
 
                               <label className="profile-field profile-field-full">
-                                <span>Tags comma separated</span>
+                                <span>{t('profile.tagsCommaSeparated')}</span>
                                 <input
                                   value={routeForm.tagsText}
                                   onChange={(event) =>

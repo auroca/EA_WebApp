@@ -1,5 +1,6 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { COUNTRY_NAMES, normalizeCountrySearch } from './countries';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface CountryComboboxProps {
   value: string;
@@ -7,6 +8,7 @@ interface CountryComboboxProps {
 }
 
 function CountryCombobox({ value, onChange }: CountryComboboxProps) {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
@@ -72,7 +74,7 @@ function CountryCombobox({ value, onChange }: CountryComboboxProps) {
 
   return (
     <div className="country-combobox-field" ref={containerRef}>
-      <label htmlFor="create-route-country">Country</label>
+      <label htmlFor="create-route-country">{t('common.country')}</label>
 
       <div className="country-combobox">
         <input
@@ -84,7 +86,7 @@ function CountryCombobox({ value, onChange }: CountryComboboxProps) {
           aria-controls="create-route-country-options"
           aria-activedescendant={activeIndex >= 0 ? `country-option-${activeIndex}` : undefined}
           autoComplete="off"
-          placeholder="Type to search countries"
+          placeholder={t('country.placeholder')}
           value={value}
           onChange={(event) => {
             onChange(event.target.value);
@@ -97,7 +99,7 @@ function CountryCombobox({ value, onChange }: CountryComboboxProps) {
         <button
           type="button"
           className="country-combobox-toggle"
-          aria-label={isOpen ? 'Close country list' : 'Open country list'}
+          aria-label={isOpen ? t('country.closeList') : t('country.openList')}
           onClick={() => setIsOpen((current) => !current)}
         >
           <span aria-hidden="true">⌄</span>
@@ -121,7 +123,7 @@ function CountryCombobox({ value, onChange }: CountryComboboxProps) {
                 </button>
               ))
             ) : (
-              <p className="country-combobox-empty">No matching countries</p>
+              <p className="country-combobox-empty">{t('country.empty')}</p>
             )}
           </div>
         ) : null}

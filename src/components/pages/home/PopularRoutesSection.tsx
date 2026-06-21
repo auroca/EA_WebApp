@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import { FaHeart, FaRegHeart, FaStar, FaWheelchair } from 'react-icons/fa';
 import type { Route } from '../../../types/route';
-import { getDifficultyBadgePath, getRouteImage, toTitleCase } from '../../../utils/homeView';
+import { getDifficultyBadgePath, getRouteImage } from '../../../utils/homeView';
 import { buildRouteDetailUrl } from '../../../utils/routeNavigation';
 import { getStoredUser, isAuthenticated, saveStoredSessionUser } from '../../../services/authService';
 import { toggleFavoriteRouteByUserId } from '../../../services/profileService';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import type { TranslationKey } from '../../../i18n/translations';
 
 interface PopularRoutesSectionProps {
   routes: Route[];
 }
 
+const difficultyKeys: Record<Route['difficulty'], TranslationKey> = {
+  easy: 'common.difficulty.easy',
+  medium: 'common.difficulty.medium',
+  hard: 'common.difficulty.hard'
+};
+
 function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
+  const { t } = useLanguage();
   const storedUser = getStoredUser();
   const canUseFavorites = isAuthenticated() && Boolean(storedUser?._id);
   const [favoriteIds, setFavoriteIds] = useState<string[]>(storedUser?.favoriteRoutes ?? []);
@@ -38,9 +47,9 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
   };
 
   return (
-    <section className="content-block" aria-label="Top 5 popular routes">
+    <section className="content-block" aria-label={t('home.popularRoutes')}>
       <header className="block-head">
-        <h2>Top 5 popular routes</h2>
+        <h2>{t('home.popularRoutes')}</h2>
       </header>
 
       <div className="scroll-strip popular-strip">
@@ -59,7 +68,7 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
                     type="button"
                     className="popular-card-favorite-button"
                     onClick={(event) => handleToggleFavorite(event, route._id)}
-                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    aria-label={isFavorite ? t('common.removeFavorite') : t('common.addFavorite')}
                   >
                     {isFavorite ? <FaHeart /> : <FaRegHeart />}
                   </button>
@@ -77,14 +86,14 @@ function PopularRoutesSection({ routes }: PopularRoutesSectionProps) {
                       event.currentTarget.style.display = 'none';
                     }}
                   />
-                  <span>{toTitleCase(route.difficulty)}</span>
+                  <span>{t(difficultyKeys[route.difficulty])}</span>
                   {route.wheelchairAccessible ? (
-                    <span className="route-card-accessible" aria-label="Wheelchair accessible">
+                    <span className="route-card-accessible" aria-label={t('common.accessible')}>
                       <FaWheelchair aria-hidden="true" />
-                      Accessible
+                      {t('common.accessible')}
                     </span>
                   ) : null}
-                  <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                  <span className="route-card-rating" aria-label={t('common.averageRating', { rating: formattedRating })}>
                     <FaStar aria-hidden="true" />
                     {formattedRating}
                   </span>

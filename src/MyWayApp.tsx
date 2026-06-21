@@ -8,8 +8,10 @@ import type { Route } from './types/route';
 import { buildRouteDetailUrl, getRouteIdFromSearch } from './utils/routeNavigation';
 import './myway.css';
 import LoadingScreen from './components/shared/LoadingScreen';
+import { useLanguage } from './i18n/LanguageContext';
 
 function MyWayApp() {
+  const { t } = useLanguage();
   const [route, setRoute] = useState<Route | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -26,7 +28,7 @@ function MyWayApp() {
 
     const load = async (): Promise<void> => {
       if (!routeId) {
-        setError('Route ID is required.');
+        setError(t('myway.routeIdRequired'));
         setIsLoading(false);
         return;
       }
@@ -38,7 +40,7 @@ function MyWayApp() {
         }
 
         if (!result) {
-          setError('Route not found.');
+          setError(t('myway.routeNotFound'));
           setRoute(null);
           return;
         }
@@ -53,7 +55,7 @@ function MyWayApp() {
         if (loadError instanceof Error) {
           setError(loadError.message);
         } else {
-          setError('Unable to load route navigation data.');
+          setError(t('myway.routeLoadError'));
         }
       } finally {
         if (mounted) {
@@ -81,11 +83,8 @@ function MyWayApp() {
 
         <section className="myway-shell">
           <article className="myway-hero route-panel">
-            <h1>Start Route</h1>
-            <p>
-              Follow the route in real time with GPS guidance. Your position appears as a blue marker and
-              the route points are connected for easy navigation.
-            </p>
+            <h1>{t('myway.start')}</h1>
+            <p>{t('myway.description')}</p>
             {routeId ? (
               <button
                 type="button"
@@ -94,7 +93,7 @@ function MyWayApp() {
                   window.location.href = buildRouteDetailUrl(routeId);
                 }}
               >
-                Go back to route details
+                {t('myway.backDetails')}
               </button>
             ) : null}
           </article>

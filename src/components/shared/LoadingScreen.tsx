@@ -1,4 +1,8 @@
+import { useLanguage } from '../../i18n/LanguageContext';
+
 function LoadingScreen() {
+  const { t } = useLanguage();
+
   return (
     <div className="app-loading-screen" role="status" aria-live="polite">
       <div className="app-loading-content">
@@ -8,7 +12,7 @@ function LoadingScreen() {
           alt="Trip2Guide"
         />
         <span className="app-loading-spinner" aria-hidden="true" />
-        <p className="app-loading-text">We are preparing amazing routes just for you</p>
+        <p className="app-loading-text">{t('loading.routes')}</p>
       </div>
     </div>
   );

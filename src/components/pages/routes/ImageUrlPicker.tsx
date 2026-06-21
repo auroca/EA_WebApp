@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SearchClearButton from '../../shared/SearchClearButton';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface ImageUrlPickerProps {
   id: string;
@@ -41,6 +42,7 @@ const WIKIMEDIA_API_URL = 'https://commons.wikimedia.org/w/api.php';
 const cleanImageTitle = (title: string): string => title.replace(/^File:/, '').replace(/\.[^.]+$/, '');
 
 function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: ImageUrlPickerProps) {
+  const { t } = useLanguage();
   const searchControllerRef = useRef<AbortController | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(() => !value.trim());
@@ -116,7 +118,7 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
       setResults(nextResults);
 
       if (nextResults.length === 0) {
-        setError('No matching images found.');
+        setError(t('imagePicker.empty'));
       }
     } catch (searchError) {
       if (searchError instanceof DOMException && searchError.name === 'AbortError') {
@@ -124,13 +126,13 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
       }
 
       setResults([]);
-      setError('Unable to search images right now.');
+      setError(t('imagePicker.unavailable'));
     } finally {
       if (searchControllerRef.current === controller) {
         setIsSearching(false);
       }
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -199,7 +201,7 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
             src={value}
             alt={`${label} preview`}
             onError={() => {
-              setPreviewError('Unable to load this image URL. Choose another image.');
+              setPreviewError(t('imagePicker.loadError'));
               setIsEditing(true);
             }}
           />
@@ -225,7 +227,7 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
               }}
             />
             <button type="button" className="create-route-map-button image-url-picker-button" onClick={openPicker}>
-              Select an image from internet
+              {t('imagePicker.title')}
             </button>
           </div>
           {previewError ? <p className="image-url-preview-error">{previewError}</p> : null}
@@ -243,11 +245,11 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
           >
             <div className="image-picker-header">
               <div>
-                <h3 id={`${id}-image-picker-title`}>Select an image from internet</h3>
-                <p>Search Wikimedia Commons and choose an image to copy its direct URL.</p>
+                <h3 id={`${id}-image-picker-title`}>{t('imagePicker.title')}</h3>
+                <p>{t('imagePicker.help')}</p>
               </div>
 
-              <button type="button" className="point-map-close-button" aria-label="Close image search" onClick={closePicker}>
+              <button type="button" className="point-map-close-button" aria-label={t('imagePicker.close')} onClick={closePicker}>
                 &times;
               </button>
             </div>
@@ -258,15 +260,15 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
                 value={searchText}
                 autoComplete="off"
                 autoFocus
-                placeholder="Type a city, landmark or subject"
-                aria-label="Search internet images"
+                placeholder={t('imagePicker.placeholder')}
+                aria-label={t('imagePicker.search')}
                 onChange={(event) => setSearchText(event.target.value)}
               />
 
               {searchText ? (
                 <SearchClearButton
                   className="image-picker-search-clear"
-                  ariaLabel="Clear image search"
+                  ariaLabel={t('imagePicker.clear')}
                   onClick={() => {
                     searchControllerRef.current?.abort();
                     setSearchText('');
@@ -278,10 +280,10 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
               ) : null}
             </div>
 
-            {isSearching ? <p className="image-picker-status">Searching images...</p> : null}
+            {isSearching ? <p className="image-picker-status">{t('imagePicker.loading')}</p> : null}
             {!isSearching && error ? <p className="image-picker-status error">{error}</p> : null}
             {!isSearching && !error && searchText.trim().length < 3 ? (
-              <p className="image-picker-status">Type at least 3 characters to search.</p>
+              <p className="image-picker-status">{t('imagePicker.minChars')}</p>
             ) : null}
 
             <div className="image-picker-grid">
@@ -294,14 +296,14 @@ function ImageUrlPicker({ id, label, value, onChange, initialSearch = '' }: Imag
 
                   {result.sourceUrl ? (
                     <a href={result.sourceUrl} target="_blank" rel="noreferrer">
-                      View source
+                      {t('imagePicker.viewSource')}
                     </a>
                   ) : null}
                 </article>
               ))}
             </div>
 
-            <p className="image-picker-notice">Images are provided by Wikimedia Commons. Check the source page for license and attribution.</p>
+            <p className="image-picker-notice">{t('imagePicker.notice')}</p>
           </section>
         </div>
       ) : null}

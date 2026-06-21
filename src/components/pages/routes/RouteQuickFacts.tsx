@@ -1,4 +1,5 @@
 import { FaStar } from 'react-icons/fa';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface RouteQuickFactsProps {
   distance?: number;
@@ -8,25 +9,26 @@ interface RouteQuickFactsProps {
 }
 
 function RouteQuickFacts({ distance, duration, ratingAverage, reviewsCount }: RouteQuickFactsProps) {
+  const { t } = useLanguage();
   const formattedRating =
     typeof ratingAverage === 'number' && Number.isFinite(ratingAverage)
       ? ratingAverage.toFixed(1)
-      : 'Not rated';
+      : t('routeDetail.notRated');
 
   return (
-    <section className="route-facts" aria-label="Route quick facts">
+    <section className="route-facts" aria-label={t('routeDetail.quickFacts')}>
       <article className="route-fact-card">
-        <p>Distance</p>
-        <h3>{typeof distance === 'number' ? `${distance} km` : 'Not specified'}</h3>
+        <p>{t('common.distance')}</p>
+        <h3>{typeof distance === 'number' ? `${distance} km` : t('common.notSpecified')}</h3>
       </article>
 
       <article className="route-fact-card">
-        <p>Duration</p>
-        <h3>{typeof duration === 'number' ? `${duration} min` : 'Not specified'}</h3>
+        <p>{t('common.duration')}</p>
+        <h3>{typeof duration === 'number' ? `${duration} min` : t('common.notSpecified')}</h3>
       </article>
 
       <article className="route-fact-card route-fact-card--rating">
-        <p>Rating</p>
+        <p>{t('routeDetail.rating')}</p>
         <h3>
           <FaStar aria-hidden="true" />
           <span>{formattedRating}</span>
@@ -34,7 +36,7 @@ function RouteQuickFacts({ distance, duration, ratingAverage, reviewsCount }: Ro
         </h3>
         {typeof reviewsCount === 'number' && Number.isFinite(reviewsCount) ? (
           <span className="route-fact-card__meta">
-            {reviewsCount} review{reviewsCount === 1 ? '' : 's'}
+            {t('routeDetail.reviewsCount', { count: reviewsCount, plural: reviewsCount === 1 ? '' : 's' })}
           </span>
         ) : null}
       </article>

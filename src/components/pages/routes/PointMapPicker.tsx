@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import SearchClearButton from '../../shared/SearchClearButton';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface PointMapPickerProps {
   latitude: string;
@@ -50,6 +51,7 @@ const getInitialPosition = (latitude: string, longitude: string): L.LatLngTuple 
 };
 
 function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMapPickerProps) {
+  const { locale, t } = useLanguage();
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -180,7 +182,7 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
         format: 'jsonv2',
         addressdetails: '1',
         limit: '6',
-        'accept-language': 'en'
+        'accept-language': locale
       });
       const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
         signal: controller.signal,
@@ -197,7 +199,7 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
       setSearchResults(results);
 
       if (results.length === 0) {
-        setSearchError('No matching places found.');
+        setSearchError(t('map.empty'));
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
@@ -205,13 +207,13 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
       }
 
       setSearchResults([]);
-      setSearchError('Unable to search locations right now.');
+      setSearchError(t('map.unavailable'));
     } finally {
       if (searchControllerRef.current === controller) {
         setIsSearching(false);
       }
     }
-  }, []);
+  }, [locale, t]);
 
   useEffect(() => {
     if (!isOpen || !shouldSearchRef.current) {
@@ -261,7 +263,7 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
   return (
     <>
       <button type="button" className="create-route-map-button" onClick={openPicker}>
-        Select coordinates on map
+        {t('map.selectCoordinates')}
       </button>
 
       {isOpen ? (
@@ -275,11 +277,13 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
           >
             <div className="point-map-modal-header">
               <div>
-                <h3 id={`point-map-title-${pointNumber}`}>Choose point {pointNumber} coordinates</h3>
-                <p>Drag the marker or click the map. Use the layer control to switch views.</p>
+                <h3 id={`point-map-title-${pointNumber}`}>
+                  {t('map.title', { number: pointNumber })}
+                </h3>
+                <p>{t('map.help')}</p>
               </div>
 
-              <button type="button" className="point-map-close-button" aria-label="Close map" onClick={closePicker}>
+              <button type="button" className="point-map-close-button" aria-label={t('map.close')} onClick={closePicker}>
                 &times;
               </button>
             </div>
@@ -292,13 +296,14 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
                   shouldSearchRef.current = true;
                   setSearchText(event.target.value);
                 }}
-                placeholder="Type a municipality or place"
-                aria-label="Search municipality or place"
+                placeholder={t('map.placeholder')}
+                aria-label={t('map.search')}
                 autoComplete="off"
               />
               {searchText ? (
                 <SearchClearButton
                   className="point-map-search-clear"
+                  ariaLabel={t('map.clear')}
                   onClick={() => {
                     searchControllerRef.current?.abort();
                     shouldSearchRef.current = false;
@@ -310,11 +315,11 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
                 />
               ) : null}
 
-              {isSearching ? <p className="point-map-search-status neutral">Searching places...</p> : null}
+              {isSearching ? <p className="point-map-search-status neutral">{t('map.searching')}</p> : null}
               {!isSearching && searchError ? <p className="point-map-search-status">{searchError}</p> : null}
 
               {searchResults.length > 0 ? (
-                <div className="point-map-search-results" aria-label="Location search results">
+                <div className="point-map-search-results" aria-label={t('map.locationResults')}>
                   {searchResults.map((result) => (
                     <button type="button" key={result.place_id} onClick={() => selectSearchResult(result)}>
                       {result.display_name}
@@ -327,16 +332,16 @@ function PointMapPicker({ latitude, longitude, pointNumber, onSelect }: PointMap
             <div className="point-map-canvas" ref={mapContainer} />
 
             <div className="point-map-selection">
-              <span>Latitude: {selectedPosition[0].toFixed(6)}</span>
-              <span>Longitude: {selectedPosition[1].toFixed(6)}</span>
+              <span>{t('map.latitude')}: {selectedPosition[0].toFixed(6)}</span>
+              <span>{t('map.longitude')}: {selectedPosition[1].toFixed(6)}</span>
             </div>
 
             <div className="point-map-actions">
               <button type="button" className="create-route-secondary-button" onClick={closePicker}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button type="button" className="create-route-primary-button" onClick={confirmSelection}>
-                Use coordinates
+                {t('map.confirm')}
               </button>
             </div>
           </section>

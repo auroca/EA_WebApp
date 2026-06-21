@@ -12,16 +12,15 @@ export type SortOption =
 
 export interface TopNavItem {
   key: TopNavKey;
-  label: string;
   icon: string;
 }
 
 export const topNavItems: TopNavItem[] = [
-  { key: 'home', label: 'Home', icon: 'home' },
-  { key: 'routes', label: 'Routes', icon: 'routes' },
-  { key: 'chats', label: 'Chats', icon: 'chats' },
-  { key: 'favorites', label: 'Favorites', icon: 'favorites' },
-  { key: 'user', label: 'User', icon: 'user' }
+  { key: 'home', icon: 'home' },
+  { key: 'routes', icon: 'routes' },
+  { key: 'chats', icon: 'chats' },
+  { key: 'favorites', icon: 'favorites' },
+  { key: 'user', icon: 'user' }
 ];
 
 export function getTopNavIconPath(iconName: string, isSelected: boolean): string {
@@ -59,20 +58,20 @@ export function getDifficultyBadgePath(difficulty: Route['difficulty']): string 
   return `/resources/icons/badges/${difficulty.toLowerCase()}.png`;
 }
 
-export function getFeaturedOverlayText(index: number): string {
+export function getFeaturedOverlayKey(index: number): 'home.featuredDay' | 'home.featuredWeek' | 'home.featuredMonth' | 'home.featuredRoute' {
   if (index === 0) {
-    return 'Featured route of the day';
+    return 'home.featuredDay';
   }
 
   if (index === 1) {
-    return 'Featured route of the week';
+    return 'home.featuredWeek';
   }
 
   if (index === 2) {
-    return 'Featured route of the month';
+    return 'home.featuredMonth';
   }
 
-  return 'Featured route';
+  return 'home.featuredRoute';
 }
 
 function compareDifficulty(a: Route['difficulty'], b: Route['difficulty'], asc: boolean): number {

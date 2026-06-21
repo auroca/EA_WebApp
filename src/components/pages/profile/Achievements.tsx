@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Achievement } from '../../../types/achievement';
 import { getMyAchievements } from '../../../services/achievementService';
 import { getStoredUser } from '../../../services/authService';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 const getSeenAchievementsKey = (): string => {
   const user = getStoredUser();
@@ -22,6 +23,7 @@ const saveSeenAchievementCodes = (codes: string[]): void => {
 };
 
 export default function Achievements() {
+  const { t } = useLanguage();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [seenCodes, setSeenCodes] = useState<string[]>(getSeenAchievementCodes);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
@@ -36,7 +38,7 @@ export default function Achievements() {
         setError(null);
       })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Unable to load achievements.');
+        setError(err instanceof Error ? err.message : t('achievements.loadError'));
       })
       .finally(() => {
         setLoading(false);
@@ -61,7 +63,7 @@ export default function Achievements() {
     }
   };
 
-  if (loading) return <p>Cargando logros...</p>;
+  if (loading) return <p>{t('achievements.loading')}</p>;
   if (error) return <p>{error}</p>;
 
   const visibleAchievements = showAll
@@ -71,7 +73,7 @@ export default function Achievements() {
   return (
     <section className="achievements">
       <div className="achievements-header">
-        <h2>Logros</h2>
+        <h2>{t('achievements.title')}</h2>
 
         <button
           type="button"
@@ -81,12 +83,12 @@ export default function Achievements() {
             setSelectedAchievement(null);
           }}
         >
-          {showAll ? 'Ver desbloqueados' : 'Ver todos'}
+          {showAll ? t('achievements.showUnlocked') : t('achievements.showAll')}
         </button>
       </div>
 
       {visibleAchievements.length === 0 ? (
-        <p>Todavía no has desbloqueado ningún logro.</p>
+        <p>{t('achievements.empty')}</p>
       ) : (
         <div className="achievements-list">
           {visibleAchievements.map((achievement) => (
@@ -105,7 +107,7 @@ export default function Achievements() {
               </span>
               <span>{achievement.title}</span>
               {achievement.unlocked && !seenCodes.includes(achievement.code) ? (
-                <span className="new-achievement-badge">New achievement</span>
+                <span className="new-achievement-badge">{t('nav.newAchievement')}</span>
               ) : null}
             </button>
           ))}
@@ -119,8 +121,8 @@ export default function Achievements() {
 
           <small>
             {selectedAchievement.unlocked
-              ? 'Logro desbloqueado'
-              : 'Logro todavía bloqueado'}
+              ? t('achievements.unlocked')
+              : t('achievements.locked')}
           </small>
         </div>
       ) : null}

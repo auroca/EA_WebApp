@@ -1,4 +1,5 @@
 import { buildRouteSearchUrl } from '../../../utils/routeNavigation';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 interface NearbyLocation {
   id: string;
@@ -12,10 +13,12 @@ interface VisitedCitiesSectionProps {
 }
 
 function VisitedCitiesSection({ nearbyLocations }: VisitedCitiesSectionProps) {
+  const { t } = useLanguage();
+
   return (
-    <section className="content-block" aria-label="Top most visited cities">
+    <section className="content-block" aria-label={t('home.visitedCities')}>
       <header className="block-head">
-        <h2>Top most visited cities</h2>
+        <h2>{t('home.visitedCities')}</h2>
       </header>
 
       <div className="scroll-strip category-strip">

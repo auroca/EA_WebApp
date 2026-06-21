@@ -13,6 +13,7 @@ import type {
   ChatMessageEvent,
   ChatParticipantsEvent
 } from '../../../types/chat';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 const resolveMessageAuthor = (entry: ChatHistoryMessage): { id: string; username: string } => {
   if (!entry.userId) {
@@ -107,6 +108,7 @@ const formatMessageDate = (value: string): string => {
 };
 
 function ChatPage() {
+  const { t } = useLanguage();
   const user = getStoredUser();
   const token = getStoredToken();
   const socketRef = useRef<Socket | null>(null);
@@ -253,7 +255,7 @@ function ChatPage() {
         if (error instanceof Error) {
           setLoadError(error.message);
         } else {
-          setLoadError('Unable to load chats.');
+          setLoadError(t('chat.loadError'));
         }
       } finally {
         if (mounted) {
@@ -383,7 +385,7 @@ function ChatPage() {
         if (error instanceof Error) {
           setLoadError(error.message);
         } else {
-          setLoadError('Unable to open the selected chat.');
+          setLoadError(t('chat.openError'));
         }
       }
     };
@@ -444,7 +446,7 @@ function ChatPage() {
       if (error instanceof Error) {
         setJoinError(error.message);
       } else {
-        setJoinError('Unable to join this chat.');
+        setJoinError(t('chat.joinError'));
       }
     } finally {
       setJoiningChatId('');
@@ -471,12 +473,12 @@ function ChatPage() {
     const groupName = createGroupName.trim();
 
     if (!groupName) {
-      setCreateGroupError('Group name is required.');
+      setCreateGroupError(t('chat.groupNameRequired'));
       return;
     }
 
     if (groupName.length < 2) {
-      setCreateGroupError('Group name must be at least 2 characters.');
+      setCreateGroupError(t('chat.groupNameMin'));
       return;
     }
 
@@ -510,7 +512,7 @@ function ChatPage() {
       if (error instanceof Error) {
         setCreateGroupError(error.message);
       } else {
-        setCreateGroupError('Unable to create group.');
+        setCreateGroupError(t('chat.createError'));
       }
     } finally {
       setIsCreatingGroup(false);
@@ -523,7 +525,7 @@ function ChatPage() {
         <TopNav activeTopNav={'chats'} />
         <AccessibilityPanel />
         <section className="home-content">
-          <p className="status-message error">You need to log in to use chats.</p>
+          <p className="status-message error">{t('chat.loginRequired')}</p>
         </section>
       </main>
     );
@@ -536,9 +538,9 @@ function ChatPage() {
 
       <section className="home-content chat-page-layout">
         <aside className="chat-sidebar">
-          <h2 className="chat-sidebar-title">Available chats</h2>
+          <h2 className="chat-sidebar-title">{t('chat.available')}</h2>
 
-          {isLoading ? <p className="status-message">Loading chats...</p> : null}
+          {isLoading ? <p className="status-message">{t('chat.loading')}</p> : null}
           {!isLoading && loadError ? <p className="status-message error">{loadError}</p> : null}
           {!isLoading && joinError && !joinPasswordOpenFor ? <p className="status-message error">{joinError}</p> : null}
 
@@ -561,16 +563,22 @@ function ChatPage() {
                       <span className="chat-room-item-main">
                         <span className="chat-room-name">{chat.name}</span>
                         <span className="chat-room-meta">
-                          {isParticipant ? 'Participant' : requiresPassword ? 'Password required' : 'Open group'}
+                          {isParticipant ? t('chat.participant') : requiresPassword ? t('chat.passwordRequired') : t('chat.openGroup')}
                         </span>
                       </span>
 
                       {unreadCount > 0 && isParticipant ? (
-                        <span className="chat-unread-badge" aria-label={`${unreadCount} unread messages`}>
+                        <span
+                          className="chat-unread-badge"
+                          aria-label={t('chat.unreadMessage', {
+                            count: unreadCount,
+                            plural: unreadCount === 1 ? '' : 's'
+                          })}
+                        >
                           {unreadCount > 99 ? '99+' : unreadCount}
                         </span>
                       ) : requiresPassword ? (
-                        <span className="chat-room-lock">Locked</span>
+                        <span className="chat-room-lock">{t('chat.locked')}</span>
                       ) : null}
                     </button>
                   </li>
@@ -588,7 +596,7 @@ function ChatPage() {
                 setCreateGroupError('');
               }}
             >
-              + Create Group
+              + {t('chat.createGroup')}
             </button>
           ) : null}
         </aside>
@@ -596,15 +604,15 @@ function ChatPage() {
         <section className="chat-main">
           {!selectedChat ? (
             <div className="chat-empty-state">
-              <h3>Select a chat</h3>
-              <p>Open a group from the left panel to start messaging.</p>
+              <h3>{t('chat.select')}</h3>
+              <p>{t('chat.selectHelp')}</p>
             </div>
           ) : (
             <>
               <header className="chat-header">
                 <div>
                   <h2 className="chat-title">{selectedChat.name}</h2>
-                  <p className="chat-online-count">{onlineParticipants.length} online now</p>
+                  <p className="chat-online-count">{t('chat.onlineNow', { count: onlineParticipants.length })}</p>
                 </div>
                 <div className="chat-participant-chips">
                   {onlineParticipants.slice(0, 4).map((username) => (
@@ -638,13 +646,16 @@ function ChatPage() {
                       {showUnreadSeparator ? (
                         <div className="chat-unread-separator" ref={unreadSeparatorRef}>
                           <span>
-                            {unreadMarkerCount === 1 ? '1 unread message' : `${unreadMarkerCount} unread messages`}
+                            {t('chat.unreadMessage', {
+                              count: unreadMarkerCount,
+                              plural: unreadMarkerCount === 1 ? '' : 's'
+                            })}
                           </span>
                         </div>
                       ) : null}
                       <article className={isMine ? 'chat-message-row chat-message-row-mine' : 'chat-message-row'}>
                         <div className={bubbleClassName}>
-                          <p className="chat-message-author">{isMine ? 'You' : author.username}</p>
+                          <p className="chat-message-author">{isMine ? t('chat.you') : author.username}</p>
                           <p className="chat-message-text">{entry.message}</p>
                           <time className="chat-message-time">{formatMessageTime(entry.timestamp)}</time>
                         </div>
@@ -657,7 +668,7 @@ function ChatPage() {
               <div className="chat-input-row">
                 <input
                   className="chat-input"
-                  placeholder="Write your message..."
+                  placeholder={t('chat.messagePlaceholder')}
                   value={messageInput}
                   onChange={(event) => setMessageInput(event.target.value)}
                   onKeyDown={(event) => {
@@ -673,7 +684,7 @@ function ChatPage() {
                   onClick={handleSendMessage}
                   disabled={!messageInput.trim()}
                 >
-                  Send
+                  {t('chat.send')}
                 </button>
               </div>
             </>
@@ -684,15 +695,15 @@ function ChatPage() {
       {joinPasswordOpenFor ? (
         <div className="chat-join-modal-overlay">
           <div className="chat-join-modal">
-            <h3>Join {joinPasswordOpenFor.name}</h3>
-            <p>This group is protected. Enter the password to continue.</p>
+            <h3>{t('chat.join')} {joinPasswordOpenFor.name}</h3>
+            <p>{t('chat.passwordRequired')}</p>
 
             <input
               type="password"
               className="chat-join-password-input"
               value={joinPasswordValue}
               onChange={(event) => setJoinPasswordValue(event.target.value)}
-              placeholder="Group password"
+              placeholder={t('chat.groupPassword')}
             />
 
             {joinError ? <p className="status-message error">{joinError}</p> : null}
@@ -707,7 +718,7 @@ function ChatPage() {
                   setJoinError('');
                 }}
               >
-                Cancel
+                {t('createRoute.cancel')}
               </button>
 
               <button
@@ -718,7 +729,7 @@ function ChatPage() {
                   void handleJoinChat(joinPasswordOpenFor, joinPasswordValue);
                 }}
               >
-                {joiningChatId === joinPasswordOpenFor._id ? 'Joining...' : 'Join'}
+                {joiningChatId === joinPasswordOpenFor._id ? t('chat.joining') : t('chat.join')}
               </button>
             </div>
           </div>
@@ -728,15 +739,15 @@ function ChatPage() {
       {showCreateGroupModal ? (
         <div className="chat-join-modal-overlay">
           <div className="chat-join-modal">
-            <h3>Create New Group</h3>
-            <p>Enter a name for your group and optionally set a password.</p>
+            <h3>{t('chat.createGroupTitle')}</h3>
+            <p>{t('chat.createGroupHelp')}</p>
 
             <input
               type="text"
               className="chat-join-password-input"
               value={createGroupName}
               onChange={(event) => setCreateGroupName(event.target.value)}
-              placeholder="Group name"
+              placeholder={t('chat.groupName')}
               disabled={isCreatingGroup}
             />
 
@@ -745,7 +756,7 @@ function ChatPage() {
               className="chat-join-password-input"
               value={createGroupPassword}
               onChange={(event) => setCreateGroupPassword(event.target.value)}
-              placeholder="Password (optional)"
+              placeholder={t('chat.passwordOptional')}
               disabled={isCreatingGroup}
             />
 
@@ -763,7 +774,7 @@ function ChatPage() {
                 }}
                 disabled={isCreatingGroup}
               >
-                Cancel
+                {t('createRoute.cancel')}
               </button>
 
               <button
@@ -774,7 +785,7 @@ function ChatPage() {
                   void handleCreateGroup();
                 }}
               >
-                {isCreatingGroup ? 'Creating...' : 'Create'}
+                {isCreatingGroup ? t('chat.creating') : t('chat.create')}
               </button>
             </div>
           </div>

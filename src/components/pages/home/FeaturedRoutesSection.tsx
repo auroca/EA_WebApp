@@ -2,26 +2,35 @@ import type { Route } from '../../../types/route';
 import { FaStar, FaWheelchair } from 'react-icons/fa';
 import {
   getDifficultyBadgePath,
-  getFeaturedOverlayText,
+  getFeaturedOverlayKey,
   getRouteImage,
-  toTitleCase
 } from '../../../utils/homeView';
 import { buildRouteDetailUrl } from '../../../utils/routeNavigation';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import type { TranslationKey } from '../../../i18n/translations';
 
 interface FeaturedRoutesSectionProps {
   routes: Route[];
 }
 
+const difficultyKeys: Record<Route['difficulty'], TranslationKey> = {
+  easy: 'common.difficulty.easy',
+  medium: 'common.difficulty.medium',
+  hard: 'common.difficulty.hard'
+};
+
 function FeaturedRoutesSection({ routes }: FeaturedRoutesSectionProps) {
+  const { t } = useLanguage();
+
   return (
-    <section className="content-block" aria-label="Featured routes">
+    <section className="content-block" aria-label={t('home.featuredRoutes')}>
       <header className="block-head">
-        <h2>Featured routes</h2>
+        <h2>{t('home.featuredRoutes')}</h2>
       </header>
 
       <div className="scroll-strip featured-strip">
         {routes.map((route, index) => {
-          const featuredLabel = getFeaturedOverlayText(index);
+          const featuredLabel = t(getFeaturedOverlayKey(index));
           const formattedRating =
             typeof route.ratingAverage === 'number' && Number.isFinite(route.ratingAverage)
               ? route.ratingAverage.toFixed(1)
@@ -50,14 +59,14 @@ function FeaturedRoutesSection({ routes }: FeaturedRoutesSectionProps) {
                       event.currentTarget.style.display = 'none';
                     }}
                   />
-                  <span>{toTitleCase(route.difficulty)}</span>
+                  <span>{t(difficultyKeys[route.difficulty])}</span>
                   {route.wheelchairAccessible ? (
-                    <span className="route-card-accessible" aria-label="Wheelchair accessible">
+                    <span className="route-card-accessible" aria-label={t('common.accessible')}>
                       <FaWheelchair aria-hidden="true" />
-                      Accessible
+                      {t('common.accessible')}
                     </span>
                   ) : null}
-                  <span className="route-card-rating" aria-label={`Average rating ${formattedRating}`}>
+                  <span className="route-card-rating" aria-label={t('common.averageRating', { rating: formattedRating })}>
                     <FaStar aria-hidden="true" />
                     {formattedRating}
                   </span>

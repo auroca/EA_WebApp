@@ -8,6 +8,7 @@ import {
 } from '../../../services/authService';
 import { routeDataProvider } from '../../../services/routeService';
 import type { AuthMode } from '../../../types/auth';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 declare global {
   interface Window {
@@ -16,11 +17,6 @@ declare global {
 }
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
-
-const PASSWORD_ERROR =
-  'The password must have at least 6 characters, one uppercase letter, one number and one special character.';
-
-const PASSWORD_CONFIRM_ERROR = 'Passwords do not match.';
 
 interface AuthPageProps {
   mode: AuthMode;
@@ -57,6 +53,7 @@ const loadGoogleIdentityScript = (): Promise<void> => {
 };
 
 function AuthPage({ mode, onNavigate }: AuthPageProps) {
+  const { t } = useLanguage();
   const isLogin = mode === 'login';
 
   const redirectPath = useMemo(() => {
@@ -95,17 +92,16 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const [username, setUsername] = useState<string>('');
 
   const title = useMemo(() => {
-    return isLogin ? 'Sign in' : 'Create an account';
-  }, [isLogin]);
+    return isLogin ? t('auth.signIn') : t('auth.createTitle');
+  }, [isLogin, t]);
 
   const subtitle = useMemo(() => {
     return isLogin
-      ? 'Enter your email to continue'
-      : 'Enter your email to sign up in this app';
-  }, [isLogin]);
+      ? t('auth.signInSubtitle')
+      : t('auth.signUpSubtitle');
+  }, [isLogin, t]);
 
-  const legalText =
-    'By clicking continue, you agree to our Terms of Service and Privacy Policy.';
+  const legalText = t('auth.legal');
 
   useEffect(() => {
     if (!routeIdFromRedirect) {
@@ -121,11 +117,11 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
         const matchedRoute = data.routes.find((route) => route._id === routeIdFromRedirect);
 
         if (mounted) {
-          setRouteNameFromRedirect(matchedRoute?.name ?? 'this route');
+          setRouteNameFromRedirect(matchedRoute?.name ?? t('auth.thisRoute'));
         }
       } catch {
         if (mounted) {
-          setRouteNameFromRedirect('this route');
+          setRouteNameFromRedirect(t('auth.thisRoute'));
         }
       }
     };
@@ -135,7 +131,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
     return () => {
       mounted = false;
     };
-  }, [routeIdFromRedirect]);
+  }, [routeIdFromRedirect, t]);
 
   const finishSocialLogin = (): void => {
     if (redirectPath) {
@@ -152,7 +148,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
       await loadGoogleIdentityScript();
 
       if (!window.google?.accounts?.oauth2) {
-        setError('Google login is not available yet. Try again in a few seconds.');
+        setError(t('auth.googleUnavailable'));
         return;
       }
 
@@ -162,7 +158,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
         callback: async (tokenResponse: { access_token?: string; error?: string }) => {
           try {
             if (tokenResponse.error || !tokenResponse.access_token) {
-              setError(tokenResponse.error || 'Google did not return a valid token.');
+              setError(tokenResponse.error || t('auth.googleTokenError'));
               return;
             }
 
@@ -170,7 +166,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
             await loginWithGoogle(tokenResponse.access_token);
             finishSocialLogin();
           } catch (googleError) {
-            setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
+            setError(googleError instanceof Error ? googleError.message : t('auth.googleFailed'));
           } finally {
             setSubmitting(false);
           }
@@ -179,7 +175,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
 
       tokenClient.requestAccessToken();
     } catch (googleError) {
-      setError(googleError instanceof Error ? googleError.message : 'Google login failed.');
+      setError(googleError instanceof Error ? googleError.message : t('auth.googleFailed'));
     }
   };
 
@@ -188,7 +184,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
     setError('');
 
     if (!email.trim()) {
-      setError('Please enter an email address.');
+      setError(t('auth.emailRequired'));
       return;
     }
 
@@ -200,17 +196,17 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
     setError('');
 
     if (!password) {
-      setError('Please enter a password.');
+      setError(t('auth.passwordRequired'));
       return;
     }
 
     if (!isLogin && !PASSWORD_REGEX.test(password)) {
-      setError(PASSWORD_ERROR);
+      setError(t('auth.passwordRules'));
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
-      setError(PASSWORD_CONFIRM_ERROR);
+      setError(t('auth.passwordConfirmError'));
       return;
     }
 
@@ -242,7 +238,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
       if (submitError instanceof Error) {
         setError(submitError.message);
       } else {
-        setError('An unexpected error occurred.');
+        setError(t('auth.unexpected'));
       }
     } finally {
       setSubmitting(false);
@@ -266,7 +262,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
 
           {routeIdFromRedirect ? (
             <p className="auth-error auth-route-warning">
-              Login to view {routeNameFromRedirect || 'this route'}.
+              {t('auth.loginRoute', { route: routeNameFromRedirect || t('auth.thisRoute') })}
             </p>
           ) : null}
 
@@ -284,7 +280,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
               {error ? <p className="auth-error">{error}</p> : null}
 
               <button type="submit" className="auth-primary-button">
-                Continue
+                {t('auth.continue')}
               </button>
             </form>
           ) : (
@@ -303,7 +299,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   <input
                     className="auth-input"
                     type="text"
-                    placeholder="First name"
+                    placeholder={t('auth.firstName')}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     autoComplete="given-name"
@@ -312,7 +308,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   <input
                     className="auth-input"
                     type="text"
-                    placeholder="Last name"
+                    placeholder={t('auth.lastName')}
                     value={surname}
                     onChange={(event) => setSurname(event.target.value)}
                     autoComplete="family-name"
@@ -321,7 +317,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   <input
                     className="auth-input"
                     type="text"
-                    placeholder="Username"
+                    placeholder={t('common.username')}
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
                     autoComplete="username"
@@ -332,7 +328,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
               <input
                 className="auth-input"
                 type="password"
-                placeholder="Password"
+                placeholder={t('common.password')}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
@@ -342,7 +338,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                 <input
                   className="auth-input"
                   type="password"
-                  placeholder="Confirm password"
+                  placeholder={t('auth.passwordConfirm')}
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   autoComplete="new-password"
@@ -361,7 +357,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                     setConfirmPassword('');
                   }}
                 >
-                  Back
+                  {t('common.back')}
                 </button>
 
                 <button
@@ -370,10 +366,10 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
                   disabled={submitting}
                 >
                   {submitting
-                    ? 'Loading...'
+                    ? t('routes.loading')
                     : isLogin
-                      ? 'Sign in'
-                      : 'Create account'}
+                      ? t('auth.signIn')
+                      : t('auth.createAccount')}
                 </button>
               </div>
             </form>
@@ -381,7 +377,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
 
           <div className="auth-divider">
             <span className="auth-divider-line" />
-            <span className="auth-divider-text">or</span>
+            <span className="auth-divider-text">{t('auth.or')}</span>
             <span className="auth-divider-line" />
           </div>
 
@@ -394,7 +390,7 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
             disabled={submitting}
           >
             <FcGoogle className="auth-social-icon" />
-            <span>Continue with Google</span>
+            <span>{t('auth.continueGoogle')}</span>
           </button>
 
           <p className="auth-legal-text">{legalText}</p>
@@ -402,23 +398,23 @@ function AuthPage({ mode, onNavigate }: AuthPageProps) {
           <div className="auth-switch">
             {isLogin ? (
               <>
-                <span>Don&apos;t have an account?</span>
+                <span>{t('auth.noAccount')}</span>
                 <button type="button" onClick={() => onNavigate('/register')}>
-                  Sign up
+                  {t('auth.signUp')}
                 </button>
               </>
             ) : (
               <>
-                <span>Already have an account?</span>
+                <span>{t('auth.alreadyHaveAccount')}</span>
                 <button type="button" onClick={() => onNavigate('/login')}>
-                  Sign in
+                  {t('auth.signIn')}
                 </button>
               </>
             )}
           </div>
 
           <button type="button" className="auth-main-page-button" onClick={() => onNavigate('/')}>
-            Go to main page
+            {t('auth.goMain')}
           </button>
         </section>
       </div>
